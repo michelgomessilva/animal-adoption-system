@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ONG.API/ONG.API.csproj" />
+  <Project Path="ONG.Application/ONG.Application.csproj" />
+  <Project Path="ONG.Domain/ONG.Domain.csproj" />
+  <Project Path="ONG.Infrastructure/ONG.Infrastructure.csproj" />
+  <Project Path="ONG.Tests/ONG.Tests.csproj" />
+</Solution>
