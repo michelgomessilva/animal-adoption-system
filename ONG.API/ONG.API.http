@@ -1,6 +1,12 @@
-@ONG.API_HostAddress = http://localhost:5127
+POST https://localhost:7067/animals
+Content-Type: application/json
 
-GET {{ONG.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
+{
+  "name": "Rex",
+  "sex": "Male",
+  "size": "Medium",
+  "species": "Dog",
+  "approximateAge": 3,
+  "description": "Cão dócil e brincalhão",
+  "image": "rex.jpg"
+}

@@ -2,6 +2,7 @@
 {
     public enum Status
     {
+        None, 
         Available,
         Adopted
     }

@@ -4,15 +4,17 @@ namespace ONG.Domain.Entitites
 {
     public class Animal
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public Sex Sex { get; set; }
-        public Size Size { get; set; }
-        public Species Species { get; set; }
-        public int ApproximateAge { get; set; }
-        public string Description { get; set; } = string.Empty;
-        public string Image { get; set; } = string.Empty;
-        public Status Status { get; set; }
+        public Guid Id { get; private set; }
+        public string Name { get; private set; } = string.Empty;
+        public Sex Sex { get; private set; }
+        public Size Size { get; private set; }
+        public Species Species { get; private set; }
+        public int ApproximateAge { get; private set; }
+        public string Description { get; private set; } = string.Empty;
+        public string Image { get; private set; } = string.Empty;
+        public Status Status { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+
 
 
 
@@ -26,12 +28,14 @@ namespace ONG.Domain.Entitites
             string image,
             Status status)
         {
+            Id = Guid.NewGuid();
             Name = name;
             Sex = sex;
             Size = size;
             ApproximateAge = approximateAge;
             Description = description;
             Image = image;
+            CreatedAt = DateTime.UtcNow;
             Status = status;
         }
     }

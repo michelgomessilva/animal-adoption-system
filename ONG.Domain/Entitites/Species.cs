@@ -2,6 +2,7 @@
 {
     public enum Species
     {
+        None,
         Dog,
         Cat
     }

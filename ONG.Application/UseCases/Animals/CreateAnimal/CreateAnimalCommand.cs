@@ -2,7 +2,7 @@
 
 namespace ONG.Application.UseCases.Animals.CreateAnimal
 {
-    public class CreateAnimalRequest
+    public class CreateAnimalCommand
     {
         public string Name { get; set; } = string.Empty;
         public Species Species { get; set; }

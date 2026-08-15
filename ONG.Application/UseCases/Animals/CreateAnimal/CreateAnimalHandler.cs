@@ -10,17 +10,17 @@ namespace ONG.Application.UseCases.Animals.CreateAnimal
         {
             _repository = repository;
         }
-        public Animal Handle(CreateAnimalRequest request)
+        public Animal Handle(CreateAnimalCommand command)
         {
             var animal = new Animal(
-                request.Name,
-                request.Species,
-                request.Sex,
-                request.Size,
-                request.approximateAge,
-                request.Description,
-                request.Image,
-                request.Status
+                command.Name,
+                command.Species,
+                command.Sex,
+                command.Size,
+                command.approximateAge,
+                command.Description,
+                command.Image,
+                command.Status
                 );
 
             _repository.Add(animal);
