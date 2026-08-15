@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Projeto ONG - Sistema de Adoção de Animais
 
 Resumo rápido
@@ -95,3 +96,6 @@ Notas e próximos passos sugeridos
 - Adicionar scripts de seed e CI para executar migrations automaticamente em ambientes de teste.
 
 Se desejar, eu posso: gerar exemplos de testes, adicionar validação no CreateAnimalCommand ou criar endpoints adicionais.    
+=======
+# animal-adoption-system
+>>>>>>> origin/main
