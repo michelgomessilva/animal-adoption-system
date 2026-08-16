@@ -16,6 +16,11 @@ namespace ONG.Infrastructure.Repositories
         {
             _context.Animals.Add(animal);
         }
+
+        public Animal? GetById(Guid id)
+        {
+            return _context.Animals.FirstOrDefault(animal => animal.Id ==id);
+        }
         public void SaveChanges()
         {
             _context.SaveChanges();

@@ -20,7 +20,9 @@ namespace ONG.Application.UseCases.Animals.CreateAnimal
                 command.approximateAge,
                 command.Description,
                 command.Image,
-                command.Status
+                command.Status,
+                command.District,
+                command.City
                 );
 
             _repository.Add(animal);

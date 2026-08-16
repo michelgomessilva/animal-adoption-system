@@ -13,11 +13,16 @@ namespace ONG.Domain.Entitites
         public string Description { get; private set; } = string.Empty;
         public string Image { get; private set; } = string.Empty;
         public Status Status { get; private set; }
+        public string District { get; private set; } = string.Empty;
+        public string City { get; private set; } = string.Empty;
+        public DateTime? AdoptedAt { get; private set; }
         public DateTime CreatedAt { get; private set; }
 
-
-
-
+        public void Adopt()
+        {
+            Status = Status.Adopted;
+            AdoptedAt = DateTime.UtcNow;
+        }
         public Animal(
             string name,
             Species species,
@@ -26,7 +31,9 @@ namespace ONG.Domain.Entitites
             int approximateAge,
             string description,
             string image,
-            Status status)
+            Status status,
+            string district,
+            string city)
         {
             Id = Guid.NewGuid();
             Name = name;
@@ -37,6 +44,8 @@ namespace ONG.Domain.Entitites
             Image = image;
             CreatedAt = DateTime.UtcNow;
             Status = status;
+            District = district;
+            City = city;
         }
     }
 }

@@ -13,6 +13,7 @@ namespace ONG.Application.UseCases.Animals.CreateAnimal
         public int approximateAge { get; set; }
         public string Image { get; set; } = string.Empty;
         public Status Status { get; set; }
-
+        public string District { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
     }
 }
