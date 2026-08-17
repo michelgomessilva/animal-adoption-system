@@ -1,0 +1,17 @@
+name: ong
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ong_user
+      POSTGRES_PASSWORD: ong_password
+      POSTGRES_DB: ongdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ong_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  ong_postgres_data:
