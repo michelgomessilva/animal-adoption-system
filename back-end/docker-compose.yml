@@ -27,6 +27,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password"
+      AdminSeed__Username: "admin"
+      AdminSeed__Password: "change-me-in-real-deployments"
     ports:
       - "5127:8080"
     depends_on:

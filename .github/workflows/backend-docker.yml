@@ -11,7 +11,7 @@ on:
       - "back-end/**"
 
 jobs:
-  build-and-validate:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -28,8 +28,36 @@ jobs:
       - name: dotnet build
         run: dotnet build ONG.slnx
 
+  docker-smoke-test:
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: back-end
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: dotnet restore
+        run: dotnet restore ONG.slnx
+
       - name: Build backend Docker image
         run: docker compose build backend
+
+      - name: Start Postgres
+        run: docker compose up -d --wait postgres
+
+      - name: Apply EF Core migrations
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password"
+        run: |
+          dotnet tool restore
+          dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
 
       - name: Smoke test (docker compose up + Swagger check)
         run: |
