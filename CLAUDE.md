@@ -65,12 +65,18 @@ never folded into an unrelated one.
 
 ## CI
 
-`.github/workflows/backend-docker.yml` runs on PRs/pushes touching `back-end/**`:
-`dotnet build ONG.slnx` → `docker compose build backend` → start `postgres` alone
-and wait for it to be healthy → `dotnet tool restore` + `dotnet ef database update`
-(against the runner's `localhost:5432`) → `docker compose up -d` (starts `backend`
-against the now-migrated database) + poll `http://localhost:5127/swagger/v1/swagger.json`
-→ `docker compose down -v`.
+`.github/workflows/backend-docker.yml` runs on PRs/pushes touching `back-end/**`,
+as two jobs:
+
+- **`build`** — `dotnet build ONG.slnx`. Fast compile-only feedback; fails before
+  any Docker/Postgres work starts.
+- **`docker-smoke-test`** (`needs: build`, runs on its own runner — jobs don't
+  share state, so it does its own checkout/.NET setup) — `docker compose build
+  backend` → start `postgres` alone and wait for it to be healthy →
+  `dotnet tool restore` + `dotnet ef database update` (against the runner's
+  `localhost:5432`) → `docker compose up -d` (starts `backend` against the
+  now-migrated database) + poll `http://localhost:5127/swagger/v1/swagger.json`
+  → `docker compose down -v`.
 
 This was added after `F0001.1` shipped `AdminSeeder`, which queries the database at
 startup (`Program.cs`, before `app.Run()`) — the first startup-time DB read in this
