@@ -57,11 +57,13 @@ Passos
    docker compose up -d
    ```
 
-3. Configurar a connection string via user-secrets (não commitar credenciais no appsettings.json):
+3. Configurar a connection string via user-secrets — **apenas para desenvolvimento local, na sua máquina**. O valor abaixo é o mesmo definido no `docker-compose.yml` deste repositório; nunca commitar credenciais no `appsettings.json`:
 
    ```
    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password" --project ONG.API
    ```
+
+   Em outros ambientes (deploy, ex.: Render), a connection string real **não** vem de user-secrets — ela é configurada como variável de ambiente da própria plataforma, usando a chave `ConnectionStrings__DefaultConnection` (com `__` duplo, convenção do .NET para representar o `:` de seções de configuração). O `ASP.NET Core` já lê variáveis de ambiente automaticamente, sem nenhuma mudança de código.
 
 4. Aplicar migrations:
 
@@ -100,6 +102,10 @@ Exemplo de requisição:
   "status": "Available"
 }
 ```
+
+Problema conhecido
+
+- `dotnet ef database update` falha com "The model has pending changes": `Animal.AdoptedAt` (usado pelo endpoint `POST /animals/{id}/adopt`) não tem migration correspondente — a última migration (`AddAnimalLocation`) não inclui essa coluna. É preciso gerar uma nova migration (`dotnet ef migrations add ...`) antes de aplicar as migrations num banco novo.
 
 Notas e próximos passos sugeridos
 
