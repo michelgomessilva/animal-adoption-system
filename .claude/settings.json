@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit(./**/appsettings*.json)",
+      "Write(./**/appsettings*.json)",
+      "Edit(./**/*.env)",
+      "Write(./**/*.env)",
+      "Edit(./**/*.env.*)",
+      "Write(./**/*.env.*)",
+      "Edit(./docker-compose*.yml)",
+      "Write(./docker-compose*.yml)",
+      "Edit(./**/*.pfx)",
+      "Write(./**/*.pfx)",
+      "Edit(./**/*.pem)",
+      "Write(./**/*.pem)",
+      "Edit(./**/*.tfvars)",
+      "Write(./**/*.tfvars)",
+      "Edit(./back-end/.config/dotnet-tools.json)",
+      "Write(./back-end/.config/dotnet-tools.json)",
+      "Edit(./back-end/ONG.Infrastructure/Migrations/**)",
+      "Write(./back-end/ONG.Infrastructure/Migrations/**)"
+    ]
+  },
+  "enabledPlugins": {
+    "csharp-lsp@claude-plugins-official": true
+  }
+}
