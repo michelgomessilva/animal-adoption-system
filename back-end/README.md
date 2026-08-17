@@ -22,7 +22,7 @@ Estrutura da solução
 - ONG.Domain
   - Entidades e enums do domínio (Animal, Admin, Sex, Size, Species, Status).
 - ONG.Infrastructure
-  - Implementação do DbContext (ONGDbContext), repositório concreto (AnimalRepository), o seeder do usuário administrador (AdminSeeder, rodado na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable).
+  - Implementação do DbContext (ONGDbContext), repositório concreto (AnimalRepository), o seeder do usuário administrador (AdminSeeder, rodado na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
 - ONG.Tests
   - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1), cobrindo a entidade `Admin`, `ONGDbContext` e `AdminSeeder`.
 
@@ -147,8 +147,10 @@ Problema conhecido (resolvido)
 
 CI
 
-- Workflow `.github/workflows/backend-docker.yml`, roda em PR/push que tocam `back-end/**`: `dotnet build` → build da imagem Docker (`docker compose build backend`) → sobe `docker compose up -d` e confere se o Swagger responde.
-- **Limitação conhecida**: esse CI não aplica migrations nem roda `dotnet test` — o Swagger não toca no banco, e a suíte de testes (xUnit, adicionada na `F0001.1`) não é executada automaticamente. Um "model has pending changes" futuro não seria pego por este workflow; vale considerar adicionar um passo `dotnet ef database update` (contra o Postgres do próprio `docker compose`) e um passo `dotnet test` ao workflow.
+- Workflow `.github/workflows/backend-docker.yml`, roda em PR/push que tocam `back-end/**`, como dois jobs:
+  - `build` — só `dotnet build ONG.slnx`, feedback rápido de compilação, sem esperar Docker.
+  - `docker-smoke-test` (`needs: build`, roda em runner próprio — jobs não compartilham estado, então tem seu próprio checkout/restore) — build da imagem Docker (`docker compose build backend`) → sobe só o `postgres` e espera ficar saudável → `dotnet ef database update` (contra o Postgres do próprio `docker compose`) → sobe `docker compose up -d` (agora com o banco já migrado) e confere se o Swagger responde.
+- **Limitação conhecida**: esse CI não roda `dotnet test` — a suíte de testes (xUnit, adicionada na `F0001.1`) não é executada automaticamente, só localmente. Vale considerar adicionar um passo `dotnet test` ao workflow.
 
 Notas e próximos passos sugeridos
 
@@ -156,4 +158,4 @@ Notas e próximos passos sugeridos
 - Implementar endpoints para leitura, atualização e exclusão (GET, PUT, DELETE).
 - Framework de teste escolhido: xUnit (+ EF Core InMemory), já wired em `ONG.Tests` desde a slice `F0001.1` (11 testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`). Próximo passo natural: cobertura de testes de API (`Microsoft.AspNetCore.Mvc.Testing`) a partir do endpoint `POST /auth/login` (`F0001.2`).
 - Considerar DTOs separadas para requests/responses se as entidades mudarem no domínio.
-- Adicionar CI para executar testes e migrations automaticamente (ver limitação de CI acima).
+- Adicionar um passo `dotnet test` ao CI (ver limitação de CI acima) — migrations já são aplicadas automaticamente desde a `F0001.1`.
