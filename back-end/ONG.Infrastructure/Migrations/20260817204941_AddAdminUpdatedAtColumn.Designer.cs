@@ -12,7 +12,7 @@ using ONG.Infrastructure.DataBase;
 namespace ONG.Infrastructure.Migrations
 {
     [DbContext(typeof(ONGDbContext))]
-    [Migration("20260817204352_AddAdminUpdatedAtColumn")]
+    [Migration("20260817204941_AddAdminUpdatedAtColumn")]
     partial class AddAdminUpdatedAtColumn
     {
         /// <inheritdoc />

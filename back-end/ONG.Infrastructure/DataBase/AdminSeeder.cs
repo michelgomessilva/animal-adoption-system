@@ -21,6 +21,8 @@ namespace ONG.Infrastructure.DataBase
 
             if (admin is null)
             {
+                // RotatePassword() re-stamps UpdatedAt a moment after CreatedAt on a fresh
+                // insert — expected, since attaching the real hash genuinely is a rotation.
                 var newAdmin = new Admin(username, passwordHash: string.Empty);
                 newAdmin.RotatePassword(hasher.HashPassword(newAdmin, password));
                 context.Admins.Add(newAdmin);

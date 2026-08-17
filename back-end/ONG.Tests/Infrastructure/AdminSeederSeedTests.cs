@@ -64,6 +64,7 @@ namespace ONG.Tests.Infrastructure
             var dbName = Guid.NewGuid().ToString();
             using var context = CreateContext(dbName);
             AdminSeeder.Seed(context, BuildConfiguration("fernanda", "OldPassword1!"));
+            var originalUpdatedAt = context.Admins.Single().UpdatedAt;
 
             AdminSeeder.Seed(context, BuildConfiguration("fernanda", "NewPassword2!"));
 
@@ -74,21 +75,24 @@ namespace ONG.Tests.Infrastructure
                 hasher.VerifyHashedPassword(admin, admin.PasswordHash, "NewPassword2!"));
             Assert.Equal(PasswordVerificationResult.Failed,
                 hasher.VerifyHashedPassword(admin, admin.PasswordHash, "OldPassword1!"));
+            Assert.True(admin.UpdatedAt > originalUpdatedAt);
         }
 
         [Fact]
-        public void Seed_ExistingAdminWithUnchangedConfig_DoesNotInsertOrRehash()
+        public void Seed_ExistingAdminWithUnchangedConfig_DoesNotInsertOrRehashOrTouchUpdatedAt()
         {
             var dbName = Guid.NewGuid().ToString();
             using var context = CreateContext(dbName);
             var configuration = BuildConfiguration("fernanda", "S3nhaForte!");
             AdminSeeder.Seed(context, configuration);
             var originalHash = context.Admins.Single().PasswordHash;
+            var originalUpdatedAt = context.Admins.Single().UpdatedAt;
 
             AdminSeeder.Seed(context, configuration);
 
             Assert.Equal(1, context.Admins.Count());
             Assert.Equal(originalHash, context.Admins.Single().PasswordHash);
+            Assert.Equal(originalUpdatedAt, context.Admins.Single().UpdatedAt);
         }
     }
 }
