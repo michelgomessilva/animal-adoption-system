@@ -1,0 +1,37 @@
+name: ong
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ong_user
+      POSTGRES_PASSWORD: ong_password
+      POSTGRES_DB: ongdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ong_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ong_user -d ongdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: ONG.API/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password"
+    ports:
+      - "5127:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  ong_postgres_data:
