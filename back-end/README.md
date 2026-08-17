@@ -33,17 +33,21 @@ Status atual (o que já funciona)
 - Migrations iniciais criadas (contêm a tabela Animals)
 - Enums serializados como string no JSON (configuração em Program.cs)
 
-Como executar localmente
+Como executar
 
 Todos os comandos abaixo devem ser executados de dentro desta pasta (`back-end/`).
 
 Pré-requisitos
 
-- .NET 10 SDK
-- Docker (para subir o PostgreSQL via docker-compose) — ou uma instância própria de PostgreSQL, ajustando a connection string
-- (Opcional) Visual Studio 2022/2026 ou VS Code
+- Docker (para o PostgreSQL, e também para a Opção B abaixo)
+- Para a Opção A: .NET 10 SDK, (opcional) Visual Studio 2022/2026 ou VS Code
 
-Passos
+Existem dois jeitos de rodar o projeto — escolha o que fizer mais sentido pro seu momento:
+
+- **Opção A — desenvolvimento local (recomendado no dia a dia)**: só o Postgres roda em container; a API roda nativamente via `dotnet run`/Visual Studio. Ciclo de build/debug muito mais rápido — é o fluxo pra quando você está codando.
+- **Opção B — tudo via Docker**: banco e API rodam containerizados. Útil pra validar que a aplicação builda e roda corretamente empacotada (o mesmo Dockerfile que seria usado num deploy), ou pra subir o projeto sem precisar instalar o SDK .NET.
+
+Opção A — Desenvolvimento local
 
 1. Restaurar as ferramentas .NET do projeto (inclui o `dotnet-ef`, usado para aplicar migrations):
 
@@ -51,10 +55,10 @@ Passos
    dotnet tool restore
    ```
 
-2. Subir o PostgreSQL local via Docker:
+2. Subir só o PostgreSQL via Docker:
 
    ```
-   docker compose up -d
+   docker compose up -d postgres
    ```
 
 3. Configurar a connection string via user-secrets — **apenas para desenvolvimento local, na sua máquina**. O valor abaixo é o mesmo definido no `docker-compose.yml` deste repositório; nunca commitar credenciais no `appsettings.json`:
@@ -82,6 +86,26 @@ Passos
 6. Acessar Swagger para testar endpoints:
 
    - URL padrão: https://localhost:7067/swagger
+
+Opção B — Tudo via Docker
+
+1. Subir banco e API juntos (builda a imagem da API na primeira vez ou quando o código mudar):
+
+   ```
+   docker compose up -d --build
+   ```
+
+   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`).
+
+2. Aplicar migrations — a imagem final do `backend` usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), então isso continua sendo feito do host, contra o Postgres exposto em `localhost:5432` (mesmo passo 4 da Opção A, com `dotnet tool restore` antes se ainda não tiver rodado):
+
+   ```
+   dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
+   ```
+
+3. Acessar Swagger:
+
+   - URL: http://localhost:5127/swagger
 
 Endpoint principal
 
