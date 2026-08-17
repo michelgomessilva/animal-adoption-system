@@ -1,0 +1,12 @@
+POST https://localhost:7067/animals
+Content-Type: application/json
+
+{
+  "name": "Rex",
+  "sex": "Male",
+  "size": "Medium",
+  "species": "Dog",
+  "approximateAge": 3,
+  "description": "Cão dócil e brincalhão",
+  "image": "rex.jpg"
+}
