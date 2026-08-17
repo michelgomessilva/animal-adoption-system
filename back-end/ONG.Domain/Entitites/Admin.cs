@@ -16,5 +16,15 @@ namespace ONG.Domain.Entitites
             PasswordHash = passwordHash;
             CreatedAt = DateTime.UtcNow;
         }
+
+        public void Rename(string newUsername)
+        {
+            Username = newUsername;
+        }
+
+        public void RotatePassword(string newPasswordHash)
+        {
+            PasswordHash = newPasswordHash;
+        }
     }
 }
