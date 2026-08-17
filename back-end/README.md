@@ -131,6 +131,11 @@ Problema conhecido
 
 - `dotnet ef database update` falha com "The model has pending changes": `Animal.AdoptedAt` (usado pelo endpoint `POST /animals/{id}/adopt`) não tem migration correspondente — a última migration (`AddAnimalLocation`) não inclui essa coluna. É preciso gerar uma nova migration (`dotnet ef migrations add ...`) antes de aplicar as migrations num banco novo.
 
+CI
+
+- Workflow `.github/workflows/backend-docker.yml`, roda em PR/push que tocam `back-end/**`: `dotnet build` → build da imagem Docker (`docker compose build backend`) → sobe `docker compose up -d` e confere se o Swagger responde.
+- **Limitação conhecida**: esse CI não aplica migrations, então não pega o problema do `AdoptedAt` acima — o Swagger não toca no banco. Isso é proposital por enquanto (aplicar migrations bloquearia todo PR até aquele bug ser corrigido); quando a migration for adicionada, vale considerar incluir um passo de `dotnet ef database update` no workflow para cobrir esse tipo de problema automaticamente.
+
 Notas e próximos passos sugeridos
 
 - Adicionar validações no comando CreateAnimalCommand e tratamento de erros na API.

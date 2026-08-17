@@ -1,0 +1,51 @@
+name: backend-docker
+
+on:
+  pull_request:
+    paths:
+      - "back-end/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "back-end/**"
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: back-end
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: dotnet build
+        run: dotnet build ONG.slnx
+
+      - name: Build backend Docker image
+        run: docker compose build backend
+
+      - name: Smoke test (docker compose up + Swagger check)
+        run: |
+          docker compose up -d
+          echo "Waiting for backend to respond..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5127/swagger/v1/swagger.json > /dev/null; then
+              echo "Backend is up."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become ready in time."
+          docker compose logs
+          exit 1
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
