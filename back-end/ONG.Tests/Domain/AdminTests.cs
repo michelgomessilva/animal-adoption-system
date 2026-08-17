@@ -7,7 +7,7 @@ namespace ONG.Tests.Domain
     public class AdminTests
     {
         [Fact]
-        public void Constructor_SetsUsernamePasswordHashIdAndCreatedAt()
+        public void Constructor_SetsUsernamePasswordHashIdCreatedAtAndUpdatedAt()
         {
             var before = DateTime.UtcNow;
 
@@ -19,15 +19,17 @@ namespace ONG.Tests.Domain
             Assert.Equal("hashed-value", admin.PasswordHash);
             Assert.NotEqual(Guid.Empty, admin.Id);
             Assert.InRange(admin.CreatedAt, before, after);
+            Assert.Equal(admin.CreatedAt, admin.UpdatedAt);
         }
 
         [Fact]
-        public void Rename_UpdatesUsernameOnly()
+        public void Rename_UpdatesUsernameAndUpdatedAt_LeavesCreatedAtUnchanged()
         {
             var admin = new Admin("fernanda", "hashed-value");
             var originalId = admin.Id;
             var originalCreatedAt = admin.CreatedAt;
             var originalHash = admin.PasswordHash;
+            var originalUpdatedAt = admin.UpdatedAt;
 
             admin.Rename("nova-fernanda");
 
@@ -35,15 +37,18 @@ namespace ONG.Tests.Domain
             Assert.Equal(originalId, admin.Id);
             Assert.Equal(originalCreatedAt, admin.CreatedAt);
             Assert.Equal(originalHash, admin.PasswordHash);
+            Assert.NotEqual(originalUpdatedAt, admin.UpdatedAt);
+            Assert.True(admin.UpdatedAt >= originalUpdatedAt);
         }
 
         [Fact]
-        public void RotatePassword_UpdatesPasswordHashOnly()
+        public void RotatePassword_UpdatesPasswordHashAndUpdatedAt_LeavesCreatedAtUnchanged()
         {
             var admin = new Admin("fernanda", "hashed-value");
             var originalId = admin.Id;
             var originalCreatedAt = admin.CreatedAt;
             var originalUsername = admin.Username;
+            var originalUpdatedAt = admin.UpdatedAt;
 
             admin.RotatePassword("new-hashed-value");
 
@@ -51,6 +56,8 @@ namespace ONG.Tests.Domain
             Assert.Equal(originalId, admin.Id);
             Assert.Equal(originalCreatedAt, admin.CreatedAt);
             Assert.Equal(originalUsername, admin.Username);
+            Assert.NotEqual(originalUpdatedAt, admin.UpdatedAt);
+            Assert.True(admin.UpdatedAt >= originalUpdatedAt);
         }
     }
 }

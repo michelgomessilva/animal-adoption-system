@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ONG.Infrastructure.DataBase;
@@ -11,9 +12,11 @@ using ONG.Infrastructure.DataBase;
 namespace ONG.Infrastructure.Migrations
 {
     [DbContext(typeof(ONGDbContext))]
-    partial class ONGDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260817204352_AddAdminUpdatedAtColumn")]
+    partial class AddAdminUpdatedAtColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

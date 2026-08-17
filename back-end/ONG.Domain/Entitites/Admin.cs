@@ -8,6 +8,7 @@ namespace ONG.Domain.Entitites
         public string Username { get; private set; } = string.Empty;
         public string PasswordHash { get; private set; } = string.Empty;
         public DateTime CreatedAt { get; private set; }
+        public DateTime UpdatedAt { get; private set; }
 
         public Admin(string username, string passwordHash)
         {
@@ -15,16 +16,19 @@ namespace ONG.Domain.Entitites
             Username = username;
             PasswordHash = passwordHash;
             CreatedAt = DateTime.UtcNow;
+            UpdatedAt = CreatedAt;
         }
 
         public void Rename(string newUsername)
         {
             Username = newUsername;
+            UpdatedAt = DateTime.UtcNow;
         }
 
         public void RotatePassword(string newPasswordHash)
         {
             PasswordHash = newPasswordHash;
+            UpdatedAt = DateTime.UtcNow;
         }
     }
 }
