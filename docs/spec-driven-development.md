@@ -159,8 +159,11 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
     Infrastructure layers (rich domain, per the standards above).
   - `ONG.Infrastructure` — EF Core `ONGDbContext`, repositories (e.g.
     `AnimalRepository`), and `Migrations/`.
-  - `ONG.Tests` — currently empty; **xUnit** is the target test framework once test
-    packages are installed (not yet present in `ONG.slnx`).
+  - `ONG.Tests` — **xUnit** + `Microsoft.EntityFrameworkCore.InMemory` wired in as of
+    `F0001.1` (`docs/features/F0001.1-admin-identity.md`), the first tests in the repo
+    (11 tests, `Admin`/`ONGDbContext`/`AdminSeeder`). One test is tagged
+    `[Trait("Category", "Integration")]` and needs a reachable local Postgres — see
+    `CLAUDE.md`'s Commands/Test caveat for the exact filter.
 - **Use-case pattern** — every feature slice that touches Application logic adds a
   `Command` + `Handler` pair; controllers in `ONG.API` stay thin and only translate
   HTTP ⇄ command.
@@ -177,8 +180,9 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
   boundary as the point where they become enforceable.
 - **Build / Test / Format commands** (run from `back-end/`):
   - Build: `dotnet build ONG.slnx`
-  - Test: `dotnet test ONG.slnx` (target command — xUnit/etc. not yet installed
-    in `ONG.Tests`; wire it up before relying on this in CI or hooks).
+  - Test: `dotnet test ONG.slnx` (xUnit wired in as of `F0001.1`; use
+    `dotnet test ONG.slnx --filter "Category!=Integration"` to skip the one test that
+    needs a reachable local Postgres — see `CLAUDE.md`).
   - Format: `dotnet format ONG.slnx`
 - **CI** — GitHub Actions at `.github/workflows/backend-docker.yml`, triggered on
   changes under `back-end/**`: runs `dotnet build ONG.slnx`, builds the backend
@@ -193,10 +197,11 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
     other diff; migrations are never edited after being merged.
   - **Command/Handler over anemic services** — business rules live in the Domain
     layer or the Handler, not scattered across controllers.
-  - **xUnit** is the target test framework for `ONG.Tests`; prefer it (with
-    `Microsoft.AspNetCore.Mvc.Testing` for API-level tests) once the test project is
-    bootstrapped, to keep parity with the `dotnet test ONG.slnx` command already
-    wired into CI.
+  - **xUnit** is the wired-in test framework for `ONG.Tests` (`Microsoft.EntityFrameworkCore.InMemory`
+    for `ONGDbContext`/`AdminSeeder`-level tests as of `F0001.1`); prefer
+    `Microsoft.AspNetCore.Mvc.Testing` for API-level tests once an HTTP endpoint needs
+    coverage (starting with `F0001.2`'s `POST /auth/login`), to keep parity with the
+    `dotnet test ONG.slnx` command CI relies on.
 
 ---
 
@@ -213,7 +218,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 
 | ID     | Slug         | Domain | Status | Slices | Path                              |
 | ------ | ------------ | ------ | ------ | ------ | --------------------------------- |
-| F0001  | admin-login  | Authentication | draft | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
+| F0001  | admin-login  | Authentication | in-progress | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
 
 ---
 

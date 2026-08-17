@@ -54,19 +54,23 @@ does not enforce secondary unique indexes; without Postgres up it fails with a
 clear, actionable message (not a raw connection stack trace). To run only the
 Postgres-independent tests: `dotnet test ONG.slnx --filter "Category!=Integration"`.
 
-**Known gap:** `dotnet ef database update` currently fails with "the model has
-pending changes" — `Animal.AdoptedAt` (added for `POST /animals/{id}/adopt`,
-see `back-end/ONG.Domain/Entitites/Animal.cs`) has no corresponding EF Core
-migration yet. Don't silently paper over this; it needs a real migration
-(`dotnet ef migrations add ...`) as its own change.
+**Resolved gap:** the previous "`dotnet ef database update` fails with 'the model has
+pending changes' because `Animal.AdoptedAt` has no migration" gap was closed by
+`F0001.1` (`docs/features/F0001.1-admin-identity.md`) via the dedicated
+`FixAnimalAdoptedAtColumn` migration, landed as its own commit before the unrelated
+`AddAdminTable` migration in the same slice — `dotnet ef database update` now
+succeeds end-to-end for the first time. If it starts failing again with a similar
+"pending changes" error, treat it the same way: a real migration as its own change,
+never folded into an unrelated one.
 
 ## CI
 
 `.github/workflows/backend-docker.yml` runs on PRs/pushes touching `back-end/**`:
 `dotnet build ONG.slnx` → `docker compose build backend` → `docker compose up -d`
 + poll `http://localhost:5127/swagger/v1/swagger.json` → `docker compose down -v`.
-It does **not** run migrations, so it will not catch the `AdoptedAt` migration gap
-above — don't rely on a green CI run as proof migrations are consistent.
+It does **not** run migrations — a future "pending model changes" gap like the one
+above would not be caught by CI, so don't rely on a green CI run as proof migrations
+are consistent; verify with `dotnet ef database update` locally.
 
 ## Architecture
 
@@ -78,7 +82,7 @@ Clean Architecture, 5 projects under `back-end/`, referenced in `ONG.slnx`:
 | `ONG.Application` | Use-case layer: one Command + Handler pair per feature (`UseCases/<Aggregate>/<UseCase>/`), repository interfaces (`Repositories/I*Repository.cs`). No EF Core / infrastructure references. |
 | `ONG.Domain` | Entities and enums, no external dependencies. Folder is `Entitites/` (misspelled in the actual repo — preserve it, don't "fix" the name in isolation). |
 | `ONG.Infrastructure` | EF Core `ONGDbContext` (`DataBase/ONGDbContext.cs`), repository implementations (`Repositories/*Repository.cs`), EF Core Migrations. |
-| `ONG.Tests` | Test project. Empty scaffold — no test framework wired in yet (see Commands caveat). |
+| `ONG.Tests` | Test project. xUnit + `Microsoft.EntityFrameworkCore.InMemory` wired in as of `F0001.1` — see Commands/Test caveat. |
 
 Dependency direction: `ONG.API` → `ONG.Application` + `ONG.Infrastructure` → `ONG.Application` → `ONG.Domain`. `ONG.Domain` has no outward dependencies.
 
@@ -106,10 +110,15 @@ db `ongdb`, port 5432). Migrations live in `ONG.Infrastructure/Migrations/`.
 
 ### Auth / multi-tenancy
 
-None implemented. Single-organization system — there is no tenant isolation
-invariant to defend in this codebase today. Do not add tenant-scoping code
-speculatively; if auth is introduced later, this section and the security
-standards in `docs/spec-driven-development.md` need a real update first.
+No auth flow or middleware implemented yet. `F0001.1`
+(`docs/features/F0001.1-admin-identity.md`) landed an `Admin` identity — a seeded row
+in the `Admins` table — but that is data-layer only: there is still no
+`POST /auth/login` endpoint (that is `F0001.2`) and no route is protected (`F0002`,
+Sprint S02 per `docs/product/PROJECT-admin-authentication.md`). Single-organization
+system — there is no tenant isolation invariant to defend in this codebase today. Do
+not add tenant-scoping code speculatively; once `F0001.2`/`F0002` land real auth, this
+section and the security standards in `docs/spec-driven-development.md` need a real
+update.
 
 ## Key Patterns
 
@@ -132,6 +141,17 @@ standards in `docs/spec-driven-development.md` need a real update first.
   (e.g. no `AddApplication()`/`AddInfrastructure()`); registrations are inline.
   If the registration list grows, consider extracting per-layer
   `IServiceCollection` extensions rather than letting `Program.cs` sprawl.
+- **Startup reconcile seeding** — `AdminSeeder.Seed`
+  (`ONG.Infrastructure/DataBase/AdminSeeder.cs`), invoked from `Program.cs` in a
+  scoped block before `app.Run()`: first calls `ValidateConfiguration` to fail fast
+  (unhandled `InvalidOperationException`, crashing startup) if required config
+  (`AdminSeed:Username`/`AdminSeed:Password`) is missing — before touching the
+  `DbContext` at all — then inserts the `Admin` row if none exists, or reconciles
+  `Username`/`PasswordHash` to match config if it has drifted (so rotating the
+  CI/CD secret store and redeploying is enough to rotate the admin password, no
+  manual DB edit). The precedent for any future startup-time seeding that must
+  degrade to fail-fast-crash on misconfiguration rather than silently start into an
+  unusable or insecure state.
 
 ## Code Quality Rules
 

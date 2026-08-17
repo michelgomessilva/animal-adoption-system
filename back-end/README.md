@@ -20,18 +20,23 @@ Estrutura da solução
 - ONG.Application
   - Camada de aplicação: interfaces de repositório e casos de uso (CreateAnimalCommand + CreateAnimalHandler).
 - ONG.Domain
-  - Entidades e enums do domínio (Animal, Sex, Size, Species, Status).
+  - Entidades e enums do domínio (Animal, Admin, Sex, Size, Species, Status).
 - ONG.Infrastructure
-  - Implementação do DbContext (ONGDbContext), repositório concreto (AnimalRepository) e migrations (InitialCreate).
+  - Implementação do DbContext (ONGDbContext), repositório concreto (AnimalRepository), o seeder do usuário administrador (AdminSeeder, rodado na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable).
 - ONG.Tests
-  - Projeto de testes (ainda sem framework de teste nem testes adicionados).
+  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1), cobrindo a entidade `Admin`, `ONGDbContext` e `AdminSeeder`.
 
 Status atual (o que já funciona)
 
 - Criar animal via endpoint POST /animals
 - Persistência no banco via AnimalRepository e ONGDbContext
-- Migrations iniciais criadas (contêm a tabela Animals)
+- Migrations criadas para as tabelas Animals e Admins
 - Enums serializados como string no JSON (configuração em Program.cs)
+- Usuário administrador único (`Admin`) provisionado automaticamente na inicialização
+  da API via `AdminSeeder`, com senha hasheada a partir de configuração
+  (`AdminSeed:Username`/`AdminSeed:Password` — ver seção "Como executar" abaixo).
+  Ainda não existe endpoint de login (`POST /auth/login`); essa é a próxima slice
+  (`F0001.2`, ver `docs/features/F0001-admin-login.md`).
 
 Como executar
 
@@ -69,6 +74,15 @@ Opção A — Desenvolvimento local
 
    Em outros ambientes (deploy, ex.: Render), a connection string real **não** vem de user-secrets — ela é configurada como variável de ambiente da própria plataforma, usando a chave `ConnectionStrings__DefaultConnection` (com `__` duplo, convenção do .NET para representar o `:` de seções de configuração). O `ASP.NET Core` já lê variáveis de ambiente automaticamente, sem nenhuma mudança de código.
 
+   Da mesma forma, configure as credenciais do usuário administrador seedado na
+   inicialização — **obrigatório**: sem elas a API falha ao subir (`AdminSeeder.ValidateConfiguration`
+   lança exceção antes de qualquer acesso ao banco, de propósito, ver `docs/features/F0001.1-admin-identity.md`):
+
+   ```
+   dotnet user-secrets set "AdminSeed:Username" "admin" --project ONG.API
+   dotnet user-secrets set "AdminSeed:Password" "<uma senha local qualquer>" --project ONG.API
+   ```
+
 4. Aplicar migrations:
 
    ```
@@ -95,7 +109,7 @@ Opção B — Tudo via Docker
    docker compose up -d --build
    ```
 
-   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`).
+   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) já vêm configuradas como placeholders locais no `docker-compose.yml` — não precisam ser definidas manualmente aqui; nunca use esses valores fora de ambiente local.
 
 2. Aplicar migrations — a imagem final do `backend` usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), então isso continua sendo feito do host, contra o Postgres exposto em `localhost:5432` (mesmo passo 4 da Opção A, com `dotnet tool restore` antes se ainda não tiver rodado):
 
@@ -127,19 +141,19 @@ Exemplo de requisição:
 }
 ```
 
-Problema conhecido
+Problema conhecido (resolvido)
 
-- `dotnet ef database update` falha com "The model has pending changes": `Animal.AdoptedAt` (usado pelo endpoint `POST /animals/{id}/adopt`) não tem migration correspondente — a última migration (`AddAnimalLocation`) não inclui essa coluna. É preciso gerar uma nova migration (`dotnet ef migrations add ...`) antes de aplicar as migrations num banco novo.
+- `dotnet ef database update` falhava com "The model has pending changes": `Animal.AdoptedAt` (usado pelo endpoint `POST /animals/{id}/adopt`) não tinha migration correspondente. Resolvido na slice `F0001.1` pela migration `FixAnimalAdoptedAtColumn` (ver `docs/features/F0001.1-admin-identity.md`) — `dotnet ef database update` agora aplica normalmente num banco novo.
 
 CI
 
 - Workflow `.github/workflows/backend-docker.yml`, roda em PR/push que tocam `back-end/**`: `dotnet build` → build da imagem Docker (`docker compose build backend`) → sobe `docker compose up -d` e confere se o Swagger responde.
-- **Limitação conhecida**: esse CI não aplica migrations, então não pega o problema do `AdoptedAt` acima — o Swagger não toca no banco. Isso é proposital por enquanto (aplicar migrations bloquearia todo PR até aquele bug ser corrigido); quando a migration for adicionada, vale considerar incluir um passo de `dotnet ef database update` no workflow para cobrir esse tipo de problema automaticamente.
+- **Limitação conhecida**: esse CI não aplica migrations nem roda `dotnet test` — o Swagger não toca no banco, e a suíte de testes (xUnit, adicionada na `F0001.1`) não é executada automaticamente. Um "model has pending changes" futuro não seria pego por este workflow; vale considerar adicionar um passo `dotnet ef database update` (contra o Postgres do próprio `docker compose`) e um passo `dotnet test` ao workflow.
 
 Notas e próximos passos sugeridos
 
 - Adicionar validações no comando CreateAnimalCommand e tratamento de erros na API.
 - Implementar endpoints para leitura, atualização e exclusão (GET, PUT, DELETE).
-- Escolher um framework de teste (xUnit/NUnit/MSTest) e cobrir o projeto com testes automatizados no projeto ONG.Tests.
+- Framework de teste escolhido: xUnit (+ EF Core InMemory), já wired em `ONG.Tests` desde a slice `F0001.1` (11 testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`). Próximo passo natural: cobertura de testes de API (`Microsoft.AspNetCore.Mvc.Testing`) a partir do endpoint `POST /auth/login` (`F0001.2`).
 - Considerar DTOs separadas para requests/responses se as entidades mudarem no domínio.
-- Adicionar CI para executar build/testes/migrations automaticamente.
+- Adicionar CI para executar testes e migrations automaticamente (ver limitação de CI acima).
