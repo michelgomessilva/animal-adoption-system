@@ -45,10 +45,14 @@ docker compose up -d --build
 dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
 ```
 
-**Test caveat:** `ONG.Tests.csproj` has no test framework package installed yet
-(no xUnit/NUnit/MSTest). `dotnet test ONG.slnx` is the command to use going
-forward, but until a framework is added it will build the project and report
-zero tests found — that is not evidence tests exist or pass.
+**Test caveat:** `ONG.Tests` has xUnit + `Microsoft.EntityFrameworkCore.InMemory`
+wired in — `dotnet test ONG.slnx` runs the suite. One test,
+`ONGDbContextTests.SavingSecondAdminWithDuplicateUsername_Throws`, is tagged
+`[Trait("Category", "Integration")]` and requires a real, reachable local
+Postgres (`docker compose up -d postgres`) because `EntityFrameworkCore.InMemory`
+does not enforce secondary unique indexes; without Postgres up it fails with a
+clear, actionable message (not a raw connection stack trace). To run only the
+Postgres-independent tests: `dotnet test ONG.slnx --filter "Category!=Integration"`.
 
 **Known gap:** `dotnet ef database update` currently fails with "the model has
 pending changes" — `Animal.AdoptedAt` (added for `POST /animals/{id}/adopt`,

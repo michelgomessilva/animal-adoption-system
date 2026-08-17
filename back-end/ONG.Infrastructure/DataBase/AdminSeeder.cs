@@ -21,8 +21,9 @@ namespace ONG.Infrastructure.DataBase
 
             if (admin is null)
             {
-                var passwordHash = hasher.HashPassword(null!, password);
-                context.Admins.Add(new Admin(username, passwordHash));
+                var newAdmin = new Admin(username, passwordHash: string.Empty);
+                newAdmin.RotatePassword(hasher.HashPassword(newAdmin, password));
+                context.Admins.Add(newAdmin);
                 context.SaveChanges();
                 return;
             }
