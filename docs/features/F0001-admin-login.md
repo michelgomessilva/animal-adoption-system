@@ -130,7 +130,7 @@ not by a self-registration endpoint.
 | Slice    | Slug            | Short description                                                                 | Status  |
 | -------- | --------------- | ------------------------------------------------------------------------------------ | ------- |
 | F0001.1  | admin-identity  | `Admin` entity + EF Core migration + seed mechanism (hashed password from config) for the single admin user. No endpoint yet. | implemented, `code-reviewer` APPROVED, PR to `main` pending — see `docs/features/F0001.1-admin-identity.md` §8 |
-| F0001.2  | login-endpoint  | `POST /auth/login` (Command+Handler+Controller) validating credentials against the seeded `Admin` and issuing an auth credential. | planned |
+| F0001.2  | login-endpoint  | `POST /auth/login` (Command+Handler+Controller) validating credentials against the seeded `Admin` and issuing an auth credential. | spec created / in research — see `docs/features/F0001.2-login-endpoint.md` |
 
 > Each slice is independently reviewable: `.1` lands the data layer with no behavior
 > change exposed via the API; `.2` builds the endpoint on top of it.
