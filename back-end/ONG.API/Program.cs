@@ -28,6 +28,11 @@ builder.Services.AddScoped< CreateAnimalHandler > ();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    AdminSeeder.Seed(scope.ServiceProvider.GetRequiredService<ONGDbContext>(), builder.Configuration);
+}
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
