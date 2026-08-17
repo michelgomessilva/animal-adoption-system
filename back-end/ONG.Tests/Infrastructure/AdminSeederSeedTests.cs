@@ -57,5 +57,38 @@ namespace ONG.Tests.Infrastructure
             Assert.Equal(1, context.Admins.Count());
             Assert.Equal("fernanda", context.Admins.Single().Username);
         }
+
+        [Fact]
+        public void Seed_ExistingAdminWithChangedPassword_RotatesHashAndVerifiesOnlyAgainstNewPassword()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+            AdminSeeder.Seed(context, BuildConfiguration("fernanda", "OldPassword1!"));
+
+            AdminSeeder.Seed(context, BuildConfiguration("fernanda", "NewPassword2!"));
+
+            Assert.Equal(1, context.Admins.Count());
+            var admin = context.Admins.Single();
+            var hasher = new PasswordHasher<Admin>();
+            Assert.Equal(PasswordVerificationResult.Success,
+                hasher.VerifyHashedPassword(admin, admin.PasswordHash, "NewPassword2!"));
+            Assert.Equal(PasswordVerificationResult.Failed,
+                hasher.VerifyHashedPassword(admin, admin.PasswordHash, "OldPassword1!"));
+        }
+
+        [Fact]
+        public void Seed_ExistingAdminWithUnchangedConfig_DoesNotInsertOrRehash()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+            var configuration = BuildConfiguration("fernanda", "S3nhaForte!");
+            AdminSeeder.Seed(context, configuration);
+            var originalHash = context.Admins.Single().PasswordHash;
+
+            AdminSeeder.Seed(context, configuration);
+
+            Assert.Equal(1, context.Admins.Count());
+            Assert.Equal(originalHash, context.Admins.Single().PasswordHash);
+        }
     }
 }

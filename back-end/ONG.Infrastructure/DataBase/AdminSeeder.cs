@@ -24,6 +24,27 @@ namespace ONG.Infrastructure.DataBase
                 var passwordHash = hasher.HashPassword(null!, password);
                 context.Admins.Add(new Admin(username, passwordHash));
                 context.SaveChanges();
+                return;
+            }
+
+            var changed = false;
+
+            if (!string.Equals(admin.Username, username, StringComparison.Ordinal))
+            {
+                admin.Rename(username);
+                changed = true;
+            }
+
+            var verification = hasher.VerifyHashedPassword(admin, admin.PasswordHash, password);
+            if (verification != PasswordVerificationResult.Success)
+            {
+                admin.RotatePassword(hasher.HashPassword(admin, password));
+                changed = true;
+            }
+
+            if (changed)
+            {
+                context.SaveChanges();
             }
         }
 
