@@ -68,23 +68,28 @@ never folded into an unrelated one.
 `.github/workflows/backend-docker.yml` runs on PRs/pushes touching `back-end/**`,
 as two jobs:
 
-- **`build`** — `dotnet build ONG.slnx`. Fast compile-only feedback; fails before
-  any Docker/Postgres work starts.
+- **`build`** — `dotnet build ONG.slnx` → `dotnet test ONG.slnx --filter
+  "Category!=Integration"`. Fast compile + test feedback (no Docker/Postgres
+  required — this covers unit tests, EF Core InMemory integration tests, and the
+  E2E tests that run through `WebApplicationFactory<Program>` with the `DbContext`
+  swapped to InMemory); fails before any Docker/Postgres work starts.
 - **`docker-smoke-test`** (`needs: build`, runs on its own runner — jobs don't
   share state, so it does its own checkout/.NET setup) — `docker compose build
   backend` → start `postgres` alone and wait for it to be healthy →
   `dotnet tool restore` + `dotnet ef database update` (against the runner's
-  `localhost:5432`) → `docker compose up -d` (starts `backend` against the
-  now-migrated database) + poll `http://localhost:5127/swagger/v1/swagger.json`
-  → `docker compose down -v`.
+  `localhost:5432`) → `dotnet test ONG.slnx --filter "Category=Integration"`
+  (the one test needing a real Postgres, now that migrations are applied) →
+  `docker compose up -d` (starts `backend` against the now-migrated database) +
+  poll `http://localhost:5127/swagger/v1/swagger.json` → `docker compose down -v`.
 
 This was added after `F0001.1` shipped `AdminSeeder`, which queries the database at
 startup (`Program.cs`, before `app.Run()`) — the first startup-time DB read in this
 repo. Since CI previously never ran migrations, that query hit a Postgres container
 with no tables at all and crashed with `relation "Admins" does not exist`, failing
 the smoke test. A green CI run now **does** prove `dotnet ef database update` applies
-cleanly from an empty database — but it still isn't proof of runtime behavior beyond
-that, since `dotnet test` doesn't run in CI (see the Test caveat above).
+cleanly from an empty database, and — since `F0001.2` — `dotnet test` runs in full
+across both jobs (split by the `Category=Integration` trait so each half runs where
+its dependencies are available), closing the previous "Test caveat" gap for CI.
 
 ## Architecture
 
@@ -124,15 +129,22 @@ db `ongdb`, port 5432). Migrations live in `ONG.Infrastructure/Migrations/`.
 
 ### Auth / multi-tenancy
 
-No auth flow or middleware implemented yet. `F0001.1`
-(`docs/features/F0001.1-admin-identity.md`) landed an `Admin` identity — a seeded row
-in the `Admins` table — but that is data-layer only: there is still no
-`POST /auth/login` endpoint (that is `F0001.2`) and no route is protected (`F0002`,
-Sprint S02 per `docs/product/PROJECT-admin-authentication.md`). Single-organization
-system — there is no tenant isolation invariant to defend in this codebase today. Do
-not add tenant-scoping code speculatively; once `F0001.2`/`F0002` land real auth, this
-section and the security standards in `docs/spec-driven-development.md` need a real
-update.
+Token issuance exists, but nothing consumes it yet. `F0001.1`
+(`docs/features/F0001.1-admin-identity.md`) landed the `Admin` identity (seeded row in
+the `Admins` table); `F0001.2` (`docs/features/F0001.2-login-endpoint.md`) landed
+`POST /auth/login`, which validates a username/password pair against that `Admin` via
+`PasswordHasher<Admin>` and returns a signed JWT (HMAC-SHA256,
+`System.IdentityModel.Tokens.Jwt`; claims `sub`=Username, `adminId`=Id;
+`Jwt:Key`/`Jwt:Issuer`/`Jwt:ExpiryMinutes` config, fail-fast-validated at startup via
+`JwtTokenGenerator.ValidateConfiguration`, mirroring `AdminSeeder`'s pattern) — this
+completes `F0001`. No route is protected yet: there is no `AddAuthentication`/
+`UseAuthentication` middleware, no `[Authorize]` anywhere, and no
+`Microsoft.AspNetCore.Authentication.JwtBearer` package (deliberately — this slice only
+*issues* tokens). Wiring the issued JWT into actual route protection is `F0002` (Sprint
+S02 per `docs/product/PROJECT-admin-authentication.md`). Single-organization system —
+there is no tenant isolation invariant to defend in this codebase today. Do not add
+tenant-scoping code speculatively; once `F0002` lands route protection, this section and
+the security standards in `docs/spec-driven-development.md` need a real update.
 
 ## Key Patterns
 

@@ -46,12 +46,81 @@ namespace ONG.Tests.Infrastructure
             var configuration = BuildConfiguration(new Dictionary<string, string?>
             {
                 ["AdminSeed:Username"] = "fernanda",
-                ["AdminSeed:Password"] = "S3nhaForte!"
+                ["AdminSeed:Password"] = "S3nhaForte!",
+                ["PasswordHasher:IterationCount"] = "100000",
+                ["PasswordHasher:CompatibilityMode"] = "IdentityV3"
             });
 
             var exception = Record.Exception(() => AdminSeeder.ValidateConfiguration(configuration));
 
             Assert.Null(exception);
+        }
+
+        [Fact]
+        public void MissingPasswordHasherKeys_ThrowsNamingBoth()
+        {
+            var configuration = BuildConfiguration(new Dictionary<string, string?>
+            {
+                ["AdminSeed:Username"] = "fernanda",
+                ["AdminSeed:Password"] = "S3nhaForte!"
+            });
+
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => AdminSeeder.ValidateConfiguration(configuration));
+
+            Assert.Contains("PasswordHasher:IterationCount", exception.Message);
+            Assert.Contains("PasswordHasher:CompatibilityMode", exception.Message);
+        }
+
+        [Fact]
+        public void NonIntegerIterationCount_ThrowsNamingIterationCount()
+        {
+            var configuration = BuildConfiguration(new Dictionary<string, string?>
+            {
+                ["AdminSeed:Username"] = "fernanda",
+                ["AdminSeed:Password"] = "S3nhaForte!",
+                ["PasswordHasher:IterationCount"] = "not-a-number",
+                ["PasswordHasher:CompatibilityMode"] = "IdentityV3"
+            });
+
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => AdminSeeder.ValidateConfiguration(configuration));
+
+            Assert.Contains("PasswordHasher:IterationCount", exception.Message);
+        }
+
+        [Fact]
+        public void ZeroOrNegativeIterationCount_ThrowsNamingIterationCount()
+        {
+            var configuration = BuildConfiguration(new Dictionary<string, string?>
+            {
+                ["AdminSeed:Username"] = "fernanda",
+                ["AdminSeed:Password"] = "S3nhaForte!",
+                ["PasswordHasher:IterationCount"] = "0",
+                ["PasswordHasher:CompatibilityMode"] = "IdentityV3"
+            });
+
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => AdminSeeder.ValidateConfiguration(configuration));
+
+            Assert.Contains("PasswordHasher:IterationCount", exception.Message);
+        }
+
+        [Fact]
+        public void LegacyIdentityV2CompatibilityMode_ThrowsNamingCompatibilityMode()
+        {
+            var configuration = BuildConfiguration(new Dictionary<string, string?>
+            {
+                ["AdminSeed:Username"] = "fernanda",
+                ["AdminSeed:Password"] = "S3nhaForte!",
+                ["PasswordHasher:IterationCount"] = "100000",
+                ["PasswordHasher:CompatibilityMode"] = "IdentityV2"
+            });
+
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => AdminSeeder.ValidateConfiguration(configuration));
+
+            Assert.Contains("PasswordHasher:CompatibilityMode", exception.Message);
         }
     }
 }

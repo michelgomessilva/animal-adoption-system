@@ -28,6 +28,9 @@ jobs:
       - name: dotnet build
         run: dotnet build ONG.slnx
 
+      - name: dotnet test
+        run: dotnet test ONG.slnx --filter "Category!=Integration"
+
   docker-smoke-test:
     needs: build
     runs-on: ubuntu-latest
@@ -58,6 +61,11 @@ jobs:
         run: |
           dotnet tool restore
           dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
+
+      - name: dotnet test (Postgres-only)
+        run: |
+          dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password" --project ONG.API
+          dotnet test ONG.slnx --filter "Category=Integration"
 
       - name: Smoke test (docker compose up + Swagger check)
         run: |

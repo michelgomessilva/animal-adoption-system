@@ -29,6 +29,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password"
       AdminSeed__Username: "admin"
       AdminSeed__Password: "change-me-in-real-deployments"
+      Jwt__Key: "dev-only-signing-key-change-me-in-real-deployments-32b"
     ports:
       - "5127:8080"
     depends_on:

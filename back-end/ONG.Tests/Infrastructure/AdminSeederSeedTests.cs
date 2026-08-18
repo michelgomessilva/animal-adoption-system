@@ -25,7 +25,9 @@ namespace ONG.Tests.Infrastructure
             return new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["AdminSeed:Username"] = username,
-                ["AdminSeed:Password"] = password
+                ["AdminSeed:Password"] = password,
+                ["PasswordHasher:IterationCount"] = "100000",
+                ["PasswordHasher:CompatibilityMode"] = "IdentityV3"
             }).Build();
         }
 
