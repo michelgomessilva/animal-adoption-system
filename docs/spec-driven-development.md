@@ -226,6 +226,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 | ID     | Slug         | Domain | Status | Slices | Path                              |
 | ------ | ------------ | ------ | ------ | ------ | --------------------------------- |
 | F0001  | admin-login  | Authentication | complete (F0001.1 merged; F0001.2 PR pending) | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
+| F0002  | route-protection | Authentication | draft | F0002.1 | `docs/features/F0002-route-protection.md` |
 
 ---
 
