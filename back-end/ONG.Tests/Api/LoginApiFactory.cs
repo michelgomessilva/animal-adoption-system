@@ -25,7 +25,9 @@ namespace ONG.Tests.Api
                     ["AdminSeed:Password"] = "S3nhaForte!",
                     ["Jwt:Key"] = "test-only-signing-key-at-least-32-bytes-long!",
                     ["Jwt:Issuer"] = "ong-api-tests",
-                    ["Jwt:ExpiryMinutes"] = "60"
+                    ["Jwt:ExpiryMinutes"] = "60",
+                    ["PasswordHasher:IterationCount"] = "100000",
+                    ["PasswordHasher:CompatibilityMode"] = "IdentityV3"
                 });
             });
 

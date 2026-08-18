@@ -41,13 +41,13 @@ namespace ONG.Tests.Application
         [Fact]
         public void Handle_ValidCredentials_ReturnsResultWithToken()
         {
+            var passwordHasher = new PasswordHasher<Admin>();
             var admin = new Admin("fernanda", string.Empty);
-            var hasher = new PasswordHasher<Admin>();
-            admin.RotatePassword(hasher.HashPassword(admin, "S3nhaForte!"));
+            admin.RotatePassword(passwordHasher.HashPassword(admin, "S3nhaForte!"));
 
             var repository = new FakeAdminRepository(admin);
             var tokenGenerator = new FakeTokenGenerator("known-token-value");
-            var handler = new LoginHandler(repository, tokenGenerator);
+            var handler = new LoginHandler(repository, tokenGenerator, passwordHasher);
 
             var result = handler.Handle(new LoginCommand
             {
@@ -65,7 +65,8 @@ namespace ONG.Tests.Application
         {
             var repository = new FakeAdminRepository(null);
             var tokenGenerator = new FakeTokenGenerator("known-token-value");
-            var handler = new LoginHandler(repository, tokenGenerator);
+            var passwordHasher = new PasswordHasher<Admin>();
+            var handler = new LoginHandler(repository, tokenGenerator, passwordHasher);
 
             var result = handler.Handle(new LoginCommand
             {
@@ -80,13 +81,13 @@ namespace ONG.Tests.Application
         [Fact]
         public void Handle_WrongPassword_ReturnsNull()
         {
+            var passwordHasher = new PasswordHasher<Admin>();
             var admin = new Admin("fernanda", string.Empty);
-            var hasher = new PasswordHasher<Admin>();
-            admin.RotatePassword(hasher.HashPassword(admin, "S3nhaForte!"));
+            admin.RotatePassword(passwordHasher.HashPassword(admin, "S3nhaForte!"));
 
             var repository = new FakeAdminRepository(admin);
             var tokenGenerator = new FakeTokenGenerator("known-token-value");
-            var handler = new LoginHandler(repository, tokenGenerator);
+            var handler = new LoginHandler(repository, tokenGenerator, passwordHasher);
 
             var result = handler.Handle(new LoginCommand
             {

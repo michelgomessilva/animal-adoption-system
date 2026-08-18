@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using ONG.Domain.Entitites;
 
 namespace ONG.Infrastructure.DataBase
@@ -15,7 +16,7 @@ namespace ONG.Infrastructure.DataBase
 
             var username = configuration["AdminSeed:Username"]!;
             var password = configuration["AdminSeed:Password"]!;
-            var hasher = new PasswordHasher<Admin>();
+            var hasher = new PasswordHasher<Admin>(Options.Create(BuildPasswordHasherOptions(configuration)));
 
             var admin = context.Admins.OrderBy(a => a.CreatedAt).FirstOrDefault();
 
@@ -65,6 +66,21 @@ namespace ONG.Infrastructure.DataBase
                 missing.Add("AdminSeed:Password");
             }
 
+            if (!int.TryParse(configuration["PasswordHasher:IterationCount"], out var iterationCount)
+                || iterationCount <= 0)
+            {
+                missing.Add("PasswordHasher:IterationCount (must be a positive integer)");
+            }
+
+            if (!Enum.TryParse<PasswordHasherCompatibilityMode>(
+                    configuration["PasswordHasher:CompatibilityMode"], out var compatibilityMode)
+                || compatibilityMode != PasswordHasherCompatibilityMode.IdentityV3)
+            {
+                missing.Add(
+                    "PasswordHasher:CompatibilityMode (must be \"IdentityV3\" — the legacy " +
+                    "IdentityV2 format is not permitted)");
+            }
+
             if (missing.Count > 0)
             {
                 throw new InvalidOperationException(
@@ -72,6 +88,16 @@ namespace ONG.Infrastructure.DataBase
                     "These provision the only account able to authenticate; the application " +
                     "cannot start without them.");
             }
+        }
+
+        private static PasswordHasherOptions BuildPasswordHasherOptions(IConfiguration configuration)
+        {
+            return new PasswordHasherOptions
+            {
+                IterationCount = int.Parse(configuration["PasswordHasher:IterationCount"]!),
+                CompatibilityMode = Enum.Parse<PasswordHasherCompatibilityMode>(
+                    configuration["PasswordHasher:CompatibilityMode"]!)
+            };
         }
     }
 }
