@@ -5,7 +5,7 @@ using ONG.Application.UseCases.Animals.CreateAnimal;
 namespace ONG.API.Controllers
 {
     [ApiController]
-    [Route("animals")]
+    [Route("api/animals")]
     public class AnimalController : ControllerBase
     {
         private readonly CreateAnimalHandler _handler;
@@ -17,11 +17,14 @@ namespace ONG.API.Controllers
         [Authorize]
         [HttpPost]
         public IActionResult Create(CreateAnimalCommand command)
-        {
-            _handler.Handle(command);
+        {       
+            
+                var animal = _handler.Handle(command);
 
-            return Ok();
+                return StatusCode(201, animal);            
         }
+
+
 
     }
 }

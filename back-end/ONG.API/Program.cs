@@ -13,6 +13,7 @@ using ONG.Application.UseCases.Animals.CreateAnimal;
 using ONG.Application.UseCases.Auth.Login;
 using ONG.Infrastructure.Repositories;
 using ONG.Infrastructure.Security;
+using ONG.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,6 +102,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
