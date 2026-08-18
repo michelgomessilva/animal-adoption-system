@@ -18,12 +18,14 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ONG.Domain\ONG.Domain.csproj" />
     <ProjectReference Include="..\ONG.Infrastructure\ONG.Infrastructure.csproj" />
     <ProjectReference Include="..\ONG.Application\ONG.Application.csproj" />
+    <ProjectReference Include="..\ONG.API\ONG.API.csproj" />
   </ItemGroup>
 
 </Project>
