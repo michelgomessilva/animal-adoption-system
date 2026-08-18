@@ -28,12 +28,22 @@ dotnet test ONG.slnx
 # Format (no .editorconfig yet, so this uses default .NET conventions)
 dotnet format ONG.slnx
 
+# One-time setup: local secrets. docker-compose.yml reads back-end/.env (git-ignored);
+# copy the template and fill in real values (see .env.example's comments for what each
+# key is for and how to generate JWT_KEY).
+cp .env.example .env
+
 # Run locally (API on host, Postgres in Docker)
 docker compose up -d postgres
 dotnet tool restore                     # once, restores dotnet-ef local tool
+# Values below must match your .env — this is the API's own config store (ASP.NET Core
+# User Secrets), separate from docker-compose's .env, so it's set once per machine.
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" \
-  "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password" \
+  "Host=localhost;Port=5432;Database=<POSTGRES_DB>;Username=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>" \
   --project ONG.API                     # once
+dotnet user-secrets set "AdminSeed:Username" "<ADMIN_SEED_USERNAME>" --project ONG.API
+dotnet user-secrets set "AdminSeed:Password" "<ADMIN_SEED_PASSWORD>" --project ONG.API
+dotnet user-secrets set "Jwt:Key" "<JWT_KEY>" --project ONG.API
 dotnet run --project ONG.API
 # Swagger: https://localhost:7067/swagger
 
@@ -62,6 +72,24 @@ pending changes' because `Animal.AdoptedAt` has no migration" gap was closed by
 succeeds end-to-end for the first time. If it starts failing again with a similar
 "pending changes" error, treat it the same way: a real migration as its own change,
 never folded into an unrelated one.
+
+## Secrets & Deployment Configuration
+
+Three separate places hold the same three secrets (`POSTGRES_PASSWORD`, `AdminSeed`
+username/password, `Jwt:Key`) — none of them share storage, and none of them are
+committed to git:
+
+| Environment | Where secrets live | Config keys |
+|---|---|---|
+| Local dev | `back-end/.env` (git-ignored; copy from `back-end/.env.example`), read by `docker-compose.yml`. The host-run path (`dotnet run --project ONG.API` against dockerized Postgres) instead uses ASP.NET Core User Secrets (`dotnet user-secrets set ...`, see Commands above) — the two stores are independent, keep them in sync by hand. | `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD`, `JWT_KEY` (`.env`) — map to `AdminSeed:Username`/`AdminSeed:Password`/`Jwt:Key` (User Secrets / `IConfiguration`, double-underscore env-var form `AdminSeed__Password` etc.) |
+| CI (`.github/workflows/backend-docker.yml`) | GitHub repo secrets, referenced as `${{ secrets.* }}` in the `docker-smoke-test` job. Required: `CI_POSTGRES_PASSWORD`, `CI_ADMIN_SEED_PASSWORD`, `CI_JWT_KEY` (Settings → Secrets and variables → Actions). These back an ephemeral, throwaway CI database — never reuse them as real credentials anywhere else. | Same config keys as above, injected as job-level env vars so `docker compose`'s interpolation (`${POSTGRES_PASSWORD:?...}` in `docker-compose.yml`) and the `dotnet ef`/`dotnet test` steps' explicit `ConnectionStrings__DefaultConnection` all resolve consistently. |
+| Production (Render, not yet deployed) | Render dashboard → service → Environment. Render builds directly from `ONG.API/Dockerfile` and never reads `docker-compose.yml` or `.env` — only real env vars on the service matter. Needs its own managed Postgres add-on (own connection string, unrelated to the local/CI `POSTGRES_*` values) plus a production-grade `AdminSeed:Password`/`Jwt:Key`, distinct from both local and CI. | `ConnectionStrings__DefaultConnection`, `AdminSeed__Username`, `AdminSeed__Password`, `Jwt__Key` (`Jwt__Issuer`/`Jwt__ExpiryMinutes` already have safe defaults baked into `appsettings.json` and don't need overriding). |
+
+All three consumers (`AdminSeeder`, `JwtTokenGenerator.ValidateConfiguration`) already
+fail fast with a clear `InvalidOperationException` if their required keys are missing —
+this is why `docker-compose.yml`'s `${VAR:?message}` interpolation was chosen over silent
+defaults: a missing `.env`/CI-secret/Render-env-var now fails loudly and immediately,
+consistent with that existing pattern, rather than starting into a weak or broken state.
 
 ## CI
 

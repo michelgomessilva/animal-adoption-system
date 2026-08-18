@@ -70,6 +70,20 @@ Existem dois jeitos de rodar o projeto — escolha o que fizer mais sentido pro 
 - **Opção A — desenvolvimento local (recomendado no dia a dia)**: só o Postgres roda em container; a API roda nativamente via `dotnet run`/Visual Studio. Ciclo de build/debug muito mais rápido — é o fluxo pra quando você está codando.
 - **Opção B — tudo via Docker**: banco e API rodam containerizados. Útil pra validar que a aplicação builda e roda corretamente empacotada (o mesmo Dockerfile que seria usado num deploy), ou pra subir o projeto sem precisar instalar o SDK .NET.
 
+0. **Antes de qualquer uma das duas opções**: `docker-compose.yml` não traz mais segredos
+   embutidos — ele lê um arquivo `.env` (git-ignorado) nesta pasta. Copie o template e
+   preencha valores reais (comentários no arquivo explicam cada chave e como gerar
+   `JWT_KEY`):
+
+   ```
+   cp .env.example .env
+   ```
+
+   Sem esse arquivo, `docker compose up` falha imediatamente com uma mensagem clara
+   apontando a variável faltante — nenhum valor placeholder é usado como fallback. Detalhe
+   completo de onde cada segredo mora (local/CI/Render) em `CLAUDE.md` → "Secrets &
+   Deployment Configuration".
+
 Opção A — Desenvolvimento local
 
 1. Restaurar as ferramentas .NET do projeto (inclui o `dotnet-ef`, usado para aplicar migrations):
@@ -84,10 +98,10 @@ Opção A — Desenvolvimento local
    docker compose up -d postgres
    ```
 
-3. Configurar a connection string via user-secrets — **apenas para desenvolvimento local, na sua máquina**. O valor abaixo é o mesmo definido no `docker-compose.yml` deste repositório; nunca commitar credenciais no `appsettings.json`:
+3. Configurar a connection string via user-secrets — **apenas para desenvolvimento local, na sua máquina**. User-secrets é um armazenamento separado do `.env` do passo 0 (o `.env` alimenta o `docker-compose.yml`; user-secrets alimenta a API rodando no host) — use os mesmos valores de `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB` do seu `.env` para que a API no host converse com o mesmo Postgres. Nunca commitar credenciais no `appsettings.json`:
 
    ```
-   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password" --project ONG.API
+   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=<POSTGRES_DB>;Username=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>" --project ONG.API
    ```
 
    Em outros ambientes (deploy, ex.: Render), a connection string real **não** vem de user-secrets — ela é configurada como variável de ambiente da própria plataforma, usando a chave `ConnectionStrings__DefaultConnection` (com `__` duplo, convenção do .NET para representar o `:` de seções de configuração). O `ASP.NET Core` já lê variáveis de ambiente automaticamente, sem nenhuma mudança de código.
@@ -148,7 +162,7 @@ Opção B — Tudo via Docker
    docker compose up -d --build
    ```
 
-   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) e a chave de assinatura JWT (`Jwt__Key`) já vêm configuradas como placeholders locais no `docker-compose.yml` — não precisam ser definidas manualmente aqui; nunca use esses valores fora de ambiente local.
+   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do Postgres, do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) e a chave de assinatura JWT (`Jwt__Key`) vêm do `.env` criado no passo 0 acima — sem ele, `docker compose` recusa subir com uma mensagem indicando a variável faltante; nunca use os valores do seu `.env` local fora de ambiente local.
 
 2. Aplicar migrations — a imagem final do `backend` usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), então isso continua sendo feito do host, contra o Postgres exposto em `localhost:5432` (mesmo passo 4 da Opção A, com `dotnet tool restore` antes se ainda não tiver rodado):
 

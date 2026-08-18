@@ -37,6 +37,16 @@ jobs:
     defaults:
       run:
         working-directory: back-end
+    env:
+      # Ephemeral, throwaway CI database/admin/signing-key — never reuse these values
+      # as real credentials anywhere else. See CLAUDE.md "Secrets & Deployment
+      # Configuration". Repo secrets required: Settings > Secrets and variables > Actions.
+      POSTGRES_USER: ong_user
+      POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+      POSTGRES_DB: ongdb
+      ADMIN_SEED_USERNAME: admin
+      ADMIN_SEED_PASSWORD: ${{ secrets.CI_ADMIN_SEED_PASSWORD }}
+      JWT_KEY: ${{ secrets.CI_JWT_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -57,14 +67,14 @@ jobs:
 
       - name: Apply EF Core migrations
         env:
-          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password"
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=${{ env.POSTGRES_DB }};Username=${{ env.POSTGRES_USER }};Password=${{ env.POSTGRES_PASSWORD }}"
         run: |
           dotnet tool restore
           dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
 
       - name: dotnet test (Postgres-only)
         run: |
-          dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password" --project ONG.API
+          dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=${{ env.POSTGRES_DB }};Username=${{ env.POSTGRES_USER }};Password=${{ env.POSTGRES_PASSWORD }}" --project ONG.API
           dotnet test ONG.slnx --filter "Category=Integration"
 
       - name: Smoke test (docker compose up + Swagger check)

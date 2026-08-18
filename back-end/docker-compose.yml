@@ -5,15 +5,15 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ong_user
-      POSTGRES_PASSWORD: ong_password
-      POSTGRES_DB: ongdb
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER (copy .env.example to .env)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD (copy .env.example to .env)}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB (copy .env.example to .env)}
     ports:
       - "5432:5432"
     volumes:
       - ong_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ong_user -d ongdb"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -26,10 +26,10 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password"
-      AdminSeed__Username: "admin"
-      AdminSeed__Password: "change-me-in-real-deployments"
-      Jwt__Key: "dev-only-signing-key-change-me-in-real-deployments-32b"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      AdminSeed__Username: ${ADMIN_SEED_USERNAME:?Set ADMIN_SEED_USERNAME (copy .env.example to .env)}
+      AdminSeed__Password: ${ADMIN_SEED_PASSWORD:?Set ADMIN_SEED_PASSWORD (copy .env.example to .env)}
+      Jwt__Key: ${JWT_KEY:?Set JWT_KEY (copy .env.example to .env) - must be at least 32 characters}
     ports:
       - "5127:8080"
     depends_on:
