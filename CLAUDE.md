@@ -28,12 +28,22 @@ dotnet test ONG.slnx
 # Format (no .editorconfig yet, so this uses default .NET conventions)
 dotnet format ONG.slnx
 
+# One-time setup: local secrets. docker-compose.yml reads back-end/.env (git-ignored);
+# copy the template and fill in real values (see .env.example's comments for what each
+# key is for and how to generate JWT_KEY).
+cp .env.example .env
+
 # Run locally (API on host, Postgres in Docker)
 docker compose up -d postgres
 dotnet tool restore                     # once, restores dotnet-ef local tool
+# Values below must match your .env — this is the API's own config store (ASP.NET Core
+# User Secrets), separate from docker-compose's .env, so it's set once per machine.
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" \
-  "Host=localhost;Port=5432;Database=ongdb;Username=ong_user;Password=ong_password" \
+  "Host=localhost;Port=5432;Database=<POSTGRES_DB>;Username=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>" \
   --project ONG.API                     # once
+dotnet user-secrets set "AdminSeed:Username" "<ADMIN_SEED_USERNAME>" --project ONG.API
+dotnet user-secrets set "AdminSeed:Password" "<ADMIN_SEED_PASSWORD>" --project ONG.API
+dotnet user-secrets set "Jwt:Key" "<JWT_KEY>" --project ONG.API
 dotnet run --project ONG.API
 # Swagger: https://localhost:7067/swagger
 
@@ -63,10 +73,41 @@ succeeds end-to-end for the first time. If it starts failing again with a simila
 "pending changes" error, treat it the same way: a real migration as its own change,
 never folded into an unrelated one.
 
+**Migrations apply automatically at startup.** `Program.cs` calls
+`dbContext.Database.Migrate()` in the post-`Build()` scope block, right before
+`AdminSeeder.Seed(...)` (which queries a table the migration may have just created) —
+guarded by `dbContext.Database.IsRelational()` so it's a no-op against the EF Core
+InMemory provider `WebApplicationFactory`-based E2E tests swap in (`Database.Migrate()`
+throws if called against a non-relational provider). This is a pure EF Core API call
+against the migrations already compiled into `ONG.Infrastructure.dll` — no `dotnet-ef`
+CLI or SDK needed at runtime, so it works even from the `aspnet`-runtime-only final
+Docker image, including on Render (see Secrets & Deployment Configuration below).
+Manually running `dotnet ef database update` is now optional everywhere except the CI
+`docker-smoke-test` job's `dotnet test ... --filter "Category=Integration"` step, which
+needs the schema applied before the app's own startup path runs.
+
+## Secrets & Deployment Configuration
+
+Three separate places hold the same three secrets (`POSTGRES_PASSWORD`, `AdminSeed`
+username/password, `Jwt:Key`) — none of them share storage, and none of them are
+committed to git:
+
+| Environment | Where secrets live | Config keys |
+|---|---|---|
+| Local dev | `back-end/.env` (git-ignored; copy from `back-end/.env.example`), read by `docker-compose.yml`. The host-run path (`dotnet run --project ONG.API` against dockerized Postgres) instead uses ASP.NET Core User Secrets (`dotnet user-secrets set ...`, see Commands above) — the two stores are independent, keep them in sync by hand. | `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD`, `JWT_KEY` (`.env`) — map to `AdminSeed:Username`/`AdminSeed:Password`/`Jwt:Key` (User Secrets / `IConfiguration`, double-underscore env-var form `AdminSeed__Password` etc.) |
+| CI (`.github/workflows/backend-docker.yml`) | GitHub repo secrets, referenced as `${{ secrets.* }}` in the `docker-smoke-test` job. Required: `CI_POSTGRES_PASSWORD`, `CI_ADMIN_SEED_PASSWORD`, `CI_JWT_KEY` (Settings → Secrets and variables → Actions → Secrets). Plus one non-sensitive repo **variable** (same path → Variables, not Secrets, since it's not sensitive): `CI_ADMIN_SEED_USERNAME`, referenced as `${{ vars.CI_ADMIN_SEED_USERNAME }}`. These back an ephemeral, throwaway CI database — never reuse them as real credentials anywhere else. Separately, the `deploy-render` job needs its own repo secret `RENDER_DEPLOY_HOOK_URL` — unrelated to the four above, see CI section below. | Same config keys as above, injected as job-level env vars so `docker compose`'s interpolation (`${POSTGRES_PASSWORD:?...}` in `docker-compose.yml`) and the `dotnet ef`/`dotnet test` steps' explicit `ConnectionStrings__DefaultConnection` all resolve consistently. |
+| Production (Render, not yet deployed) | Render dashboard → service → Environment. Render builds directly from `ONG.API/Dockerfile` and never reads `docker-compose.yml` or `.env` — only real env vars on the service matter. Needs its own managed Postgres add-on (own connection string, unrelated to the local/CI `POSTGRES_*` values) plus a production-grade `AdminSeed:Password`/`Jwt:Key`, distinct from both local and CI. No separate migration step needed — see "Migrations apply automatically at startup" above. | `ConnectionStrings__DefaultConnection`, `AdminSeed__Username`, `AdminSeed__Password`, `Jwt__Key` (`Jwt__Issuer`/`Jwt__ExpiryMinutes` already have safe defaults baked into `appsettings.json` and don't need overriding). |
+
+All three consumers (`AdminSeeder`, `JwtTokenGenerator.ValidateConfiguration`) already
+fail fast with a clear `InvalidOperationException` if their required keys are missing —
+this is why `docker-compose.yml`'s `${VAR:?message}` interpolation was chosen over silent
+defaults: a missing `.env`/CI-secret/Render-env-var now fails loudly and immediately,
+consistent with that existing pattern, rather than starting into a weak or broken state.
+
 ## CI
 
 `.github/workflows/backend-docker.yml` runs on PRs/pushes touching `back-end/**`,
-as two jobs:
+as three jobs:
 
 - **`build`** — `dotnet build ONG.slnx` → `dotnet test ONG.slnx --filter
   "Category!=Integration"`. Fast compile + test feedback (no Docker/Postgres
@@ -81,6 +122,18 @@ as two jobs:
   (the one test needing a real Postgres, now that migrations are applied) →
   `docker compose up -d` (starts `backend` against the now-migrated database) +
   poll `http://localhost:5127/swagger/v1/swagger.json` → `docker compose down -v`.
+- **`deploy-render`** (`needs: [build, docker-smoke-test]`, so it only runs once both
+  have succeeded — a job's implicit `if: success()` on its `needs` already enforces
+  this) — additionally gated by `if: github.event_name == 'push' && github.ref ==
+  'refs/heads/main'`, so it never runs on PRs or on pushes to any other branch. Sends a
+  bare `POST` to `${{ secrets.RENDER_DEPLOY_HOOK_URL }}` (Render's per-service Deploy
+  Hook URL, copied from that service's Settings tab in the Render Dashboard — acts as
+  its own bearer credential via an embedded `key` query param, no separate API key
+  needed). Repo secret required: `RENDER_DEPLOY_HOOK_URL` (Settings → Secrets and
+  variables → Actions → Secrets). **Render's own Auto-Deploy must be turned off**
+  (service Settings → Build & Deploy → Auto-Deploy → No) — otherwise Render also
+  deploys immediately on every push to `main`, ungated by CI, defeating the point of
+  this job. With Auto-Deploy off, this job becomes the only thing that deploys.
 
 This was added after `F0001.1` shipped `AdminSeeder`, which queries the database at
 startup (`Program.cs`, before `app.Run()`) — the first startup-time DB read in this
@@ -129,22 +182,30 @@ db `ongdb`, port 5432). Migrations live in `ONG.Infrastructure/Migrations/`.
 
 ### Auth / multi-tenancy
 
-Token issuance exists, but nothing consumes it yet. `F0001.1`
-(`docs/features/F0001.1-admin-identity.md`) landed the `Admin` identity (seeded row in
-the `Admins` table); `F0001.2` (`docs/features/F0001.2-login-endpoint.md`) landed
-`POST /auth/login`, which validates a username/password pair against that `Admin` via
-`PasswordHasher<Admin>` and returns a signed JWT (HMAC-SHA256,
+`F0001.1` (`docs/features/F0001.1-admin-identity.md`) landed the `Admin` identity
+(seeded row in the `Admins` table); `F0001.2` (`docs/features/F0001.2-login-endpoint.md`)
+landed `POST /auth/login`, which validates a username/password pair against that `Admin`
+via `PasswordHasher<Admin>` and returns a signed JWT (HMAC-SHA256,
 `System.IdentityModel.Tokens.Jwt`; claims `sub`=Username, `adminId`=Id;
 `Jwt:Key`/`Jwt:Issuer`/`Jwt:ExpiryMinutes` config, fail-fast-validated at startup via
 `JwtTokenGenerator.ValidateConfiguration`, mirroring `AdminSeeder`'s pattern) — this
-completes `F0001`. No route is protected yet: there is no `AddAuthentication`/
-`UseAuthentication` middleware, no `[Authorize]` anywhere, and no
-`Microsoft.AspNetCore.Authentication.JwtBearer` package (deliberately — this slice only
-*issues* tokens). Wiring the issued JWT into actual route protection is `F0002` (Sprint
-S02 per `docs/product/PROJECT-admin-authentication.md`). Single-organization system —
-there is no tenant isolation invariant to defend in this codebase today. Do not add
-tenant-scoping code speculatively; once `F0002` lands route protection, this section and
-the security standards in `docs/spec-driven-development.md` need a real update.
+completed `F0001`. `F0002.1` (`docs/features/F0002.1-route-protection.md`) then wired
+that JWT into actual route protection: `Program.cs` now calls
+`AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(...)` (reusing
+`JwtTokenGenerator`'s exact key/issuer/HMAC-SHA256 shape, `ValidateAudience = false`) and
+`app.UseAuthentication()` runs immediately before the existing `app.UseAuthorization()`.
+`[Authorize]` is applied to `AnimalController.Create` only — **`POST /animals` now
+requires a valid, unexpired bearer token; `POST /animals/{id}/adopt` (`Adopt`) remains
+unauthenticated**, deliberately deferred to `F0002.2` (not yet started) alongside a fix
+for `AdoptAnimalHandler`'s pre-existing missing DI registration (`F0002.1` fixed only the
+DI-gap symptom that blocked its own `Create` tests — via
+`builder.Services.AddScoped<AdoptAnimalHandler>();` — `Adopt`'s internal not-found
+handling and `[Authorize]` are still open). `Microsoft.AspNetCore.Authentication.JwtBearer`
+10.0.11 is now referenced in `ONG.API.csproj`. Single-organization system — there is no
+tenant isolation invariant to defend in this codebase today. Do not add tenant-scoping
+code speculatively; once `F0002.2` protects `Adopt` too, this section and the security
+standards in `docs/spec-driven-development.md` (still only satisfied for `POST /animals`)
+need another update.
 
 ## Key Patterns
 

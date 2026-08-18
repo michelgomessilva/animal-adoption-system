@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ONG.Application.UseCases.Animals.CreateAnimal;
 using ONG.Application.UseCases.Animals.AdoptAnimal;
 
@@ -18,6 +19,7 @@ namespace ONG.API.Controllers
             _adoptHandler = adoptHandler;
         }
 
+        [Authorize]
         [HttpPost]
         public IActionResult Create(CreateAnimalCommand command)
         {

@@ -178,13 +178,14 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
   dev-only, non-secret, already-committed credentials — never reused for
   staging/production.
 - **Auth / multi-tenancy** — `F0001.2` (`docs/features/F0001.2-login-endpoint.md`) landed
-  `POST /auth/login`, which issues an HMAC-SHA256-signed JWT on valid credentials — but no
-  route is protected yet, and no auth middleware validates/consumes tokens on incoming
-  requests. Until `F0002` (route protection) lands, the "auth on every endpoint" and "data
-  isolation" security standards above remain aspirational for every *other* endpoint in
-  this codebase; flag any slice that adds a real data-access boundary as the point where
-  they become enforceable. Single-organization system — there is no tenant isolation
-  invariant to defend.
+  `POST /auth/login`, which issues an HMAC-SHA256-signed JWT on valid credentials.
+  `F0002.1` (`docs/features/F0002.1-route-protection.md`) then wired that JWT into an
+  actual `AddAuthentication`/`AddJwtBearer` scheme in `Program.cs` and applied
+  `[Authorize]` to `AnimalController.Create` only — `POST /animals` now enforces the
+  "auth on every endpoint" standard, but `POST /animals/{id}/adopt` does not yet
+  (deliberately deferred to `F0002.2`, not started). Until `F0002.2` lands, the "auth on
+  every endpoint" standard remains only partially satisfied, and "data isolation" remains
+  not applicable — single-organization system, no tenant isolation invariant to defend.
 - **Build / Test / Format commands** (run from `back-end/`):
   - Build: `dotnet build ONG.slnx`
   - Test: `dotnet test ONG.slnx` (xUnit wired in as of `F0001.1`; use
@@ -226,6 +227,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 | ID     | Slug         | Domain | Status | Slices | Path                              |
 | ------ | ------------ | ------ | ------ | ------ | --------------------------------- |
 | F0001  | admin-login  | Authentication | complete (F0001.1 merged; F0001.2 PR pending) | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
+| F0002  | route-protection | Authentication | in progress (F0002.1 implemented, `code-reviewer` APPROVED, PR to `main` pending; F0002.2 not started) | F0002.1, F0002.2 | `docs/features/F0002-route-protection.md` |
 
 ---
 
