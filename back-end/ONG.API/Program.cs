@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ONG.Domain.Entitites;
 using ONG.Infrastructure.DataBase;
+using System.Text;
 using System.Text.Json.Serialization;
 using ONG.Application.Repositories;
 using ONG.Application.Security;
@@ -34,6 +37,22 @@ builder.Services.AddScoped< CreateAnimalHandler > ();
 builder.Services.AddScoped<AdoptAnimalHandler>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
+
 builder.Services.Configure<PasswordHasherOptions>(
     builder.Configuration.GetSection("PasswordHasher"));
 builder.Services.AddScoped<IPasswordHasher<Admin>, PasswordHasher<Admin>>();
@@ -58,6 +77,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
