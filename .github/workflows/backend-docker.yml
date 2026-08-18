@@ -40,11 +40,12 @@ jobs:
     env:
       # Ephemeral, throwaway CI database/admin/signing-key — never reuse these values
       # as real credentials anywhere else. See CLAUDE.md "Secrets & Deployment
-      # Configuration". Repo secrets required: Settings > Secrets and variables > Actions.
+      # Configuration". Repo secrets required: Settings > Secrets and variables > Actions
+      # > Secrets. Repo variable required: same path > Variables.
       POSTGRES_USER: ong_user
       POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
       POSTGRES_DB: ongdb
-      ADMIN_SEED_USERNAME: admin
+      ADMIN_SEED_USERNAME: ${{ vars.CI_ADMIN_SEED_USERNAME }}
       ADMIN_SEED_PASSWORD: ${{ secrets.CI_ADMIN_SEED_PASSWORD }}
       JWT_KEY: ${{ secrets.CI_JWT_KEY }}
     steps:
