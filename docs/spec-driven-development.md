@@ -160,8 +160,11 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
   - `ONG.Infrastructure` — EF Core `ONGDbContext`, repositories (e.g.
     `AnimalRepository`), and `Migrations/`.
   - `ONG.Tests` — **xUnit** + `Microsoft.EntityFrameworkCore.InMemory` wired in as of
-    `F0001.1` (`docs/features/F0001.1-admin-identity.md`), the first tests in the repo
-    (11 tests, `Admin`/`ONGDbContext`/`AdminSeeder`). One test is tagged
+    `F0001.1` (`docs/features/F0001.1-admin-identity.md`), the first tests in the repo.
+    `F0001.2` (`docs/features/F0001.2-login-endpoint.md`) added `Microsoft.AspNetCore.Mvc.Testing`
+    for `WebApplicationFactory<Program>`-based API/E2E tests, the first HTTP-level coverage
+    in the repo. 23 tests total (`Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/
+    `LoginHandler`/`JwtTokenGenerator`/`AuthController` endpoint). One test is tagged
     `[Trait("Category", "Integration")]` and needs a reachable local Postgres — see
     `CLAUDE.md`'s Commands/Test caveat for the exact filter.
 - **Use-case pattern** — every feature slice that touches Application logic adds a
@@ -174,10 +177,14 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
   `localhost:5432`, started with `docker compose up -d postgres`. These are
   dev-only, non-secret, already-committed credentials — never reused for
   staging/production.
-- **Auth / multi-tenancy** — not implemented yet. Until an auth model lands, the
-  "auth on every endpoint" and "data isolation" security standards above are
-  aspirational for this codebase; flag any slice that adds a real data-access
-  boundary as the point where they become enforceable.
+- **Auth / multi-tenancy** — `F0001.2` (`docs/features/F0001.2-login-endpoint.md`) landed
+  `POST /auth/login`, which issues an HMAC-SHA256-signed JWT on valid credentials — but no
+  route is protected yet, and no auth middleware validates/consumes tokens on incoming
+  requests. Until `F0002` (route protection) lands, the "auth on every endpoint" and "data
+  isolation" security standards above remain aspirational for every *other* endpoint in
+  this codebase; flag any slice that adds a real data-access boundary as the point where
+  they become enforceable. Single-organization system — there is no tenant isolation
+  invariant to defend.
 - **Build / Test / Format commands** (run from `back-end/`):
   - Build: `dotnet build ONG.slnx`
   - Test: `dotnet test ONG.slnx` (xUnit wired in as of `F0001.1`; use
@@ -198,9 +205,9 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
   - **Command/Handler over anemic services** — business rules live in the Domain
     layer or the Handler, not scattered across controllers.
   - **xUnit** is the wired-in test framework for `ONG.Tests` (`Microsoft.EntityFrameworkCore.InMemory`
-    for `ONGDbContext`/`AdminSeeder`-level tests as of `F0001.1`); prefer
-    `Microsoft.AspNetCore.Mvc.Testing` for API-level tests once an HTTP endpoint needs
-    coverage (starting with `F0001.2`'s `POST /auth/login`), to keep parity with the
+    for `ONGDbContext`/`AdminSeeder`/repository-level tests as of `F0001.1`;
+    `Microsoft.AspNetCore.Mvc.Testing` for API-level `WebApplicationFactory<Program>` E2E
+    tests as of `F0001.2`'s `POST /auth/login`), to keep parity with the
     `dotnet test ONG.slnx` command CI relies on.
 
 ---
@@ -218,7 +225,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 
 | ID     | Slug         | Domain | Status | Slices | Path                              |
 | ------ | ------------ | ------ | ------ | ------ | --------------------------------- |
-| F0001  | admin-login  | Authentication | in-progress | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
+| F0001  | admin-login  | Authentication | complete (F0001.1 merged; F0001.2 PR pending) | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
 
 ---
 

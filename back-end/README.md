@@ -2,7 +2,7 @@
 
 Resumo rápido
 
-Projeto em andamento para gerenciar processos de adoção de animais. Atualmente a aplicação implementa a criação (POST) de registros de animais, persistindo-os no banco de dados por meio de EF Core e uma implementação simples de repositório.
+Projeto em andamento para gerenciar processos de adoção de animais. Atualmente a aplicação implementa a criação (POST) de registros de animais, persistindo-os no banco de dados por meio de EF Core e uma implementação simples de repositório, e um endpoint de login administrativo (`POST /auth/login`) que emite um JWT.
 
 Principais tecnologias
 
@@ -11,20 +11,23 @@ Principais tecnologias
 - Npgsql (PostgreSQL) como provedor de banco de dados
 - Swagger (OpenAPI) para documentação e testes da API
 - Injeção de dependência e padrão de Use Cases (Handler/Command)
+- `Microsoft.AspNetCore.Identity.PasswordHasher<T>` para hashing de senha e
+  `System.IdentityModel.Tokens.Jwt` para emissão de tokens JWT (HMAC-SHA256), desde a
+  slice `F0001.2`
 
 Estrutura da solução
 
 - ONG.API
   - Projeto Web API: controllers, configuração do app, Swagger, serialização de enums como string.
-  - Endpoint principal implementado: POST /animals
+  - Endpoints implementados: `POST /animals`, `POST /auth/login`.
 - ONG.Application
-  - Camada de aplicação: interfaces de repositório e casos de uso (CreateAnimalCommand + CreateAnimalHandler).
+  - Camada de aplicação: interfaces de repositório (`IAnimalRepository`, `IAdminRepository`), a abstração `ITokenGenerator`, e casos de uso (`CreateAnimalCommand`/`CreateAnimalHandler`, `LoginCommand`/`LoginHandler`/`LoginResult`).
 - ONG.Domain
   - Entidades e enums do domínio (Animal, Admin, Sex, Size, Species, Status).
 - ONG.Infrastructure
-  - Implementação do DbContext (ONGDbContext), repositório concreto (AnimalRepository), o seeder do usuário administrador (AdminSeeder, rodado na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
+  - Implementação do DbContext (ONGDbContext), repositórios concretos (`AnimalRepository`, `AdminRepository`), o seeder do usuário administrador (`AdminSeeder`, rodado na inicialização), `JwtTokenGenerator` (implementa `ITokenGenerator`, com validação de configuração fail-fast na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
 - ONG.Tests
-  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1), cobrindo a entidade `Admin`, `ONGDbContext` e `AdminSeeder`.
+  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 23 testes cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator` e o endpoint `POST /auth/login` de ponta a ponta.
 
 Status atual (o que já funciona)
 
@@ -35,8 +38,15 @@ Status atual (o que já funciona)
 - Usuário administrador único (`Admin`) provisionado automaticamente na inicialização
   da API via `AdminSeeder`, com senha hasheada a partir de configuração
   (`AdminSeed:Username`/`AdminSeed:Password` — ver seção "Como executar" abaixo).
-  Ainda não existe endpoint de login (`POST /auth/login`); essa é a próxima slice
-  (`F0001.2`, ver `docs/features/F0001-admin-login.md`).
+- Login administrativo via `POST /auth/login` (slice `F0001.2`, ver
+  `docs/features/F0001-admin-login.md`): valida usuário/senha contra o `Admin` seedado e
+  retorna um JWT assinado (HMAC-SHA256) em caso de sucesso; 401 genérico (sem revelar se
+  o usuário ou a senha estava errada, com tempo de resposta normalizado entre os dois
+  casos) em caso de credenciais inválidas; 400 em caso de corpo ausente/malformado. Esse
+  endpoint apenas **emite** o token — nenhuma rota ainda **exige** um token válido para
+  responder; a proteção das rotas administrativas (`POST /animals`,
+  `POST /animals/{id}/adopt`) é o próximo passo (`F0002`, ver
+  `docs/product/PROJECT-admin-authentication.md` Sprint S02).
 
 Como executar
 
@@ -83,6 +93,19 @@ Opção A — Desenvolvimento local
    dotnet user-secrets set "AdminSeed:Password" "<uma senha local qualquer>" --project ONG.API
    ```
 
+   Da mesma forma, configure a chave de assinatura dos tokens JWT emitidos por
+   `POST /auth/login` — **obrigatória**: sem ela a API também falha ao subir
+   (`JwtTokenGenerator.ValidateConfiguration` lança exceção antes de qualquer acesso ao
+   banco, mesmo padrão fail-fast do `AdminSeeder`, ver
+   `docs/features/F0001.2-login-endpoint.md`). Precisa ter pelo menos 32 caracteres:
+
+   ```
+   dotnet user-secrets set "Jwt:Key" "<uma chave local qualquer com 32+ caracteres>" --project ONG.API
+   ```
+
+   `Jwt:Issuer` e `Jwt:ExpiryMinutes` não são secretos — já vêm configurados em
+   `appsettings.json` (`ong-api` / `60` minutos) e não precisam de user-secrets.
+
 4. Aplicar migrations:
 
    ```
@@ -109,7 +132,7 @@ Opção B — Tudo via Docker
    docker compose up -d --build
    ```
 
-   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) já vêm configuradas como placeholders locais no `docker-compose.yml` — não precisam ser definidas manualmente aqui; nunca use esses valores fora de ambiente local.
+   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) e a chave de assinatura JWT (`Jwt__Key`) já vêm configuradas como placeholders locais no `docker-compose.yml` — não precisam ser definidas manualmente aqui; nunca use esses valores fora de ambiente local.
 
 2. Aplicar migrations — a imagem final do `backend` usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), então isso continua sendo feito do host, contra o Postgres exposto em `localhost:5432` (mesmo passo 4 da Opção A, com `dotnet tool restore` antes se ainda não tiver rodado):
 
@@ -121,7 +144,7 @@ Opção B — Tudo via Docker
 
    - URL: http://localhost:5127/swagger
 
-Endpoint principal
+Endpoints principais
 
 POST /animals
 - Body (JSON) — observação: enums aceitam valores por nome (string), pois o JsonStringEnumConverter está configurado.
@@ -141,6 +164,32 @@ Exemplo de requisição:
 }
 ```
 
+POST /auth/login
+- Valida usuário/senha contra o `Admin` seedado e retorna um JWT assinado (HMAC-SHA256)
+  em caso de sucesso. Não protege nenhuma outra rota ainda — ver `docs/features/F0001.2-login-endpoint.md`.
+
+Exemplo de requisição:
+
+```json
+{
+  "username": "admin",
+  "password": "<a mesma senha configurada em AdminSeed:Password>"
+}
+```
+
+Resposta de sucesso (`200`):
+
+```json
+{
+  "token": "<jwt assinado>"
+}
+```
+
+Respostas de erro: `401` com `{"message": "Invalid username or password."}` para usuário
+desconhecido ou senha incorreta (mensagem genérica, não revela qual campo estava errado);
+`400` (via `ProblemDetails` automático do `[ApiController]`) para `username`/`password`
+ausente ou corpo malformado.
+
 Problema conhecido (resolvido)
 
 - `dotnet ef database update` falhava com "The model has pending changes": `Animal.AdoptedAt` (usado pelo endpoint `POST /animals/{id}/adopt`) não tinha migration correspondente. Resolvido na slice `F0001.1` pela migration `FixAnimalAdoptedAtColumn` (ver `docs/features/F0001.1-admin-identity.md`) — `dotnet ef database update` agora aplica normalmente num banco novo.
@@ -156,6 +205,10 @@ Notas e próximos passos sugeridos
 
 - Adicionar validações no comando CreateAnimalCommand e tratamento de erros na API.
 - Implementar endpoints para leitura, atualização e exclusão (GET, PUT, DELETE).
-- Framework de teste escolhido: xUnit (+ EF Core InMemory), já wired em `ONG.Tests` desde a slice `F0001.1` (11 testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`). Próximo passo natural: cobertura de testes de API (`Microsoft.AspNetCore.Mvc.Testing`) a partir do endpoint `POST /auth/login` (`F0001.2`).
+- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), 23 testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`.
+- Próximo passo natural: proteger as rotas administrativas existentes (`POST /animals`,
+  `POST /animals/{id}/adopt`) exigindo o JWT emitido por `POST /auth/login` (`F0002`, ver
+  `docs/product/PROJECT-admin-authentication.md` Sprint S02) — hoje o token é emitido mas
+  nenhuma rota o exige.
 - Considerar DTOs separadas para requests/responses se as entidades mudarem no domínio.
 - Adicionar um passo `dotnet test` ao CI (ver limitação de CI acima) — migrations já são aplicadas automaticamente desde a `F0001.1`.

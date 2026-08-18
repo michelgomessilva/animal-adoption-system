@@ -124,15 +124,22 @@ db `ongdb`, port 5432). Migrations live in `ONG.Infrastructure/Migrations/`.
 
 ### Auth / multi-tenancy
 
-No auth flow or middleware implemented yet. `F0001.1`
-(`docs/features/F0001.1-admin-identity.md`) landed an `Admin` identity — a seeded row
-in the `Admins` table — but that is data-layer only: there is still no
-`POST /auth/login` endpoint (that is `F0001.2`) and no route is protected (`F0002`,
-Sprint S02 per `docs/product/PROJECT-admin-authentication.md`). Single-organization
-system — there is no tenant isolation invariant to defend in this codebase today. Do
-not add tenant-scoping code speculatively; once `F0001.2`/`F0002` land real auth, this
-section and the security standards in `docs/spec-driven-development.md` need a real
-update.
+Token issuance exists, but nothing consumes it yet. `F0001.1`
+(`docs/features/F0001.1-admin-identity.md`) landed the `Admin` identity (seeded row in
+the `Admins` table); `F0001.2` (`docs/features/F0001.2-login-endpoint.md`) landed
+`POST /auth/login`, which validates a username/password pair against that `Admin` via
+`PasswordHasher<Admin>` and returns a signed JWT (HMAC-SHA256,
+`System.IdentityModel.Tokens.Jwt`; claims `sub`=Username, `adminId`=Id;
+`Jwt:Key`/`Jwt:Issuer`/`Jwt:ExpiryMinutes` config, fail-fast-validated at startup via
+`JwtTokenGenerator.ValidateConfiguration`, mirroring `AdminSeeder`'s pattern) — this
+completes `F0001`. No route is protected yet: there is no `AddAuthentication`/
+`UseAuthentication` middleware, no `[Authorize]` anywhere, and no
+`Microsoft.AspNetCore.Authentication.JwtBearer` package (deliberately — this slice only
+*issues* tokens). Wiring the issued JWT into actual route protection is `F0002` (Sprint
+S02 per `docs/product/PROJECT-admin-authentication.md`). Single-organization system —
+there is no tenant isolation invariant to defend in this codebase today. Do not add
+tenant-scoping code speculatively; once `F0002` lands route protection, this section and
+the security standards in `docs/spec-driven-development.md` need a real update.
 
 ## Key Patterns
 

@@ -16,9 +16,9 @@
 | ID       | F0001                                  |
 | Slug     | admin-login                            |
 | Domain   | Authentication                         |
-| Status   | in-progress (F0001.1 implemented, pending PR; F0001.2 not started) |
+| Status   | complete (F0001.1 merged to `main` via PR #4; F0001.2 implemented, `code-reviewer` APPROVED, PR to `main` pending) |
 | PROJECT  | `docs/product/PROJECT-admin-authentication.md` |
-| Updated  | 2026-08-17                             |
+| Updated  | 2026-08-18                             |
 
 ---
 
@@ -129,8 +129,13 @@ not by a self-registration endpoint.
 
 | Slice    | Slug            | Short description                                                                 | Status  |
 | -------- | --------------- | ------------------------------------------------------------------------------------ | ------- |
-| F0001.1  | admin-identity  | `Admin` entity + EF Core migration + seed mechanism (hashed password from config) for the single admin user. No endpoint yet. | implemented, `code-reviewer` APPROVED, PR to `main` pending — see `docs/features/F0001.1-admin-identity.md` §8 |
-| F0001.2  | login-endpoint  | `POST /auth/login` (Command+Handler+Controller) validating credentials against the seeded `Admin` and issuing an auth credential. | spec created / in research — see `docs/features/F0001.2-login-endpoint.md` |
+| F0001.1  | admin-identity  | `Admin` entity + EF Core migration + seed mechanism (hashed password from config) for the single admin user. No endpoint yet. | merged to `main` (PR #4) — see `docs/features/F0001.1-admin-identity.md` §8 |
+| F0001.2  | login-endpoint  | `POST /auth/login` (Command+Handler+Controller) validating credentials against the seeded `Admin`, issuing an HMAC-SHA256-signed JWT on success, generic 401 on invalid credentials (timing-normalized against username enumeration), 400 on malformed input. | implemented, `code-reviewer` APPROVED, `secret-scanner`/`injection-reviewer` clean — PR to `main` not yet opened — see `docs/features/F0001.2-login-endpoint.md` §8 |
 
 > Each slice is independently reviewable: `.1` lands the data layer with no behavior
 > change exposed via the API; `.2` builds the endpoint on top of it.
+>
+> `F0001` is now fully delivered: both slices implemented, reviewed, and (for `.1`)
+> merged. `F0001.2`'s PR is the only remaining step before this feature's acceptance
+> criteria are provably met end-to-end in `main`. It does not itself protect any other
+> route — that is `F0002` (`docs/product/PROJECT-admin-authentication.md` Sprint S02).
