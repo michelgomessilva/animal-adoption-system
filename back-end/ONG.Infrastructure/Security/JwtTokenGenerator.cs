@@ -43,13 +43,20 @@ namespace ONG.Infrastructure.Security
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        private const int MinimumKeyLength = 32;
+
         public static void ValidateConfiguration(IConfiguration configuration)
         {
             var missing = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(configuration["Jwt:Key"]))
+            var key = configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(key))
             {
                 missing.Add("Jwt:Key");
+            }
+            else if (key.Length < MinimumKeyLength)
+            {
+                missing.Add($"Jwt:Key (must be at least {MinimumKeyLength} characters long for HMAC-SHA256)");
             }
 
             if (string.IsNullOrWhiteSpace(configuration["Jwt:Issuer"]))
@@ -57,9 +64,14 @@ namespace ONG.Infrastructure.Security
                 missing.Add("Jwt:Issuer");
             }
 
-            if (string.IsNullOrWhiteSpace(configuration["Jwt:ExpiryMinutes"]))
+            var expiryMinutes = configuration["Jwt:ExpiryMinutes"];
+            if (string.IsNullOrWhiteSpace(expiryMinutes))
             {
                 missing.Add("Jwt:ExpiryMinutes");
+            }
+            else if (!int.TryParse(expiryMinutes, out _))
+            {
+                missing.Add("Jwt:ExpiryMinutes (must be a valid integer)");
             }
 
             if (missing.Count > 0)
