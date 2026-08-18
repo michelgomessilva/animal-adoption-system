@@ -14,7 +14,7 @@
 | ID       | F0002                                                      |
 | Slug     | route-protection                                           |
 | Domain   | Authentication                                              |
-| Status   | draft                                                       |
+| Status   | in progress (F0002.1 implemented, `code-reviewer` APPROVED, PR to `main` pending; F0002.2 not started) |
 | PROJECT  | `docs/product/PROJECT-admin-authentication.md`              |
 | Updated  | 2026-08-18                                                  |
 
@@ -31,10 +31,14 @@ turning "a token can be issued" into "a token is required," establishing the
 protected-route convention future administrative endpoints (edit, status change,
 archive — from EP01) will reuse.
 
-**Delivered in two slices, not one** (see §6): `F0002.1` wires the JWT bearer
-scheme and protects `POST /animals` only. `F0002.2` (not yet started) protects
-`POST /animals/{id}/adopt` and fixes the pre-existing `AdoptAnimalHandler` DI
-registration gap. Until `F0002.2` lands, PRD gap G4 is only **partially** closed —
+**Delivered in two slices, not one** (see §6): `F0002.1` (implemented — see
+`docs/features/F0002.1-route-protection.md`) wires the JWT bearer scheme and
+protects `POST /animals` only; it also fixed, as a mid-slice deviation, the
+pre-existing `AdoptAnimalHandler` DI registration gap that was blocking its own
+`Create` tests (a mechanical, behavior-neutral fix — `Adopt` itself stayed
+unauthenticated). `F0002.2` (not yet started) protects `POST /animals/{id}/adopt`
+and fixes `AdoptAnimalHandler`'s remaining internal gap (unhandled not-found
+exception). Until `F0002.2` lands, PRD gap G4 is only **partially** closed —
 `POST /animals/{id}/adopt` remains unauthenticated. See §6 for why the split
 happened after `F0002.1`'s research phase.
 
@@ -100,8 +104,8 @@ standard[] remain[s] aspirational."
 
 - **Authentication / authorization:** JWT bearer scheme validates token signature
   (HMAC-SHA256, `Jwt:Key`) and expiry; `[Authorize]` applied to `AnimalController`'s
-  `Create` and `Adopt` actions. No RBAC/roles — single authenticated-admin
-  distinction only, per PRD non-goals (EP05).
+  `Create` action as of `F0002.1` (implemented), `Adopt` still pending `F0002.2`. No
+  RBAC/roles — single authenticated-admin distinction only, per PRD non-goals (EP05).
 - **Data isolation:** not applicable — single-organization system, no tenant
   isolation invariant to defend (per `CLAUDE.md`).
 - **Input validation:** unaffected by this feature; a valid token must never be
@@ -191,11 +195,12 @@ standard[] remain[s] aspirational."
 
 | Slice    | Slug              | Short description                                                                                                                                                                                                                                                                                    | Status  |
 | -------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| F0002.1  | route-protection    | Configure the JWT bearer authentication scheme in `Program.cs` (`AddAuthentication`/`AddJwtBearer`, `UseAuthentication`/`UseAuthorization`, validated against the existing `Jwt:Key`/`Jwt:Issuer` config) and apply `[Authorize]` to `AnimalController`'s `Create` action only, with the sad-path test matrix (missing/invalid/expired/tampered token, valid token + invalid body, valid token + success). Does **not** touch `Adopt`/`AdoptAnimalHandler`. | spec created / in research |
-| F0002.2  | protect-adopt-route | Apply `[Authorize]` to `AnimalController`'s `Adopt` action and fix the pre-existing `AdoptAnimalHandler` DI registration gap (`Program.cs` has no `AddScoped<AdoptAnimalHandler>()` today) in the same slice, since the DI fix is required for this slice's own tests to run at all. Not yet started. | not started |
+| F0002.1  | route-protection    | Configure the JWT bearer authentication scheme in `Program.cs` (`AddAuthentication`/`AddJwtBearer`, `UseAuthentication`/`UseAuthorization`, validated against the existing `Jwt:Key`/`Jwt:Issuer` config) and apply `[Authorize]` to `AnimalController`'s `Create` action only, with the sad-path test matrix (missing/invalid/expired/tampered token, valid token + invalid body, valid token + success). Does **not** touch `Adopt`/`AdoptAnimalHandler`'s internal logic or `[Authorize]`. | implemented — `code-reviewer` APPROVED, `secret-scanner`/`injection-reviewer` CLEAN, 7 new tests (35/35 full suite green) — PR to `main` pending |
+| F0002.2  | protect-adopt-route | Apply `[Authorize]` to `AnimalController`'s `Adopt` action and fix `AdoptAnimalHandler`'s remaining internal gap (unhandled not-found exception). **Note:** the DI registration gap originally scoped to this slice (`Program.cs` had no `AddScoped<AdoptAnimalHandler>()`) was fixed early, as a mid-`F0002.1` deviation (`docs/features/F0002.1-route-protection.md` §8 History) — it was blocking `F0002.1`'s own `Create` tests, not just `Adopt`. `F0002.2` still owns `[Authorize]` on `Adopt` and its not-found handling. Not yet started. | not started |
 
 ---
 
-> Next step: sub-spec updated at `docs/features/F0002.1-route-protection.md` to
-> reflect the narrowed scope. Run `/clear`, then **`/design-slice F0002.1`** to
-> begin the Design phase.
+> `F0002.1` is implemented and ready for PR to `main` (see
+> `docs/features/F0002.1-route-protection.md` §7/§8). Next: open that PR, then run
+> **`/new-feature-slice F0002.2`** → `/research-slice` → `/design-slice` → `/plan-slice`
+> to begin `F0002.2` (protect `Adopt`, close its remaining not-found-handling gap).
