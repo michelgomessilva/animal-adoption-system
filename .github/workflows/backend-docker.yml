@@ -96,3 +96,12 @@ jobs:
       - name: Tear down
         if: always()
         run: docker compose down -v
+
+  deploy-render:
+    needs: [build, docker-smoke-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
