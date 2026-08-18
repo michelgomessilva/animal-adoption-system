@@ -136,7 +136,11 @@ Opção A — Desenvolvimento local
    e qualquer `CompatibilityMode` que não seja `IdentityV3` — o formato legado
    `IdentityV2`, baseado em MD5/SHA1, não é permitido).
 
-4. Aplicar migrations:
+4. Aplicar migrations — **opcional**: a API aplica migrations pendentes automaticamente
+   na inicialização (`Program.cs` chama `dbContext.Database.Migrate()`, guardado por
+   `IsRelational()` — só roda contra um banco relacional de verdade, nunca contra o
+   provider InMemory usado pelos testes E2E). Rodar manualmente antes de subir a API é
+   útil se você quiser aplicar/conferir migrations sem depender do startup:
 
    ```
    dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
@@ -164,13 +168,12 @@ Opção B — Tudo via Docker
 
    Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do Postgres, do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) e a chave de assinatura JWT (`Jwt__Key`) vêm do `.env` criado no passo 0 acima — sem ele, `docker compose` recusa subir com uma mensagem indicando a variável faltante; nunca use os valores do seu `.env` local fora de ambiente local.
 
-2. Aplicar migrations — a imagem final do `backend` usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), então isso continua sendo feito do host, contra o Postgres exposto em `localhost:5432` (mesmo passo 4 da Opção A, com `dotnet tool restore` antes se ainda não tiver rodado):
+   Nenhum passo manual de migration é necessário aqui — mesmo a imagem final do
+   `backend`, que usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), aplica migrations
+   pendentes sozinha na inicialização (`Program.cs` → `dbContext.Database.Migrate()`,
+   ver passo 4 da Opção A). É uma chamada pura da API do EF Core, não depende da CLI.
 
-   ```
-   dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
-   ```
-
-3. Acessar Swagger:
+2. Acessar Swagger:
 
    - URL: http://localhost:5127/swagger
 

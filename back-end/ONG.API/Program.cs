@@ -80,7 +80,18 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     JwtTokenGenerator.ValidateConfiguration(builder.Configuration);
-    AdminSeeder.Seed(scope.ServiceProvider.GetRequiredService<ONGDbContext>(), builder.Configuration);
+
+    var dbContext = scope.ServiceProvider.GetRequiredService<ONGDbContext>();
+    // Guarded: the EF Core InMemory provider (used by WebApplicationFactory-based E2E
+    // tests) doesn't implement the relational services Migrate() needs and throws if
+    // called against it. Real deploys (Render, Docker, local host run) always use the
+    // relational Npgsql provider, so this only ever skips in tests.
+    if (dbContext.Database.IsRelational())
+    {
+        dbContext.Database.Migrate();
+    }
+
+    AdminSeeder.Seed(dbContext, builder.Configuration);
 }
 
 app.UseSwagger();
