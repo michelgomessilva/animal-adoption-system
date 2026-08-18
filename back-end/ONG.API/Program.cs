@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.Json.Serialization;
 using ONG.Application.Repositories;
 using ONG.Application.Security;
-using ONG.Application.UseCases.Animals.AdoptAnimal;
 using ONG.Application.UseCases.Animals.CreateAnimal;
 using ONG.Application.UseCases.Auth.Login;
 using ONG.Infrastructure.Repositories;
@@ -51,7 +50,6 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
 builder.Services.AddScoped< CreateAnimalHandler > ();
-builder.Services.AddScoped<AdoptAnimalHandler>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
 

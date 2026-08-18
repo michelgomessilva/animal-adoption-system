@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ONG.Application.UseCases.Animals.CreateAnimal;
-using ONG.Application.UseCases.Animals.AdoptAnimal;
 
 namespace ONG.API.Controllers
 {
@@ -10,13 +9,9 @@ namespace ONG.API.Controllers
     public class AnimalController : ControllerBase
     {
         private readonly CreateAnimalHandler _handler;
-        private readonly AdoptAnimalHandler _adoptHandler;
-        public AnimalController(
-            CreateAnimalHandler handler,
-            AdoptAnimalHandler adoptHandler)
+        public AnimalController (CreateAnimalHandler handler)
         {
             _handler = handler;
-            _adoptHandler = adoptHandler;
         }
 
         [Authorize]
@@ -28,18 +23,6 @@ namespace ONG.API.Controllers
             return Ok();
         }
 
-        [HttpPost("{id}/adopt")]
-        public IActionResult Adopt(Guid id)
-        {
-            var command = new AdoptAnimalCommand
-            {
-                AnimalId = id
-            };
-
-            var animal = _adoptHandler.Handle(command);
-
-            return Ok(animal);
-        }
     }
 }
 

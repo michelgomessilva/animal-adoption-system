@@ -15,14 +15,7 @@ namespace ONG.Domain.Entitites
         public Status Status { get; private set; }
         public string District { get; private set; } = string.Empty;
         public string City { get; private set; } = string.Empty;
-        public DateTime? AdoptedAt { get; private set; }
         public DateTime CreatedAt { get; private set; }
-
-        public void Adopt()
-        {
-            Status = Status.Adopted;
-            AdoptedAt = DateTime.UtcNow;
-        }
         public Animal(
             string name,
             Species species,
