@@ -27,7 +27,7 @@ Estrutura da solução
 - ONG.Infrastructure
   - Implementação do DbContext (ONGDbContext), repositórios concretos (`AnimalRepository`, `AdminRepository`), o seeder do usuário administrador (`AdminSeeder`, rodado na inicialização), `JwtTokenGenerator` (implementa `ITokenGenerator`, com validação de configuração fail-fast na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
 - ONG.Tests
-  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 23 testes cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator` e o endpoint `POST /auth/login` de ponta a ponta.
+  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 27 testes cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator` e o endpoint `POST /auth/login` de ponta a ponta.
 
 Status atual (o que já funciona)
 
@@ -105,6 +105,14 @@ Opção A — Desenvolvimento local
 
    `Jwt:Issuer` e `Jwt:ExpiryMinutes` não são secretos — já vêm configurados em
    `appsettings.json` (`ong-api` / `60` minutos) e não precisam de user-secrets.
+
+   `PasswordHasher:IterationCount` (`100000`) e `PasswordHasher:CompatibilityMode`
+   (`IdentityV3`) também não são secretos e já vêm em `appsettings.json` — tornam
+   explícito o que antes era o default implícito do `PasswordHasher<Admin>` do
+   ASP.NET Core Identity. Também validados fail-fast na inicialização
+   (`AdminSeeder.ValidateConfiguration` rejeita `IterationCount` não-numérico/não-positivo
+   e qualquer `CompatibilityMode` que não seja `IdentityV3` — o formato legado
+   `IdentityV2`, baseado em MD5/SHA1, não é permitido).
 
 4. Aplicar migrations:
 
@@ -197,18 +205,17 @@ Problema conhecido (resolvido)
 CI
 
 - Workflow `.github/workflows/backend-docker.yml`, roda em PR/push que tocam `back-end/**`, como dois jobs:
-  - `build` — só `dotnet build ONG.slnx`, feedback rápido de compilação, sem esperar Docker.
-  - `docker-smoke-test` (`needs: build`, roda em runner próprio — jobs não compartilham estado, então tem seu próprio checkout/restore) — build da imagem Docker (`docker compose build backend`) → sobe só o `postgres` e espera ficar saudável → `dotnet ef database update` (contra o Postgres do próprio `docker compose`) → sobe `docker compose up -d` (agora com o banco já migrado) e confere se o Swagger responde.
-- **Limitação conhecida**: esse CI não roda `dotnet test` — a suíte de testes (xUnit, adicionada na `F0001.1`) não é executada automaticamente, só localmente. Vale considerar adicionar um passo `dotnet test` ao workflow.
+  - `build` — `dotnet build ONG.slnx` → `dotnet test ONG.slnx --filter "Category!=Integration"`. Feedback rápido de compilação e da suíte que não depende de Postgres real (unitários, integração via EF Core InMemory, E2E via `WebApplicationFactory<Program>`), sem esperar Docker.
+  - `docker-smoke-test` (`needs: build`, roda em runner próprio — jobs não compartilham estado, então tem seu próprio checkout/restore) — build da imagem Docker (`docker compose build backend`) → sobe só o `postgres` e espera ficar saudável → `dotnet ef database update` (contra o Postgres do próprio `docker compose`) → `dotnet test ONG.slnx --filter "Category=Integration"` (o único teste que precisa de um Postgres real, agora que as migrations já foram aplicadas) → sobe `docker compose up -d` (agora com o banco já migrado) e confere se o Swagger responde.
+- A suíte completa (`dotnet test ONG.slnx`, sem filtro) roda em CI desde a `F0001.2`, dividida entre os dois jobs conforme a dependência de Postgres — fecha a limitação anterior de testes rodarem só localmente.
 
 Notas e próximos passos sugeridos
 
 - Adicionar validações no comando CreateAnimalCommand e tratamento de erros na API.
 - Implementar endpoints para leitura, atualização e exclusão (GET, PUT, DELETE).
-- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), 23 testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`.
+- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), 27 testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`.
 - Próximo passo natural: proteger as rotas administrativas existentes (`POST /animals`,
   `POST /animals/{id}/adopt`) exigindo o JWT emitido por `POST /auth/login` (`F0002`, ver
   `docs/product/PROJECT-admin-authentication.md` Sprint S02) — hoje o token é emitido mas
   nenhuma rota o exige.
 - Considerar DTOs separadas para requests/responses se as entidades mudarem no domínio.
-- Adicionar um passo `dotnet test` ao CI (ver limitação de CI acima) — migrations já são aplicadas automaticamente desde a `F0001.1`.
