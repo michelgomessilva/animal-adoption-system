@@ -1,9 +1,11 @@
-﻿using ONG.Domain.Entitites;
+﻿using System.ComponentModel.DataAnnotations;
+using ONG.Domain.Entitites;
 
 namespace ONG.Application.UseCases.Animals.CreateAnimal
 {
     public class CreateAnimalCommand
     {
+        [Required]
         public string Name { get; set; } = string.Empty;
         public Species Species { get; set; }
 
