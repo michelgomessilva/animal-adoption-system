@@ -9,11 +9,11 @@ using System.Text;
 using System.Text.Json.Serialization;
 using ONG.Application.Repositories;
 using ONG.Application.Security;
-using ONG.Application.UseCases.Animals.AdoptAnimal;
 using ONG.Application.UseCases.Animals.CreateAnimal;
 using ONG.Application.UseCases.Auth.Login;
 using ONG.Infrastructure.Repositories;
 using ONG.Infrastructure.Security;
+using ONG.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,7 +51,6 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddScoped<IAnimalRepository, AnimalRepository>();
 builder.Services.AddScoped< CreateAnimalHandler > ();
-builder.Services.AddScoped<AdoptAnimalHandler>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
 
@@ -103,6 +102,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

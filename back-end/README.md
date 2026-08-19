@@ -2,7 +2,7 @@
 
 Resumo rápido
 
-Projeto em andamento para gerenciar processos de adoção de animais. Atualmente a aplicação implementa a criação (POST) de registros de animais, persistindo-os no banco de dados por meio de EF Core e uma implementação simples de repositório, um endpoint de login administrativo (`POST /auth/login`) que emite um JWT, e autenticação JWT bearer protegendo `POST /animals` (slice `F0002.1`) — `POST /animals/{id}/adopt` ainda não exige token (`F0002.2`, pendente).
+Projeto em andamento para gerenciar o cadastro de animais disponíveis para adoção (o fluxo de adoção em si está fora do escopo atual). Atualmente a aplicação implementa a criação (POST) de registros de animais, persistindo-os no banco de dados por meio de EF Core e uma implementação simples de repositório, um endpoint de login administrativo (`POST /auth/login`) que emite um JWT, e autenticação JWT bearer protegendo `POST /api/animals` (slice `F0002.1`).
 
 Principais tecnologias
 
@@ -21,7 +21,7 @@ Estrutura da solução
 
 - ONG.API
   - Projeto Web API: controllers, configuração do app, Swagger, serialização de enums como string, autenticação JWT bearer (`AddAuthentication`/`AddJwtBearer`/`UseAuthentication`, desde `F0002.1`).
-  - Endpoints implementados: `POST /animals` (requer `Authorization: Bearer <token>` desde `F0002.1`), `POST /animals/{id}/adopt` (ainda público — `F0002.2` pendente), `POST /auth/login`.
+  - Endpoints implementados: `POST /api/animals` (requer `Authorization: Bearer <token>` desde `F0002.1`), `POST /auth/login`.
 - ONG.Application
   - Camada de aplicação: interfaces de repositório (`IAnimalRepository`, `IAdminRepository`), a abstração `ITokenGenerator`, e casos de uso (`CreateAnimalCommand`/`CreateAnimalHandler` — `CreateAnimalCommand.Name` agora `[Required]`, desde `F0002.1` —, `LoginCommand`/`LoginHandler`/`LoginResult`).
 - ONG.Domain
@@ -29,11 +29,11 @@ Estrutura da solução
 - ONG.Infrastructure
   - Implementação do DbContext (ONGDbContext), repositórios concretos (`AnimalRepository`, `AdminRepository`), o seeder do usuário administrador (`AdminSeeder`, rodado na inicialização), `JwtTokenGenerator` (implementa `ITokenGenerator`, com validação de configuração fail-fast na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
 - ONG.Tests
-  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 35 testes cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator`, o endpoint `POST /auth/login` de ponta a ponta, `CreateAnimalCommand` (validação `[Required]`) e o endpoint `POST /animals` protegido por JWT bearer (`F0002.1`).
+  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 35 testes cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator`, o endpoint `POST /auth/login` de ponta a ponta, `CreateAnimalCommand` (validação `[Required]`) e o endpoint `POST /api/animals` protegido por JWT bearer (`F0002.1`).
 
 Status atual (o que já funciona)
 
-- Criar animal via endpoint POST /animals
+- Criar animal via endpoint POST /api/animals
 - Persistência no banco via AnimalRepository e ONGDbContext
 - Migrations criadas para as tabelas Animals e Admins
 - Enums serializados como string no JSON (configuração em Program.cs)
@@ -45,16 +45,13 @@ Status atual (o que já funciona)
   retorna um JWT assinado (HMAC-SHA256) em caso de sucesso; 401 genérico (sem revelar se
   o usuário ou a senha estava errada, com tempo de resposta normalizado entre os dois
   casos) em caso de credenciais inválidas; 400 em caso de corpo ausente/malformado.
-- `POST /animals` agora **exige** um token JWT válido e não expirado (slice `F0002.1`, ver
+- `POST /api/animals` agora **exige** um token JWT válido e não expirado (slice `F0002.1`, ver
   `docs/features/F0002.1-route-protection.md`): `Program.cs` valida o token via
   `AddAuthentication`/`AddJwtBearer` (mesma chave/emissor/algoritmo do
   `JwtTokenGenerator`) e o controller usa `[Authorize]`; requisição sem token, com token
   malformado, expirado ou adulterado retorna `401`; token válido com corpo inválido
   (ex.: `Name` ausente, agora `[Required]`) continua retornando `400` — um token válido
-  nunca substitui a validação de entrada. `POST /animals/{id}/adopt` **ainda não** exige
-  token — protegê-lo, junto com um ajuste no tratamento de "não encontrado" de
-  `AdoptAnimalHandler`, é o próximo passo (`F0002.2`, não iniciada; ver
-  `docs/product/PROJECT-admin-authentication.md` Sprint S02).
+  nunca substitui a validação de entrada.
 
 Como executar
 
@@ -179,12 +176,14 @@ Opção B — Tudo via Docker
 
 Endpoints principais
 
-POST /animals
+POST /api/animals
 - **Requer autenticação** (`F0002.1`): header `Authorization: Bearer <token>` com um JWT
   válido e não expirado, obtido via `POST /auth/login`. Sem o header, ou com um token
-  malformado/expirado/adulterado, a resposta é `401 Unauthorized`. `Name` é obrigatório
-  no corpo (`[Required]`) — se ausente/vazio, mesmo com um token válido, a resposta é
-  `400 Bad Request`.
+  malformado/expirado/adulterado, a resposta é `401 Unauthorized`. `Name`, `Description`,
+  `District` e `City` são obrigatórios no corpo, e `Species`/`Sex`/`Size`/`Status` não
+  podem ficar no valor padrão do enum — se algum desses estiver ausente/inválido, mesmo
+  com um token válido, a resposta é `400 Bad Request`. Sucesso retorna `201 Created` com
+  o animal criado no corpo.
 - Body (JSON) — observação: enums aceitam valores por nome (string), pois o JsonStringEnumConverter está configurado.
 
 Exemplo de requisição:
@@ -230,7 +229,7 @@ ausente ou corpo malformado.
 
 Problema conhecido (resolvido)
 
-- `dotnet ef database update` falhava com "The model has pending changes": `Animal.AdoptedAt` (usado pelo endpoint `POST /animals/{id}/adopt`) não tinha migration correspondente. Resolvido na slice `F0001.1` pela migration `FixAnimalAdoptedAtColumn` (ver `docs/features/F0001.1-admin-identity.md`) — `dotnet ef database update` agora aplica normalmente num banco novo.
+- `dotnet ef database update` falhava com "The model has pending changes": `Animal.AdoptedAt` não tinha migration correspondente. Resolvido na slice `F0001.1` pela migration `FixAnimalAdoptedAtColumn` (ver `docs/features/F0001.1-admin-identity.md`) — `dotnet ef database update` agora aplica normalmente num banco novo. A coluna `AdoptedAt` foi posteriormente removida por completo junto com o fluxo de adoção (migration `RemoveAnimalAdoptedAt`).
 
 CI
 
@@ -241,13 +240,7 @@ CI
 
 Notas e próximos passos sugeridos
 
-- Adicionar validações mais completas no comando CreateAnimalCommand (hoje só `Name` é
-  `[Required]`, desde `F0002.1`) e tratamento de erros na API.
 - Implementar endpoints para leitura, atualização e exclusão (GET, PUT, DELETE).
-- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), 35 testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`/`CreateAnimalCommand`/o endpoint `POST /animals` protegido por JWT bearer.
-- Próximo passo natural: proteger `POST /animals/{id}/adopt` exigindo o JWT emitido por
-  `POST /auth/login` (`F0002.2`, não iniciada; ver
-  `docs/product/PROJECT-admin-authentication.md` Sprint S02) e corrigir o tratamento de
-  "não encontrado" de `AdoptAnimalHandler` na mesma slice — `POST /animals` já exige o
-  token desde `F0002.1`.
+- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`/`CreateAnimalCommand`/o endpoint `POST /api/animals` protegido por JWT bearer.
+- O fluxo de adoção (`POST /animals/{id}/adopt`, `Animal.Adopt()`, `AdoptAnimalHandler`) foi removido por estar fora do escopo atual — não há próximo passo pendente para ele.
 - Considerar DTOs separadas para requests/responses se as entidades mudarem no domínio.

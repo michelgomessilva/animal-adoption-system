@@ -1,4 +1,4 @@
-POST https://localhost:7067/animals
+POST https://localhost:7067/api/animals
 Content-Type: application/json
 
 {
