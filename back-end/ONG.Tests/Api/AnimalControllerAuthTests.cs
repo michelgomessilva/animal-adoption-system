@@ -87,14 +87,14 @@ namespace ONG.Tests.Api
         }
 
         [Fact]
-        public async Task Create_ValidToken_Returns200()
+        public async Task Create_ValidToken_Returns201()
         {
             var token = await GetValidTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _client.PostAsJsonAsync("/animals", ValidAnimalBody());
+            var response = await _client.PostAsJsonAsync("/api/animals", ValidAnimalBody());
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace ONG.Tests.Api
         {
             var countBefore = CountPersistedAnimals();
 
-            var response = await _client.PostAsJsonAsync("/animals", ValidAnimalBody());
+            var response = await _client.PostAsJsonAsync("/api/animals", ValidAnimalBody());
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             Assert.Equal(countBefore, CountPersistedAnimals());
@@ -113,7 +113,7 @@ namespace ONG.Tests.Api
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "not-a-jwt");
 
-            var response = await _client.PostAsJsonAsync("/animals", ValidAnimalBody());
+            var response = await _client.PostAsJsonAsync("/api/animals", ValidAnimalBody());
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -125,7 +125,7 @@ namespace ONG.Tests.Api
             var token = MintExpiredToken();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _client.PostAsJsonAsync("/animals", ValidAnimalBody());
+            var response = await _client.PostAsJsonAsync("/api/animals", ValidAnimalBody());
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             Assert.Equal(countBefore, CountPersistedAnimals());
@@ -138,7 +138,7 @@ namespace ONG.Tests.Api
             var tampered = TamperToken(token);
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tampered);
 
-            var response = await _client.PostAsJsonAsync("/animals", ValidAnimalBody());
+            var response = await _client.PostAsJsonAsync("/api/animals", ValidAnimalBody());
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -149,7 +149,7 @@ namespace ONG.Tests.Api
             var token = await GetValidTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _client.PostAsJsonAsync("/animals", new
+            var response = await _client.PostAsJsonAsync("/api/animals", new
             {
                 Species = "Dog",
                 Sex = "Male",
