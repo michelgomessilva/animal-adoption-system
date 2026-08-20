@@ -1,4 +1,5 @@
-﻿using ONG.Domain.Entitites;
+﻿using System.Collections.Generic;
+using ONG.Domain.Entitites;
 
 namespace ONG.Application.Repositories
 {
@@ -6,5 +7,6 @@ namespace ONG.Application.Repositories
     {
         void Add(Animal animal);
         void SaveChanges();
+        List<Animal> GetAll();
     }
 }

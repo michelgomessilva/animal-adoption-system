@@ -1,4 +1,6 @@
-﻿using ONG.Application.Repositories;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ONG.Application.Repositories;
 using ONG.Domain.Entitites;
 using ONG.Infrastructure.DataBase;
 
@@ -19,6 +21,10 @@ namespace ONG.Infrastructure.Repositories
         public void SaveChanges()
         {
             _context.SaveChanges();
+        }
+        public List<Animal> GetAll()
+        {
+            return _context.Animals.ToList();
         }
     }
 }
