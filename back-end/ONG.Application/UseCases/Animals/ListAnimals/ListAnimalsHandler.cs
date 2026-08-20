@@ -43,7 +43,7 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
             if (string.IsNullOrWhiteSpace(rawValue))
                 return null;
 
-            if (!Enum.TryParse<TEnum>(rawValue, ignoreCase: true, out var parsed))
+            if (!Enum.TryParse<TEnum>(rawValue, ignoreCase: true, out var parsed) || !Enum.IsDefined(typeof(TEnum), parsed))
                 throw new ArgumentException($"{fieldName} filter value '{rawValue}' is not recognized");
 
             return parsed;
@@ -60,7 +60,7 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
                 ? rawOrderBy[..^descendingSuffix.Length]
                 : rawOrderBy;
 
-            if (!Enum.TryParse<AnimalSortField>(fieldToken, ignoreCase: true, out var field))
+            if (!Enum.TryParse<AnimalSortField>(fieldToken, ignoreCase: true, out var field) || !Enum.IsDefined(typeof(AnimalSortField), field))
                 throw new ArgumentException($"orderBy value '{rawOrderBy}' is not recognized");
 
             filter.OrderBy = field;
