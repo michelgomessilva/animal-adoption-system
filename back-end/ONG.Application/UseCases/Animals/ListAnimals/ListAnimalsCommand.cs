@@ -9,5 +9,6 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
         public string? Status { get; set; }
         public string? District { get; set; }
         public string? City { get; set; }
+        public string? OrderBy { get; set; }
     }
 }

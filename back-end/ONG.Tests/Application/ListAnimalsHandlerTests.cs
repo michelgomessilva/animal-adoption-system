@@ -135,5 +135,33 @@ namespace ONG.Tests.Application
                 Species = "None"
             }));
         }
+
+        [Theory]
+        [InlineData("name", AnimalSortField.Name, false)]
+        [InlineData("createdAt_desc", AnimalSortField.CreatedAt, true)]
+        public void Handle_ValidOrderByAscendingAndDescending_ParsesFieldAndDirection(
+            string orderBy, AnimalSortField expectedField, bool expectedDescending)
+        {
+            var repository = new FakeAnimalRepository(SeedAnimals());
+            var handler = new ListAnimalsHandler(repository);
+
+            handler.Handle(new ListAnimalsCommand { IsAuthenticated = true, OrderBy = orderBy });
+
+            Assert.Equal(expectedField, repository.LastFilter!.OrderBy);
+            Assert.Equal(expectedDescending, repository.LastFilter!.OrderDescending);
+        }
+
+        [Fact]
+        public void Handle_InvalidOrderByValue_ThrowsArgumentException()
+        {
+            var repository = new FakeAnimalRepository(SeedAnimals());
+            var handler = new ListAnimalsHandler(repository);
+
+            Assert.Throws<ArgumentException>(() => handler.Handle(new ListAnimalsCommand
+            {
+                IsAuthenticated = true,
+                OrderBy = "bogus"
+            }));
+        }
     }
 }

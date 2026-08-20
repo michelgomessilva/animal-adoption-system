@@ -30,6 +30,8 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
             if (filter.Species == Species.None)
                 throw new ArgumentException($"{nameof(command.Species)} filter value 'None' is not a valid filter");
 
+            ApplyOrderBy(command.OrderBy, filter);
+
             var animals = _repository.GetAll(filter);
 
             return command.IsAuthenticated
@@ -47,6 +49,24 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
                 throw new ArgumentException($"{fieldName} filter value '{rawValue}' is not recognized");
 
             return parsed;
+        }
+
+        private static void ApplyOrderBy(string? rawOrderBy, AnimalFilter filter)
+        {
+            if (string.IsNullOrWhiteSpace(rawOrderBy))
+                return;
+
+            const string descendingSuffix = "_desc";
+            var descending = rawOrderBy.EndsWith(descendingSuffix, StringComparison.OrdinalIgnoreCase);
+            var fieldToken = descending
+                ? rawOrderBy[..^descendingSuffix.Length]
+                : rawOrderBy;
+
+            if (!Enum.TryParse<AnimalSortField>(fieldToken, ignoreCase: true, out var field))
+                throw new ArgumentException($"orderBy value '{rawOrderBy}' is not recognized");
+
+            filter.OrderBy = field;
+            filter.OrderDescending = descending;
         }
     }
 }
