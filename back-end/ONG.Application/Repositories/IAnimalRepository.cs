@@ -6,5 +6,6 @@ namespace ONG.Application.Repositories
     {
         void Add(Animal animal);
         void SaveChanges();
+        List<Animal> GetAll();
     }
 }
