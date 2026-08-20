@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ONG.Domain.Entitites;
+﻿using ONG.Domain.Entitites;
 
 namespace ONG.Application.Repositories
 {

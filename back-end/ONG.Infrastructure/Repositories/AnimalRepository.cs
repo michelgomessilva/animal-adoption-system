@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using ONG.Application.Repositories;
+﻿using ONG.Application.Repositories;
 using ONG.Domain.Entitites;
 using ONG.Infrastructure.DataBase;
 
