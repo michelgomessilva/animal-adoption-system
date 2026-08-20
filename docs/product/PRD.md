@@ -163,7 +163,8 @@
 - **US02.1** — Como visitante, quero consultar os animais disponíveis para
   conhecer os pets que podem ser adotados.
   - Critério de valor: apenas animais com status "Disponível" são retornados.
-  - *Status atual: não implementado — sem endpoint de listagem.*
+  - *Status atual: implementado (`GET /api/animals`, `F0003.1`) — sem filtros
+    por query-string ainda (previstos em `F0003.2`).*
 - **US02.2** — Como visitante, quero consultar os detalhes de um animal para
   avaliar meu interesse.
   - Critério de valor: retorno com as informações completas do animal.

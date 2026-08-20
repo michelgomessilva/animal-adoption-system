@@ -2,7 +2,7 @@
 
 Resumo rápido
 
-Projeto em andamento para gerenciar o cadastro de animais disponíveis para adoção (o fluxo de adoção em si está fora do escopo atual). Atualmente a aplicação implementa a criação (POST) de registros de animais, persistindo-os no banco de dados por meio de EF Core e uma implementação simples de repositório, um endpoint de login administrativo (`POST /auth/login`) que emite um JWT, e autenticação JWT bearer protegendo `POST /api/animals` (slice `F0002.1`).
+Projeto em andamento para gerenciar o cadastro de animais disponíveis para adoção (o fluxo de adoção em si está fora do escopo atual). Atualmente a aplicação implementa a criação (POST) de registros de animais, persistindo-os no banco de dados por meio de EF Core e uma implementação simples de repositório, um endpoint de login administrativo (`POST /auth/login`) que emite um JWT, autenticação JWT bearer protegendo `POST /api/animals` (slice `F0002.1`), e um endpoint público de listagem (`GET /api/animals`, slice `F0003.1`) que retorna somente animais com status `Available` para chamadas anônimas/com token inválido e o catálogo completo para um admin autenticado.
 
 Principais tecnologias
 
@@ -21,15 +21,15 @@ Estrutura da solução
 
 - ONG.API
   - Projeto Web API: controllers, configuração do app, Swagger, serialização de enums como string, autenticação JWT bearer (`AddAuthentication`/`AddJwtBearer`/`UseAuthentication`, desde `F0002.1`).
-  - Endpoints implementados: `POST /api/animals` (requer `Authorization: Bearer <token>` desde `F0002.1`), `POST /auth/login`.
+  - Endpoints implementados: `POST /api/animals` (requer `Authorization: Bearer <token>` desde `F0002.1`), `GET /api/animals` (público, visibilidade escopada por autenticação, desde `F0003.1`), `POST /auth/login`.
 - ONG.Application
-  - Camada de aplicação: interfaces de repositório (`IAnimalRepository`, `IAdminRepository`), a abstração `ITokenGenerator`, e casos de uso (`CreateAnimalCommand`/`CreateAnimalHandler` — `CreateAnimalCommand.Name` agora `[Required]`, desde `F0002.1` —, `LoginCommand`/`LoginHandler`/`LoginResult`).
+  - Camada de aplicação: interfaces de repositório (`IAnimalRepository`, `IAdminRepository`), a abstração `ITokenGenerator`, e casos de uso (`CreateAnimalCommand`/`CreateAnimalHandler` — `CreateAnimalCommand.Name` agora `[Required]`, desde `F0002.1` —, `LoginCommand`/`LoginHandler`/`LoginResult`, `ListAnimalsCommand`/`ListAnimalsHandler` — desde `F0003.1`, aplica o filtro de visibilidade `Status == Available` em memória para chamadas não autenticadas).
 - ONG.Domain
   - Entidades e enums do domínio (Animal, Admin, Sex, Size, Species, Status).
 - ONG.Infrastructure
-  - Implementação do DbContext (ONGDbContext), repositórios concretos (`AnimalRepository`, `AdminRepository`), o seeder do usuário administrador (`AdminSeeder`, rodado na inicialização), `JwtTokenGenerator` (implementa `ITokenGenerator`, com validação de configuração fail-fast na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
+  - Implementação do DbContext (ONGDbContext), repositórios concretos (`AnimalRepository` — inclui `GetAll()`, um simples `_context.Animals.ToList()` sem filtragem, desde `F0003.1` —, `AdminRepository`), o seeder do usuário administrador (`AdminSeeder`, rodado na inicialização), `JwtTokenGenerator` (implementa `ITokenGenerator`, com validação de configuração fail-fast na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
 - ONG.Tests
-  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 35 testes cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator`, o endpoint `POST /auth/login` de ponta a ponta, `CreateAnimalCommand` (validação `[Required]`) e o endpoint `POST /api/animals` protegido por JWT bearer (`F0002.1`).
+  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 44 testes (35 anteriores + 9 novos na `F0003.1`) cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator`, o endpoint `POST /auth/login` de ponta a ponta, `CreateAnimalCommand` (validação `[Required]`), o endpoint `POST /api/animals` protegido por JWT bearer (`F0002.1`), `ListAnimalsHandler` (3 testes unitários), `AnimalRepository.GetAll()` (1 teste de integração via EF Core InMemory) e o endpoint `GET /api/animals` de ponta a ponta (5 testes E2E cobrindo sem token, token válido, token expirado, token adulterado e catálogo vazio — `F0003.1`).
 
 Status atual (o que já funciona)
 
@@ -52,6 +52,15 @@ Status atual (o que já funciona)
   malformado, expirado ou adulterado retorna `401`; token válido com corpo inválido
   (ex.: `Name` ausente, agora `[Required]`) continua retornando `400` — um token válido
   nunca substitui a validação de entrada.
+- `GET /api/animals` (slice `F0003.1`, ver
+  `docs/features/F0003.1-animal-listing-endpoint.md`): primeiro endpoint de leitura da
+  API. É público — **não** usa `[Authorize]` e nunca retorna `401` — mas escopa o
+  resultado pela identidade do chamador (`HttpContext.User.Identity?.IsAuthenticated`):
+  sem token, com token inválido/expirado/adulterado, retorna somente animais com
+  `status == "Available"`; com um token válido do admin seedado, retorna o catálogo
+  completo, qualquer que seja o status. Catálogo vazio retorna `200` com lista vazia,
+  nunca `404`/`500`. Ainda sem filtros por query-string (previstos para a slice
+  `F0003.2`).
 
 Como executar
 
@@ -201,6 +210,39 @@ Exemplo de requisição:
 }
 ```
 
+GET /api/animals
+- **Público** (`F0003.1`) — sem `[Authorize]`, nunca retorna `401`. Sem `Authorization`
+  header, ou com um token inválido/expirado/adulterado, retorna `200` somente com
+  animais `status == "Available"`. Com `Authorization: Bearer <token>` válido do admin
+  seedado, retorna `200` com todos os animais, qualquer que seja o status. Sem body na
+  requisição, sem query params ainda (filtros previstos para `F0003.2`).
+- **Problema conhecido, não corrigido nesta slice:** o construtor de `Animal` nunca
+  atribui `Species` — todo animal retornado tem `"species": "None"` no JSON,
+  independentemente do valor enviado na criação. Defeito pré-existente (não introduzido
+  por `F0003.1`), agora visível pela primeira vez por existir um endpoint de leitura;
+  correção recomendada como hotfix dedicado (`/new-hotfix-spec`), fora do escopo desta
+  slice.
+
+Exemplo de resposta (`200`, chamada anônima):
+
+```json
+[
+  {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "Rex",
+    "species": "None",
+    "sex": "Male",
+    "size": "Medium",
+    "description": "Cachorro amigável",
+    "approximateAge": 3,
+    "image": "https://exemplo.com/rex.jpg",
+    "status": "Available",
+    "district": "Centro",
+    "city": "Sao Paulo"
+  }
+]
+```
+
 POST /auth/login
 - Valida usuário/senha contra o `Admin` seedado e retorna um JWT assinado (HMAC-SHA256)
   em caso de sucesso. Não protege nenhuma outra rota ainda — ver `docs/features/F0001.2-login-endpoint.md`.
@@ -240,7 +282,13 @@ CI
 
 Notas e próximos passos sugeridos
 
-- Implementar endpoints para leitura, atualização e exclusão (GET, PUT, DELETE).
-- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`/`CreateAnimalCommand`/o endpoint `POST /api/animals` protegido por JWT bearer.
+- Leitura em lista implementada (`GET /api/animals`, `F0003.1`); ainda faltam filtros por
+  query-string (species/sex/size/district/city/status admin-only — slice `F0003.2`,
+  planejada), leitura por id (`GET /api/animals/{id}`, fora do escopo do PROJECT atual
+  por decisão de produto), atualização e exclusão (PUT/DELETE).
+- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`/`CreateAnimalCommand`/o endpoint `POST /api/animals` protegido por JWT bearer/`ListAnimalsHandler`/`AnimalRepository.GetAll()`/o endpoint `GET /api/animals` (`F0003.1`).
 - O fluxo de adoção (`POST /animals/{id}/adopt`, `Animal.Adopt()`, `AdoptAnimalHandler`) foi removido por estar fora do escopo atual — não há próximo passo pendente para ele.
 - Considerar DTOs separadas para requests/responses se as entidades mudarem no domínio.
+- **Defeito conhecido, pré-existente:** o construtor de `Animal` nunca atribui `Species`
+  (todo animal serializa `"species": "None"`), agora visível via `GET /api/animals`
+  (`F0003.1`). Recomendado: hotfix dedicado (`/new-hotfix-spec`).
