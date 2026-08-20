@@ -45,41 +45,6 @@ namespace ONG.Tests.Application
         };
 
         [Fact]
-        public void Handle_Authenticated_ReturnsAllAnimalsRegardlessOfStatus()
-        {
-            var repository = new FakeAnimalRepository(SeedAnimals());
-            var handler = new ListAnimalsHandler(repository);
-
-            var result = handler.Handle(new ListAnimalsCommand { IsAuthenticated = true });
-
-            Assert.Equal(3, result.Count);
-        }
-
-        [Fact]
-        public void Handle_NotAuthenticated_ReturnsOnlyAvailableAnimals()
-        {
-            var repository = new FakeAnimalRepository(SeedAnimals());
-            var handler = new ListAnimalsHandler(repository);
-
-            var result = handler.Handle(new ListAnimalsCommand { IsAuthenticated = false });
-
-            Assert.Single(result);
-            Assert.All(result, a => Assert.Equal(Status.Available, a.Status));
-        }
-
-        [Fact]
-        public void Handle_EmptyRepository_ReturnsEmptyList()
-        {
-            var repository = new FakeAnimalRepository(new List<Animal>());
-            var handler = new ListAnimalsHandler(repository);
-
-            var result = handler.Handle(new ListAnimalsCommand { IsAuthenticated = false });
-
-            Assert.NotNull(result);
-            Assert.Empty(result);
-        }
-
-        [Fact]
         public void Handle_ValidSexSizeDistrictCityFilters_PassesTypedFilterToRepository()
         {
             var repository = new FakeAnimalRepository(SeedAnimals());
@@ -162,6 +127,28 @@ namespace ONG.Tests.Application
                 IsAuthenticated = true,
                 OrderBy = "bogus"
             }));
+        }
+
+        [Fact]
+        public void Handle_AnonymousWithStatusFilter_OverridesEffectiveFilterToAvailable()
+        {
+            var repository = new FakeAnimalRepository(SeedAnimals());
+            var handler = new ListAnimalsHandler(repository);
+
+            handler.Handle(new ListAnimalsCommand { IsAuthenticated = false, Status = "Adopted" });
+
+            Assert.Equal(Status.Available, repository.LastFilter!.Status);
+        }
+
+        [Fact]
+        public void Handle_AuthenticatedWithStatusFilter_PassesRequestedStatusThrough()
+        {
+            var repository = new FakeAnimalRepository(SeedAnimals());
+            var handler = new ListAnimalsHandler(repository);
+
+            handler.Handle(new ListAnimalsCommand { IsAuthenticated = true, Status = "Adopted" });
+
+            Assert.Equal(Status.Adopted, repository.LastFilter!.Status);
         }
     }
 }

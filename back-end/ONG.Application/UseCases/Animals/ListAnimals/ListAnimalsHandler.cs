@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ONG.Application.Repositories;
 using ONG.Domain.Entitites;
 
@@ -32,11 +31,10 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
 
             ApplyOrderBy(command.OrderBy, filter);
 
-            var animals = _repository.GetAll(filter);
+            if (!command.IsAuthenticated)
+                filter.Status = Status.Available;
 
-            return command.IsAuthenticated
-                ? animals
-                : animals.Where(a => a.Status == Status.Available).ToList();
+            return _repository.GetAll(filter);
         }
 
         private static TEnum? ParseFilterEnum<TEnum>(string? rawValue, string fieldName)
