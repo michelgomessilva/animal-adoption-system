@@ -22,7 +22,27 @@ namespace ONG.Infrastructure.Repositories
         }
         public List<Animal> GetAll(AnimalFilter filter)
         {
-            return _context.Animals.ToList();
+            IQueryable<Animal> query = _context.Animals;
+
+            if (filter.Species.HasValue)
+                query = query.Where(a => a.Species == filter.Species.Value);
+
+            if (filter.Sex.HasValue)
+                query = query.Where(a => a.Sex == filter.Sex.Value);
+
+            if (filter.Size.HasValue)
+                query = query.Where(a => a.Size == filter.Size.Value);
+
+            if (filter.Status.HasValue)
+                query = query.Where(a => a.Status == filter.Status.Value);
+
+            if (!string.IsNullOrEmpty(filter.District))
+                query = query.Where(a => a.District.ToLower() == filter.District.ToLower());
+
+            if (!string.IsNullOrEmpty(filter.City))
+                query = query.Where(a => a.City.ToLower() == filter.City.ToLower());
+
+            return query.ToList();
         }
     }
 }
