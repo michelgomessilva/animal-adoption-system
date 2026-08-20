@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ONG.Application.Repositories;
@@ -76,6 +77,63 @@ namespace ONG.Tests.Application
 
             Assert.NotNull(result);
             Assert.Empty(result);
+        }
+
+        [Fact]
+        public void Handle_ValidSexSizeDistrictCityFilters_PassesTypedFilterToRepository()
+        {
+            var repository = new FakeAnimalRepository(SeedAnimals());
+            var handler = new ListAnimalsHandler(repository);
+
+            handler.Handle(new ListAnimalsCommand
+            {
+                IsAuthenticated = true,
+                Sex = "male",
+                Size = "medium",
+                District = "  Centro  ",
+                City = "  Sao Paulo  "
+            });
+
+            Assert.Equal(Sex.Male, repository.LastFilter!.Sex);
+            Assert.Equal(Size.Medium, repository.LastFilter!.Size);
+            Assert.Equal("Centro", repository.LastFilter!.District);
+            Assert.Equal("Sao Paulo", repository.LastFilter!.City);
+        }
+
+        [Theory]
+        [InlineData("species", "Elephant")]
+        [InlineData("sex", "Alien")]
+        [InlineData("size", "Huge")]
+        [InlineData("status", "Missing")]
+        public void Handle_InvalidSpeciesSexSizeOrStatusValue_ThrowsArgumentException(string field, string value)
+        {
+            var repository = new FakeAnimalRepository(SeedAnimals());
+            var handler = new ListAnimalsHandler(repository);
+            var command = new ListAnimalsCommand { IsAuthenticated = true };
+
+            switch (field)
+            {
+                case "species": command.Species = value; break;
+                case "sex": command.Sex = value; break;
+                case "size": command.Size = value; break;
+                case "status": command.Status = value; break;
+            }
+
+            var ex = Assert.Throws<ArgumentException>(() => handler.Handle(command));
+            Assert.Contains(field, ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void Handle_SpeciesFilterNone_ThrowsArgumentException()
+        {
+            var repository = new FakeAnimalRepository(SeedAnimals());
+            var handler = new ListAnimalsHandler(repository);
+
+            Assert.Throws<ArgumentException>(() => handler.Handle(new ListAnimalsCommand
+            {
+                IsAuthenticated = true,
+                Species = "None"
+            }));
         }
     }
 }
