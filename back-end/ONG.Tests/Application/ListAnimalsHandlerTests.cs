@@ -70,6 +70,10 @@ namespace ONG.Tests.Application
         [InlineData("sex", "Alien")]
         [InlineData("size", "Huge")]
         [InlineData("status", "Missing")]
+        [InlineData("species", "99")]
+        [InlineData("sex", "99")]
+        [InlineData("size", "99")]
+        [InlineData("status", "99")]
         public void Handle_InvalidSpeciesSexSizeOrStatusValue_ThrowsArgumentException(string field, string value)
         {
             var repository = new FakeAnimalRepository(SeedAnimals());
@@ -116,8 +120,10 @@ namespace ONG.Tests.Application
             Assert.Equal(expectedDescending, repository.LastFilter!.OrderDescending);
         }
 
-        [Fact]
-        public void Handle_InvalidOrderByValue_ThrowsArgumentException()
+        [Theory]
+        [InlineData("bogus")]
+        [InlineData("99")]
+        public void Handle_InvalidOrderByValue_ThrowsArgumentException(string orderBy)
         {
             var repository = new FakeAnimalRepository(SeedAnimals());
             var handler = new ListAnimalsHandler(repository);
@@ -125,7 +131,7 @@ namespace ONG.Tests.Application
             Assert.Throws<ArgumentException>(() => handler.Handle(new ListAnimalsCommand
             {
                 IsAuthenticated = true,
-                OrderBy = "bogus"
+                OrderBy = orderBy
             }));
         }
 
