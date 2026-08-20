@@ -1,5 +1,6 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -163,6 +164,101 @@ namespace ONG.Tests.Api
             });
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        private async Task<Guid> SeedAnimalAsync(string token, string status)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var body = new
+            {
+                Name = status == "Available" ? "Rex" : "Mia",
+                Species = "Dog",
+                Sex = "Male",
+                Size = "Medium",
+                Description = "Test animal",
+                approximateAge = 2,
+                Image = "https://example.com/animal.jpg",
+                Status = status,
+                District = "Centro",
+                City = "Sao Paulo"
+            };
+            var response = await _client.PostAsJsonAsync("/api/animals", body);
+            var created = await response.Content.ReadFromJsonAsync<JsonElement>();
+            _client.DefaultRequestHeaders.Authorization = null;
+            return created.GetProperty("id").GetGuid();
+        }
+
+        [Fact]
+        public async Task List_NoAuthorizationHeader_ReturnsOnlyAvailableAnimals()
+        {
+            var token = await GetValidTokenAsync();
+            await SeedAnimalAsync(token, "Available");
+            await SeedAnimalAsync(token, "Adopted");
+
+            var response = await _client.GetAsync("/api/animals");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var animals = body.EnumerateArray().ToList();
+            Assert.All(animals, a => Assert.Equal("Available", a.GetProperty("status").GetString()));
+            Assert.Contains(animals, a => a.GetProperty("name").GetString() == "Rex");
+        }
+
+        [Fact]
+        public async Task List_ValidToken_ReturnsAllAnimals()
+        {
+            var token = await GetValidTokenAsync();
+            await SeedAnimalAsync(token, "Available");
+            await SeedAnimalAsync(token, "Adopted");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.GetAsync("/api/animals");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(body.EnumerateArray().Count() >= 2);
+        }
+
+        [Fact]
+        public async Task List_ExpiredToken_Returns200ScopedToAvailableOnly()
+        {
+            var token = await GetValidTokenAsync();
+            await SeedAnimalAsync(token, "Available");
+            await SeedAnimalAsync(token, "Adopted");
+            var expired = MintExpiredToken();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", expired);
+
+            var response = await _client.GetAsync("/api/animals");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.All(body.EnumerateArray(), a => Assert.Equal("Available", a.GetProperty("status").GetString()));
+        }
+
+        [Fact]
+        public async Task List_TamperedToken_Returns200ScopedToAvailableOnly()
+        {
+            var token = await GetValidTokenAsync();
+            await SeedAnimalAsync(token, "Available");
+            await SeedAnimalAsync(token, "Adopted");
+            var tampered = TamperToken(token);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tampered);
+
+            var response = await _client.GetAsync("/api/animals");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.All(body.EnumerateArray(), a => Assert.Equal("Available", a.GetProperty("status").GetString()));
+        }
+
+        [Fact]
+        public async Task List_EmptyCatalogNoToken_Returns200WithEmptyList()
+        {
+            var response = await _client.GetAsync("/api/animals");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(JsonValueKind.Array, body.ValueKind);
         }
     }
 }

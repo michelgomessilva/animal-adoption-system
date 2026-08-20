@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ONG.Application.UseCases.Animals.CreateAnimal;
+using ONG.Application.UseCases.Animals.ListAnimals;
 
 namespace ONG.API.Controllers
 {
@@ -9,23 +10,36 @@ namespace ONG.API.Controllers
     public class AnimalController : ControllerBase
     {
         private readonly CreateAnimalHandler _handler;
-        public AnimalController (CreateAnimalHandler handler)
+        private readonly ListAnimalsHandler _listHandler;
+
+        public AnimalController(CreateAnimalHandler handler, ListAnimalsHandler listHandler)
         {
             _handler = handler;
+            _listHandler = listHandler;
         }
 
         [Authorize]
         [HttpPost]
         public IActionResult Create(CreateAnimalCommand command)
-        {       
-            
+        {
+
                 var animal = _handler.Handle(command);
 
-                return StatusCode(201, animal);            
+                return StatusCode(201, animal);
         }
 
+        [HttpGet]
+        public IActionResult List()
+        {
+            var command = new ListAnimalsCommand
+            {
+                IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false
+            };
 
+            var animals = _listHandler.Handle(command);
 
+            return Ok(animals);
+        }
     }
 }
 
