@@ -42,6 +42,26 @@ namespace ONG.Infrastructure.Repositories
             if (!string.IsNullOrEmpty(filter.City))
                 query = query.Where(a => a.City.ToLower() == filter.City.ToLower());
 
+            if (filter.OrderBy.HasValue)
+            {
+                query = filter.OrderBy.Value switch
+                {
+                    AnimalSortField.Name => filter.OrderDescending
+                        ? query.OrderByDescending(a => a.Name)
+                        : query.OrderBy(a => a.Name),
+                    AnimalSortField.Species => filter.OrderDescending
+                        ? query.OrderByDescending(a => a.Species)
+                        : query.OrderBy(a => a.Species),
+                    AnimalSortField.Size => filter.OrderDescending
+                        ? query.OrderByDescending(a => a.Size)
+                        : query.OrderBy(a => a.Size),
+                    AnimalSortField.CreatedAt => filter.OrderDescending
+                        ? query.OrderByDescending(a => a.CreatedAt)
+                        : query.OrderBy(a => a.CreatedAt),
+                    _ => query
+                };
+            }
+
             return query.ToList();
         }
     }

@@ -92,5 +92,47 @@ namespace ONG.Tests.Infrastructure
 
             Assert.Single(result);
         }
+
+        [Fact]
+        public void GetAll_OrderByEachSortField_ReturnsAscendingOrDescendingResults()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+            context.Set<Animal>().Add(new Animal(
+                "Zoe", Species.Dog, Sex.Female, Size.Small, 1,
+                "d", "https://example.com/z.jpg", Status.Available, "Centro", "Sao Paulo"));
+            context.Set<Animal>().Add(new Animal(
+                "Amy", Species.Cat, Sex.Female, Size.Large, 3,
+                "d", "https://example.com/a.jpg", Status.Available, "Centro", "Sao Paulo"));
+            context.SaveChanges();
+
+            var repository = new AnimalRepository(context);
+
+            var byNameAsc = repository.GetAll(new AnimalFilter { OrderBy = AnimalSortField.Name });
+            Assert.Equal(new[] { "Amy", "Zoe" }, byNameAsc.Select(a => a.Name));
+
+            var byNameDesc = repository.GetAll(new AnimalFilter { OrderBy = AnimalSortField.Name, OrderDescending = true });
+            Assert.Equal(new[] { "Zoe", "Amy" }, byNameDesc.Select(a => a.Name));
+
+            var bySizeAsc = repository.GetAll(new AnimalFilter { OrderBy = AnimalSortField.Size });
+            Assert.Equal(new[] { "Zoe", "Amy" }, bySizeAsc.Select(a => a.Name));
+        }
+
+        [Fact]
+        public void GetAll_SpeciesFilterAgainstAllNoneSpeciesData_ReturnsEmpty()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+            context.Set<Animal>().Add(new Animal(
+                "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
+                "Friendly dog", "https://example.com/dog.jpg",
+                Status.Available, "Centro", "Sao Paulo"));
+            context.SaveChanges();
+
+            var repository = new AnimalRepository(context);
+            var result = repository.GetAll(new AnimalFilter { Species = Species.Dog });
+
+            Assert.Empty(result);
+        }
     }
 }
