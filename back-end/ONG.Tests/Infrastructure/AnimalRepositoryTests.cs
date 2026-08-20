@@ -1,5 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
+using ONG.Application.Repositories;
 using ONG.Domain.Entitites;
 using ONG.Infrastructure.DataBase;
 using ONG.Infrastructure.Repositories;
@@ -33,7 +34,7 @@ namespace ONG.Tests.Infrastructure
             context.SaveChanges();
 
             var repository = new AnimalRepository(context);
-            var result = repository.GetAll();
+            var result = repository.GetAll(new AnimalFilter());
 
             Assert.Equal(2, result.Count);
         }

@@ -13,6 +13,8 @@ namespace ONG.Tests.Application
         {
             private readonly List<Animal> _animals;
 
+            public AnimalFilter? LastFilter { get; private set; }
+
             public FakeAnimalRepository(List<Animal> animals)
             {
                 _animals = animals;
@@ -20,7 +22,12 @@ namespace ONG.Tests.Application
 
             public void Add(Animal animal) => _animals.Add(animal);
             public void SaveChanges() { }
-            public List<Animal> GetAll() => _animals;
+
+            public List<Animal> GetAll(AnimalFilter filter)
+            {
+                LastFilter = filter;
+                return _animals;
+            }
         }
 
         private static List<Animal> SeedAnimals() => new()

@@ -16,7 +16,7 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
 
         public List<Animal> Handle(ListAnimalsCommand command)
         {
-            var animals = _repository.GetAll();
+            var animals = _repository.GetAll(new AnimalFilter());
 
             return command.IsAuthenticated
                 ? animals

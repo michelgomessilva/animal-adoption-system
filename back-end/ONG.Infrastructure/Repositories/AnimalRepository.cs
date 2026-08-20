@@ -20,7 +20,7 @@ namespace ONG.Infrastructure.Repositories
         {
             _context.SaveChanges();
         }
-        public List<Animal> GetAll()
+        public List<Animal> GetAll(AnimalFilter filter)
         {
             return _context.Animals.ToList();
         }
