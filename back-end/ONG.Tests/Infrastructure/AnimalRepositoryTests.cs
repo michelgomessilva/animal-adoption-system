@@ -116,6 +116,12 @@ namespace ONG.Tests.Infrastructure
 
             var bySizeAsc = repository.GetAll(new AnimalFilter { OrderBy = AnimalSortField.Size });
             Assert.Equal(new[] { "Zoe", "Amy" }, bySizeAsc.Select(a => a.Name));
+
+            var bySpeciesAsc = repository.GetAll(new AnimalFilter { OrderBy = AnimalSortField.Species });
+            Assert.Equal(new[] { "Zoe", "Amy" }, bySpeciesAsc.Select(a => a.Name));
+
+            var bySpeciesDesc = repository.GetAll(new AnimalFilter { OrderBy = AnimalSortField.Species, OrderDescending = true });
+            Assert.Equal(new[] { "Amy", "Zoe" }, bySpeciesDesc.Select(a => a.Name));
         }
 
         [Fact]
