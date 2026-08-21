@@ -14,7 +14,7 @@
 | ID       | F0003                                  |
 | Slug     | public-animal-listing                  |
 | Domain   | Animal Catalog                         |
-| Status   | in progress (F0003.1 delivered — implemented, `code-reviewer` APPROVED, PR to `main` pending; F0003.2 spec created, in research) |
+| Status   | in progress (F0003.1 delivered — implemented, `code-reviewer` APPROVED, PR to `main` pending; F0003.2 delivered — implemented, `code-reviewer` APPROVED final round, 66/66 tests green, PR to `main` pending — this is the final slice of F0003) |
 | PROJECT  | `docs/product/PROJECT-public-animal-catalog.md` (Sprint S01) |
 | Updated  | 2026-08-21                             |
 
@@ -202,7 +202,7 @@ drift — out of scope here.
 | Slice    | Slug                    | Short description                                                                                                                                                                                 | Status  |
 | -------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | F0003.1  | animal-listing-endpoint  | `GET /api/animals` — new `IAnimalRepository.GetAll()` (or similar) + `ListAnimalsCommand`/`Handler` following the existing Command+Handler shape, controller action branching on `User.Identity.IsAuthenticated` to filter by `Status == Available` for anonymous callers vs. all animals for authenticated ones. No filters yet. | delivered — implemented, `code-reviewer` APPROVED, `secret-scanner`/`injection-reviewer` CLEAN, 9 new tests (44/44 non-integration suite green), manually verified — PR to `main` pending; see `docs/features/F0003.1-animal-listing-endpoint.md` §8 |
-| F0003.2  | animal-listing-filters   | Adds optional query-string filters (species, sex, size, district, city, and admin-only status) plus an optional `orderBy` sort parameter on top of `F0003.1`'s endpoint, composing with (never widening) the visibility rule. Includes `400` handling for invalid filter/sort values and the anonymous `status`-filter authorization boundary. | spec created / in research — see `docs/features/F0003.2-animal-listing-filters.md` |
+| F0003.2  | animal-listing-filters   | Adds optional query-string filters (species, sex, size, district, city, and admin-only status) plus an optional `orderBy` sort parameter on top of `F0003.1`'s endpoint, composing with (never widening) the visibility rule. Includes `400` handling for invalid filter/sort values and the anonymous `status`-filter authorization boundary. Also folded in, mid-delivery, a fix for the pre-existing `Animal` constructor `Species`-assignment bug so the `species` filter could be demonstrated against real data. | delivered — implemented, `code-reviewer` APPROVED (final round), 66/66 tests green, PR to `main` pending — see `docs/features/F0003.2-animal-listing-filters.md` §8 |
 
 > Each slice should be independently shippable and reviewable. If `F0003.2`
 > looks like it will exceed ~400 lines of diff once designed, split it
@@ -215,8 +215,15 @@ drift — out of scope here.
 > `docs/features/F0003.1-animal-listing-endpoint.md` §8) and ready for PR to
 > `main`, not yet opened. It also surfaced a carried-forward, pre-existing
 > defect out of its own scope: `Animal`'s constructor never assigns `Species`,
-> so every animal's `species` field serializes as `"None"` — recommended
-> follow-up is a dedicated hotfix via `/new-hotfix-spec`, not part of this
-> feature. Next step: open `F0003.1`'s PR, then run **`/clear`** followed by
-> **`/new-feature-slice F0003.2`** → `/research-slice` → `/design-slice` →
-> `/plan-slice` to begin `F0003.2` (filters).
+> so every animal's `species` field serializes as `"None"`.
+>
+> `F0003.2` (filters) is now also delivered (implemented, `code-reviewer`
+> APPROVED on the final round, 66/66 tests green, PR to `main` not yet opened —
+> see `docs/features/F0003.2-animal-listing-filters.md` §8), completing this
+> feature's two planned slices. The `Species`-assignment defect noted above was
+> not spun off into a separate hotfix as originally recommended — mid-`F0003.2`
+> delivery, after that slice's own `code-reviewer` APPROVED verdict, the fix was
+> folded directly into `F0003.2` instead (one-line constructor fix, its own
+> Red/Green commit pair), because leaving it unfixed meant `F0003.2`'s own
+> `species` filter could never be demonstrated against real, non-`None` data.
+> Next step: open both slices' PRs to `main`.
