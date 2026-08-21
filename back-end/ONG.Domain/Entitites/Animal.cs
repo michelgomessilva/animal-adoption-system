@@ -30,6 +30,7 @@ namespace ONG.Domain.Entitites
         {
             Id = Guid.NewGuid();
             Name = name;
+            Species = species;
             Sex = sex;
             Size = size;
             ApproximateAge = approximateAge;

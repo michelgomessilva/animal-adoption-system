@@ -229,7 +229,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 | ------ | ------------ | ------ | ------ | ------ | --------------------------------- |
 | F0001  | admin-login  | Authentication | complete (F0001.1 merged; F0001.2 PR pending) | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
 | F0002  | route-protection | Authentication | in progress (F0002.1 implemented, `code-reviewer` APPROVED, PR to `main` pending; F0002.2 not started) | F0002.1, F0002.2 | `docs/features/F0002-route-protection.md` |
-| F0003  | public-animal-listing | Animal Catalog | in progress (F0003.1 delivered — implemented, `code-reviewer` APPROVED, PR to `main` pending; F0003.2 planned) | F0003.1, F0003.2 | `docs/features/F0003-public-animal-listing.md` |
+| F0003  | public-animal-listing | Animal Catalog | in progress (F0003.1 delivered — implemented, `code-reviewer` APPROVED, PR to `main` pending; F0003.2 delivered — implemented, `code-reviewer` APPROVED final round, 66/66 tests green, PR to `main` pending — final slice) | F0003.1, F0003.2 | `docs/features/F0003-public-animal-listing.md` |
 
 ---
 

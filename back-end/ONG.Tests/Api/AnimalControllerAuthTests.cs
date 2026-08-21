@@ -166,20 +166,25 @@ namespace ONG.Tests.Api
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        private async Task<Guid> SeedAnimalAsync(string token, string status)
+        private async Task<Guid> SeedAnimalAsync(
+            string token,
+            string status,
+            string size = "Medium",
+            string district = "Centro",
+            string? name = null)
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var body = new
             {
-                Name = status == "Available" ? "Rex" : "Mia",
+                Name = name ?? (status == "Available" ? "Rex" : "Mia"),
                 Species = "Dog",
                 Sex = "Male",
-                Size = "Medium",
+                Size = size,
                 Description = "Test animal",
                 approximateAge = 2,
                 Image = "https://example.com/animal.jpg",
                 Status = status,
-                District = "Centro",
+                District = district,
                 City = "Sao Paulo"
             };
             var response = await _client.PostAsJsonAsync("/api/animals", body);
@@ -259,6 +264,83 @@ namespace ONG.Tests.Api
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(JsonValueKind.Array, body.ValueKind);
+        }
+
+        [Fact]
+        public async Task List_SizeAndDistrictFilterAsAnonymous_ReturnsOnlyMatchingAvailableAnimals()
+        {
+            var token = await GetValidTokenAsync();
+            await SeedAnimalAsync(token, "Available", size: "Small", district: "Centro");
+            await SeedAnimalAsync(token, "Available", size: "Large", district: "Centro");
+            await SeedAnimalAsync(token, "Adopted", size: "Small", district: "Centro");
+
+            var response = await _client.GetAsync("/api/animals?size=Small&district=Centro");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var animals = body.EnumerateArray().ToList();
+            Assert.NotEmpty(animals);
+            Assert.All(animals, a =>
+            {
+                Assert.Equal("Small", a.GetProperty("size").GetString());
+                Assert.Equal("Centro", a.GetProperty("district").GetString());
+                Assert.Equal("Available", a.GetProperty("status").GetString());
+            });
+        }
+
+        [Fact]
+        public async Task List_StatusFilterWithValidAdminToken_ReturnsOnlyRequestedStatus()
+        {
+            var token = await GetValidTokenAsync();
+            await SeedAnimalAsync(token, "Available", name: "Bella");
+            await SeedAnimalAsync(token, "Adopted", name: "Amy");
+            await SeedAnimalAsync(token, "Adopted", name: "Zoe");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.GetAsync("/api/animals?status=Adopted&orderBy=name");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var animals = body.EnumerateArray().ToList();
+            Assert.All(animals, a => Assert.Equal("Adopted", a.GetProperty("status").GetString()));
+            var names = animals.Select(a => a.GetProperty("name").GetString()).ToList();
+            Assert.Equal(names.OrderBy(n => n, StringComparer.Ordinal), names);
+        }
+
+        [Fact]
+        public async Task List_InvalidSpeciesFilter_Returns400WithMessage()
+        {
+            var response = await _client.GetAsync("/api/animals?species=Elephant");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("message").GetString()));
+        }
+
+        [Fact]
+        public async Task List_InvalidOrderByFilter_Returns400WithMessage()
+        {
+            var response = await _client.GetAsync("/api/animals?orderBy=bogus");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("message").GetString()));
+        }
+
+        [Fact]
+        public async Task List_AnonymousStatusFilterAdopted_Returns200ScopedToAvailableOnlyNeverAdopted()
+        {
+            var token = await GetValidTokenAsync();
+            await SeedAnimalAsync(token, "Available", name: "Bella");
+            await SeedAnimalAsync(token, "Adopted", name: "Amy");
+
+            var response = await _client.GetAsync("/api/animals?status=Adopted");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var animals = body.EnumerateArray().ToList();
+            Assert.NotEmpty(animals);
+            Assert.All(animals, a => Assert.Equal("Available", a.GetProperty("status").GetString()));
         }
     }
 }

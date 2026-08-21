@@ -29,12 +29,9 @@ namespace ONG.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult List()
+        public IActionResult List([FromQuery] ListAnimalsCommand command)
         {
-            var command = new ListAnimalsCommand
-            {
-                IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false
-            };
+            command.IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
 
             var animals = _listHandler.Handle(command);
 
