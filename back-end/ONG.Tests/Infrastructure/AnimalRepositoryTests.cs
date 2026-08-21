@@ -119,7 +119,7 @@ namespace ONG.Tests.Infrastructure
         }
 
         [Fact]
-        public void GetAll_SpeciesFilterAgainstAllNoneSpeciesData_ReturnsEmpty()
+        public void GetAll_SpeciesFilter_ReturnsMatchingSubset()
         {
             var dbName = Guid.NewGuid().ToString();
             using var context = CreateContext(dbName);
@@ -127,12 +127,17 @@ namespace ONG.Tests.Infrastructure
                 "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
                 "Friendly dog", "https://example.com/dog.jpg",
                 Status.Available, "Centro", "Sao Paulo"));
+            context.Set<Animal>().Add(new Animal(
+                "Mia", Species.Cat, Sex.Female, Size.Small, 1,
+                "Calm cat", "https://example.com/cat.jpg",
+                Status.Available, "Centro", "Sao Paulo"));
             context.SaveChanges();
 
             var repository = new AnimalRepository(context);
             var result = repository.GetAll(new AnimalFilter { Species = Species.Dog });
 
-            Assert.Empty(result);
+            Assert.Single(result);
+            Assert.Equal("Rex", result[0].Name);
         }
     }
 }
