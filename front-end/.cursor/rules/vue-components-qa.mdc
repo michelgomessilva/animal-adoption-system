@@ -1,0 +1,36 @@
+---
+description: QA loop for Vue SFCs and TypeScript under front-end/
+globs: **/*.{ts,vue}
+alwaysApply: false
+---
+
+# QA loop
+
+Run from `front-end/` after any Vue/TypeScript/CSS change. Fix failures before continuing.
+
+```bash
+npm run type-check      # vue-tsc --build
+npm run format:check    # oxfmt --check src/  (fix with npm run format)
+npm run lint            # oxlint + ESLint
+npm run test:unit       # Vitest (if the change is covered)
+npm run build           # type-check + Vite production build
+```
+
+`npm run test:unit` uses Vitest watch by default. For a single run: `npx vitest run`.
+
+Skip tests only for comment-only or docs-only edits (still run type-check + format:check + lint).
+
+## Rules
+
+- Test public behavior (props, DOM, user actions), not Vue internals.
+- Do not change observable behavior unless asked.
+- Limit the diff to the files the task needs.
+
+## Checklist
+
+- [ ] `npm run type-check` — zero errors
+- [ ] `npm run format:check` — clean
+- [ ] `npm run lint` — zero warnings
+- [ ] `npx vitest run` — pass when tests are affected
+- [ ] `npm run build` — succeeds
+- [ ] Follows @vue-components.mdc and @vue-components-style.mdc

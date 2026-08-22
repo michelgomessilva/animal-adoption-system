@@ -10,9 +10,9 @@ Monorepo with two top-level areas:
 
 - `back-end/` — .NET 10 ASP.NET Core Web API, Clean Architecture, actively developed.
   All command/architecture guidance below is scoped to this directory.
-- `front-end/` — currently a stub (`front-end/README.md`: "em desenvolvimento por
-  outra equipe" — in development by another team). No real code yet; out of scope
-  for backend work in this repo.
+- `front-end/` — Vue 3 + Vite + TypeScript + Tailwind CSS 4 + daisyUI 5. Conventions
+  live in `front-end/README.md` and `front-end/.cursor/rules/`. Out of scope for
+  backend slices unless the task is frontend.
 
 All commands below are run **from `back-end/`** unless stated otherwise.
 
@@ -352,7 +352,7 @@ language-agnostic table in `docs/claude-code-guide.md` Part 1.5):
 | Don't know where something lives in the codebase | `Explore` subagent | Or `Grep`/`Glob` by hand across the 5 `ONG.*` projects. |
 | A test fails and the cause isn't obvious | `superpowers:systematic-debugging` | Form a hypothesis, instrument, isolate — don't guess-patch. Especially relevant once xUnit is wired into `ONG.Tests`. |
 | About to say "done" | `superpowers:verification-before-completion` | Run `dotnet build ONG.slnx && dotnet test ONG.slnx` (remember: zero tests currently run until a framework is added — this proves the build, not behavior). Then manually verify: `docker compose up -d postgres` + `dotnet run --project ONG.API`, hit `https://localhost:7067/swagger`, exercise the endpoint by hand. |
-| Building or changing UI | `frontend-design` | Only applies once `front-end/` has real work — it is currently another team's stub, out of scope for backend work in this repo. |
+| Building or changing UI | `frontend-design` | Vue 3 + Tailwind + daisyUI in `front-end/`. Follow `front-end/.cursor/rules/` (structure, components, style, QA). |
 | Review your own diff before a PR | `code-reviewer` agent + `injection-reviewer` + `secret-scanner`; `superpowers:requesting-code-review` | |
 | Large tool output (build logs, test runs) bloating context | `context-mode` (`ctx_execute`/`ctx_search`) | |
 

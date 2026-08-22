@@ -1,0 +1,16 @@
+---
+description: Pointer to Vue 3 + Tailwind CSS 4 + daisyUI 5 conventions under front-end/
+globs: front-end/**
+alwaysApply: false
+---
+
+# Front-end conventions
+
+When working under `front-end/`, read and follow:
+
+- `front-end/.cursor/rules/project-structure.mdc`
+- `front-end/.cursor/rules/vue-components.mdc`
+- `front-end/.cursor/rules/vue-components-style.mdc`
+- `front-end/.cursor/rules/vue-components-qa.mdc`
+
+Setup summary: Tailwind CSS 4 + daisyUI 5, entry at `@/styles/main.css`, import alias `@/` → `src/`.

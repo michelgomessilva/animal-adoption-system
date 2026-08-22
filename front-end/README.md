@@ -1,54 +1,82 @@
 # front-end
 
-This template should help get you started developing with Vue 3 in Vite.
+SPA Vue do sistema de adoção de animais.
 
-## Recommended IDE Setup
+## Stack
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- [Vue 3](https://vuejs.org/) (Composition API) + [Vite](https://vite.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vue Router](https://router.vuejs.org/)
+- [Tailwind CSS 4](https://tailwindcss.com/) + [daisyUI 5](https://daisyui.com/)
+- [Vitest](https://vitest.dev/) + [ESLint](https://eslint.org/) + [Oxlint](https://oxc.rs/) + [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)
 
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Desenvolvimento
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+IDE: [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (desative o Vetur) + [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss).
 
-```sh
-npm run build
+### Scripts
+
+| Comando               | Descrição                                      |
+| --------------------- | ---------------------------------------------- |
+| `npm run dev`         | Servidor de desenvolvimento com hot reload     |
+| `npm run build`       | Type-check e build de produção                 |
+| `npm run preview`     | Preview do build de produção                   |
+| `npm run type-check`  | Verificação de tipos (`vue-tsc`)               |
+| `npm run test:unit`   | Testes unitários (Vitest)                      |
+| `npm run lint`        | Oxlint + ESLint                                |
+| `npm run format`      | Formata `src/` com Oxfmt                       |
+| `npm run format:check`| Verifica formatação sem alterar arquivos       |
+
+## Estrutura
+
+```
+src/
+├── main.ts              # Bootstrap — importa @/styles/main.css
+├── App.vue
+├── router/              # Vue Router
+├── pages/               # Uma página por rota (quando existirem)
+├── components/          # ui/ + pastas de domínio (animals, …)
+├── composables/         # Lógica reativa (use*.ts)
+└── styles/
+    ├── main.css         # Entrada Tailwind + daisyUI
+    ├── layout.css       # Shell html / body / #app
+    └── tokens.css       # Opcional — tema customizado (ainda não usado)
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+Alias `@/` → `src/` (Vite `resolve.alias` e `tsconfig.app.json`). Use `@/styles/main.css`, não caminhos relativos profundos.
 
-```sh
-npm run test:unit
+Pastas como `pages/` e `components/ui/` surgem com o primeiro arquivo — não crie diretórios vazios.
+
+## Tailwind CSS e daisyUI
+
+Não há `tailwind.config.js` (Tailwind v4). A integração é:
+
+1. Plugin `@tailwindcss/vite` em `vite.config.ts` (primeiro plugin).
+2. Entrada em `src/styles/main.css`:
+
+```css
+@import 'tailwindcss';
+@plugin 'daisyui';
+@import './layout.css';
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+3. Import global em `src/main.ts`: `import '@/styles/main.css'`.
 
-```sh
-npm run lint
+daisyUI habilita os temas `light` e `dark` por padrão. Troque com `data-theme` no `<html>`. Um tema de marca, quando existir, vai em `src/styles/tokens.css` — não espalhe tokens nos componentes.
+
+Em `<style scoped>`, a primeira linha de um bloco que usa `@apply` deve ser:
+
+```css
+@reference "@/styles/main.css";
 ```
+
+Convenções de componente, CSS e QA para agentes: `front-end/.cursor/rules/`.
+
+## Type-check de `.vue`
+
+O `tsc` não entende SFC. Use `vue-tsc` (`npm run type-check`) e Volar no editor.

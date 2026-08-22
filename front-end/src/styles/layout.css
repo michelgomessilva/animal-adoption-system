@@ -1,0 +1,12 @@
+html {
+  height: auto;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+#app {
+  min-height: 100dvh;
+}

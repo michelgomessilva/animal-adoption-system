@@ -1,0 +1,74 @@
+---
+description: Component CSS — Tailwind CSS 4 + daisyUI 5
+globs: **/*.vue
+alwaysApply: false
+---
+
+# Component CSS
+
+Styles use **Tailwind CSS 4** and **daisyUI 5**. Entry: `src/styles/main.css`.
+
+## Setup
+
+1. Vite plugin `@tailwindcss/vite` is first in `vite.config.ts`.
+2. `src/main.ts` imports `@/styles/main.css` once.
+3. daisyUI ships `light` and `dark`. Switch with `data-theme` on `<html>`.
+
+### Required: `@reference` in scoped styles
+
+Every `<style scoped>` that uses `@apply` MUST start with a `@reference` to the entry stylesheet (not bare `"tailwindcss"`), so daisyUI utilities resolve:
+
+```vue
+<style scoped>
+@reference "@/styles/main.css";
+
+.animal-card {
+  @apply card bg-base-100 shadow-sm;
+}
+</style>
+```
+
+`@/` maps to `src/` (Vite + `tsconfig.app.json`).
+
+## Principles
+
+### Semantic classes + `@apply`
+
+Keep templates readable. Move repeated or long utility clusters into `<style scoped>`.
+
+**Bad:** `class="flex items-center justify-between gap-2 rounded-lg border px-4 py-3 bg-base-100"`
+
+**Good:** `class="animal-card"` + `@apply` in CSS.
+
+Inline utilities are fine when they are local layout helpers (`flex`, `gap-2`, `w-full`) and do not repeat.
+
+### Naming (component-scoped)
+
+- Root: `.animal-card`
+- Sections: `.animal-card-header`, `.animal-card-body`
+- States: `.animal-card--adopted`, `.animal-card-item--selected`
+
+Name the **role**, not the look (`.status-badge`, not `.blue-box`).
+
+### daisyUI usage
+
+- Prefer daisyUI semantic colors (`bg-base-100`, `text-base-content`, `bg-primary`). Do not use `dark:` with daisyUI color names.
+- Use documented variants only (`btn-primary`, `badge-error`). Do not invent classes like `badge-base-300`.
+- Default variant unless a color/size was requested (`btn`, not `btn btn-primary`).
+- `modal-box` stays in the template — never recreate it with `@apply`.
+
+### Organization inside `<style scoped>`
+
+1. `@reference`
+2. Root
+3. Layout
+4. Elements
+5. Modifiers / states
+6. Responsive (mobile-first, inside `@apply`)
+
+## Checklist
+
+- [ ] `@reference "@/styles/main.css"` is first in every `<style scoped>` that uses `@apply`
+- [ ] Semantic class names in the template; utilities in CSS when they repeat
+- [ ] daisyUI semantic colors; no invented variants
+- [ ] Modifiers use `--` (`--adopted`, `--selected`)
