@@ -1,0 +1,136 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+
+import { isApiError } from '@/shared/api/api-error'
+import { useAuthStore } from '@/shared/stores/auth.store'
+import LoginSupportPanel from '@/views/public/components/LoginSupportPanel.vue'
+
+const INVALID_CREDENTIALS_MESSAGE = 'E-mail ou senha inválidos.'
+
+const auth = useAuthStore()
+const router = useRouter()
+const route = useRoute()
+
+const username = ref('')
+const password = ref('')
+const rememberMe = ref(false)
+const isPasswordVisible = ref(false)
+const isSubmitting = ref(false)
+const hasAuthError = ref(false)
+
+const passwordInputType = computed(() => (isPasswordVisible.value ? 'text' : 'password'))
+const passwordToggleLabel = computed(() => (isPasswordVisible.value ? 'ocultar' : 'ver'))
+
+function togglePasswordVisibility(): void {
+  isPasswordVisible.value = !isPasswordVisible.value
+}
+
+async function onSubmit(): Promise<void> {
+  isSubmitting.value = true
+  hasAuthError.value = false
+
+  try {
+    await auth.login({
+      username: username.value,
+      password: password.value,
+      rememberMe: rememberMe.value,
+    })
+
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
+    await router.replace(redirect ?? { name: 'painel-animais' })
+  } catch (error: unknown) {
+    if (isApiError(error) && error.code === 'unauthorized') {
+      hasAuthError.value = true
+      return
+    }
+
+    throw error
+  } finally {
+    isSubmitting.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="login-page">
+    <LoginSupportPanel />
+    <section class="login-page-form" aria-labelledby="login-title">
+      <h1 id="login-title">Login</h1>
+      <form class="login-form" @submit.prevent="onSubmit">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Email</legend>
+          <input
+            v-model="username"
+            class="input w-full"
+            type="text"
+            name="username"
+            autocomplete="username"
+            placeholder="nome@ong.org.br"
+            required
+          />
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Senha</legend>
+          <label class="input w-full">
+            <input
+              v-model="password"
+              :type="passwordInputType"
+              name="password"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="btn btn-ghost btn-xs" @click="togglePasswordVisibility">
+              {{ passwordToggleLabel }}
+            </button>
+          </label>
+        </fieldset>
+
+        <div class="login-form-row">
+          <label class="label cursor-pointer gap-2">
+            <input v-model="rememberMe" type="checkbox" class="checkbox" />
+            Manter conectado
+          </label>
+        </div>
+
+        <button class="btn btn-primary btn-block" type="submit" :disabled="isSubmitting">
+          Entrar
+        </button>
+      </form>
+
+      <div v-if="hasAuthError" role="alert" class="alert alert-error">
+        {{ INVALID_CREDENTIALS_MESSAGE }}
+      </div>
+
+      <p>
+        Não tem conta?
+        <RouterLink :to="{ name: 'register-ong' }" class="link">Cadastre a ONG</RouterLink>
+      </p>
+    </section>
+  </div>
+</template>
+
+<style scoped>
+@reference "@/styles/main.css";
+
+.login-page {
+  @apply grid min-h-[calc(100dvh-4rem)] grid-cols-1 gap-8 px-4 py-8 lg:grid-cols-2 lg:items-center;
+}
+
+.login-page-form {
+  @apply mx-auto flex w-full max-w-md flex-col gap-4;
+}
+
+.login-page-form h1 {
+  @apply text-4xl font-bold;
+}
+
+.login-form {
+  @apply flex flex-col gap-3;
+}
+
+.login-form-row {
+  @apply flex items-center justify-between;
+}
+</style>

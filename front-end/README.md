@@ -7,12 +7,16 @@ SPA Vue do sistema de adoção de animais.
 - [Vue 3](https://vuejs.org/) (Composition API) + [Vite](https://vite.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Vue Router](https://router.vuejs.org/)
+- [Pinia](https://pinia.vuejs.org/)
 - [Tailwind CSS 4](https://tailwindcss.com/) + [daisyUI 5](https://daisyui.com/)
 - [Vitest](https://vitest.dev/) + [ESLint](https://eslint.org/) + [Oxlint](https://oxc.rs/) + [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)
 
 ## Desenvolvimento
 
+A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). Copie o ambiente e suba o Vite:
+
 ```sh
+cp .env.example .env.local
 npm install
 npm run dev
 ```
@@ -36,21 +40,32 @@ IDE: [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://market
 
 ```
 src/
-├── main.ts              # Bootstrap — importa @/styles/main.css
-├── App.vue
-├── router/              # Vue Router
-├── pages/               # Uma página por rota (quando existirem)
-├── components/          # ui/ + pastas de domínio (animals, …)
-├── composables/         # Lógica reativa (use*.ts)
+├── main.ts                 # Pinia → hydrate → guard HTTP 401 → router
+├── App.vue                 # <RouterView />
+├── router/                 # rotas públicas + /painel + auth-guard
+├── views/
+│   ├── public/             # site público (layout, chrome, páginas, login)
+│   └── painel/             # área autenticada
+├── shared/
+│   ├── api/                # http, login, listAnimals
+│   ├── components/         # BrandLogo
+│   ├── composables/        # useAnimalsList
+│   ├── config/             # VITE_API_BASE_URL
+│   ├── stores/             # auth
+│   └── types/              # Animal
 └── styles/
-    ├── main.css         # Entrada Tailwind + daisyUI
-    ├── layout.css       # Shell html / body / #app
-    └── tokens.css       # Opcional — tema customizado (ainda não usado)
+    ├── main.css
+    ├── layout.css
+    └── tokens.css
 ```
+
+Dois contextos de produto: `/*` (`PublicLayout`) e `/painel/*` (`PainelLayout`). Código usado pelos dois módulos (ou pelo router) fica em `shared/`. Componentes de um só módulo ficam em `views/<módulo>/components/`. Promova para `shared/` no segundo consumidor.
 
 Alias `@/` → `src/` (Vite `resolve.alias` e `tsconfig.app.json`). Use `@/styles/main.css`, não caminhos relativos profundos.
 
-Pastas como `pages/` e `components/ui/` surgem com o primeiro arquivo — não crie diretórios vazios.
+`VITE_API_BASE_URL` é obrigatória (fail-fast). A API precisa liberar CORS para `http://localhost:5173`.
+
+Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/cadastrar-ong`, `/painel/animais`. Aliases: `/adotar` → `/`, `/login` → `/entrar`.
 
 ## Tailwind CSS e daisyUI
 
