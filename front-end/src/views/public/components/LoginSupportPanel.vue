@@ -1,16 +1,3 @@
-<script setup lang="ts">
-interface Props {
-  title?: string
-  description?: string
-}
-
-withDefaults(defineProps<Props>(), {
-  title: 'Cuide do catálogo da ONG em um só lugar',
-  description:
-    'Depois de entrar, a equipe atualiza animais disponíveis, marca adoções e mantém as informações visíveis para quem busca um pet.',
-})
-</script>
-
 <template>
   <aside class="login-support">
     <img
@@ -20,8 +7,11 @@ withDefaults(defineProps<Props>(), {
       width="640"
       height="420"
     />
-    <h2>{{ title }}</h2>
-    <p>{{ description }}</p>
+    <h2>Cuide do catálogo da ONG em um só lugar</h2>
+    <p>
+      Depois de entrar, a equipe atualiza animais disponíveis, marca adoções e mantém as informações
+      visíveis para quem busca um pet.
+    </p>
   </aside>
 </template>
 

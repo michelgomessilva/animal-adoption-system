@@ -6,7 +6,7 @@ import type { Animal } from '@/shared/types/animal'
 
 export function useAnimalsList() {
   const animals = ref<Animal[]>([])
-  const isLoading = ref(false)
+  const isLoading = ref(true)
   const hasError = ref(false)
 
   async function loadAnimals(): Promise<void> {
