@@ -52,7 +52,7 @@ depends = [":install"]
 run = "npm run lint:check"
 
 [tasks.format]
-description = "Format src/ with Oxfmt"
+description = "Format src/, e2e/, and playwright.config.ts with Oxfmt"
 depends = [":install"]
 run = "npm run format"
 
@@ -86,6 +86,11 @@ run = "npm run test:unit"
 [tasks.test]
 description = "Run unit tests"
 depends = [":test:unit"]
+
+[tasks."test:e2e"]
+description = "Run Playwright E2E tests (API must already be running)"
+depends = [":install"]
+run = "npm run test:e2e"
 
 # ---------------------------------------------------------------------------
 # Quality gates

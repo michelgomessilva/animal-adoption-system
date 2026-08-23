@@ -21,7 +21,7 @@ mise :build           # type-check + Vite production build
 
 `mise :test:unit` already runs Vitest once. Watch mode is `mise :test:unit:watch`.
 
-Full gate in one shot: `mise :check` (format:check + lint + type-check + test:unit).
+Full gate in one shot: `mise :check` (format:check + lint + type-check + test:unit). Playwright E2E is `mise :test:e2e` and is **not** part of `:check` — start the API yourself first (`e2e/README.md`).
 
 Skip tests only for comment-only or docs-only edits (still run type-check + format:check + lint).
 

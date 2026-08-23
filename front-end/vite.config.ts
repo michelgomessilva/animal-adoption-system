@@ -29,7 +29,7 @@ export default defineConfig({
     tailwindcss(),
     vue(),
     Icons({ compiler: 'vue3' }),
-    vueDevTools(),
+    ...(process.env.PLAYWRIGHT === '1' ? [] : [vueDevTools()]),
   ],
   resolve: {
     alias: {

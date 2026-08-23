@@ -11,7 +11,7 @@ SPA Vue do sistema de adoção de animais.
 - [ky](https://github.com/sindresorhus/ky) (HTTP client over Fetch)
 - [Tailwind CSS 4](https://tailwindcss.com/) + [daisyUI 5](https://daisyui.com/)
 - [unplugin-icons](https://github.com/unplugin/unplugin-icons) + [Lucide](https://lucide.dev/) (`@iconify-json/lucide`). Ícones só via `AppIcon`.
-- [Vitest](https://vitest.dev/) + [ESLint](https://eslint.org/) + [Oxlint](https://oxc.rs/) + [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)
+- [Vitest](https://vitest.dev/) + [Playwright](https://playwright.dev/) (E2E) + [ESLint](https://eslint.org/) + [Oxlint](https://oxc.rs/) + [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)
 
 ## Desenvolvimento
 
@@ -27,6 +27,8 @@ mise :dev     # Vite com hot reload
 
 Para subir API (Docker) e Vite juntos, na raiz do repo: `mise dev:up` (derruba o Docker com `mise dev:down`; o Vite é Ctrl+C).
 
+Os E2E (Playwright) **não sobem a API**. Deixe o backend no ar, defina `E2E_USERNAME` / `E2E_PASSWORD` (as mesmas do `ADMIN_SEED_*` da API) e rode `mise :test:e2e`. Detalhes em [`e2e/README.md`](./e2e/README.md).
+
 IDE: [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (desative o Vetur) + [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss).
 
 ### Tasks (`mise`, a partir de `front-end/`)
@@ -39,9 +41,10 @@ IDE: [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://market
 | `mise :type-check`      | Verificação de tipos (`vue-tsc`)               |
 | `mise :test:unit`       | Testes unitários (Vitest, uma execução)        |
 | `mise :test:unit:watch` | Testes unitários em watch                      |
+| `mise :test:e2e`        | Playwright E2E (API precisa estar no ar)       |
 | `mise :lint`            | Oxlint + ESLint (com auto-fix)                 |
 | `mise :lint:check`      | Oxlint + ESLint sem alterar arquivos           |
-| `mise :format`          | Formata `src/` com Oxfmt                       |
+| `mise :format`          | Formata `src/`, `e2e/` e `playwright.config.ts` |
 | `mise :format:check`    | Verifica formatação sem alterar arquivos       |
 | `mise :check`           | format:check + lint:check + type-check + test:unit |
 | `mise :ci`              | `:check` + `:build`                            |
