@@ -12,6 +12,11 @@ namespace ONG.Infrastructure.Repositories
         {
             _context = context;
         }
+
+        public Animal? GetById(Guid id)
+        {
+            return _context.Animals.FirstOrDefault(animal => animal.Id == id);
+        }
         public void Add(Animal animal)
         {
             _context.Animals.Add(animal);
