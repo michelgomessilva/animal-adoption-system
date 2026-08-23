@@ -27,8 +27,7 @@ namespace ONG.Tests.Api
                     ["Jwt:Issuer"] = "ong-api-tests",
                     ["Jwt:ExpiryMinutes"] = "60",
                     ["PasswordHasher:IterationCount"] = "100000",
-                    ["PasswordHasher:CompatibilityMode"] = "IdentityV3",
-                    ["Cors:Origins:0"] = "http://localhost:5173"
+                    ["PasswordHasher:CompatibilityMode"] = "IdentityV3"
                 });
             });
 
