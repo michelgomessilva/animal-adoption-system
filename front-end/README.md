@@ -15,7 +15,7 @@ SPA Vue do sistema de adoção de animais.
 
 Comandos de front-end rodam **dentro de `front-end/`** (`mise :tarefa`). Não use a raiz do repositório para check, test, lint ou `dev` do Vite.
 
-A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). O Vite encaminha `/api` e `/auth` para ela — o browser não chama a API direto e o backend não precisa de CORS. Bootstrap e Vite:
+A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). No dev, o padrão é same-origin: o Vite encaminha `/api` e `/auth` e o backend não precisa de CORS. Dá para apontar o browser para outra origem com `VITE_API_BASE_URL`. Bootstrap e Vite:
 
 ```sh
 cd front-end
@@ -57,7 +57,7 @@ src/
 │   ├── api/                # http, login, listAnimals
 │   ├── components/         # BrandLogo
 │   ├── composables/        # useAnimalsList
-│   ├── config/             # optional API origin (empty = Vite proxy)
+│   ├── config/             # VITE_API_BASE_URL (empty = Vite proxy)
 │   ├── stores/             # auth
 │   └── types/              # Animal
 └── styles/
@@ -70,7 +70,10 @@ Dois contextos de produto: `/*` (`PublicLayout`) e `/painel/*` (`PainelLayout`).
 
 Alias `@/` → `src/` (Vite `resolve.alias` e `tsconfig.app.json`). Use `@/styles/main.css`, não caminhos relativos profundos.
 
-No desenvolvimento, `fetch` usa URLs relativas (`/api/animals`, `/auth/login`). O proxy em `vite.config.ts` encaminha esses prefixos para `http://localhost:5127` (ou `API_PROXY_TARGET`). Não defina `VITE_API_BASE_URL` apontando para a API — isso fura o proxy. Deixe vazio, ou omita, para same-origin.
+Duas formas de falar com a API:
+
+- **Padrão local:** omita `VITE_API_BASE_URL`. O `fetch` usa URLs relativas (`/api/animals`, `/auth/login`) e o proxy em `vite.config.ts` encaminha para `http://localhost:5127` (ou `API_PROXY_TARGET`). Sem CORS no backend.
+- **Origem explícita:** `VITE_API_BASE_URL=https://api.example.org` (sem barra no final). O browser chama essa origem direto e o proxy do Vite não entra no caminho — a API precisa liberar CORS se for outro host.
 
 Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/cadastrar-ong`, `/painel/animais`. Aliases: `/adotar` → `/`, `/login` → `/entrar`.
 
