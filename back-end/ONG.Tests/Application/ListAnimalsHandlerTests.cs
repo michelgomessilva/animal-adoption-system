@@ -11,6 +11,7 @@ namespace ONG.Tests.Application
     public class ListAnimalsHandlerTests
     {
         private class FakeAnimalRepository : IAnimalRepository
+
         {
             private readonly List<Animal> _animals;
 
@@ -22,6 +23,11 @@ namespace ONG.Tests.Application
             }
 
             public void Add(Animal animal) => _animals.Add(animal);
+
+            public Animal? GetById(Guid id)
+            {
+                return _animals.FirstOrDefault(animal => animal.Id == id);
+            }
             public void SaveChanges() { }
 
             public List<Animal> GetAll(AnimalFilter filter)

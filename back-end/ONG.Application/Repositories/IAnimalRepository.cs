@@ -7,5 +7,7 @@ namespace ONG.Application.Repositories
         void Add(Animal animal);
         void SaveChanges();
         List<Animal> GetAll(AnimalFilter filter);
+        Animal? GetById(Guid id);
+
     }
 }

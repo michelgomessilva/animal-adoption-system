@@ -15,6 +15,7 @@ using ONG.Application.UseCases.Auth.Login;
 using ONG.Infrastructure.Repositories;
 using ONG.Infrastructure.Security;
 using ONG.API.Middleware;
+using ONG.Application.UseCases.Animals.GetAnimalById;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +56,7 @@ builder.Services.AddScoped< CreateAnimalHandler > ();
 builder.Services.AddScoped<ListAnimalsHandler>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
+builder.Services.AddScoped<GetAnimalByIdHandler>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
