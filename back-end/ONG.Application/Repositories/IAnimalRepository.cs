@@ -8,6 +8,5 @@ namespace ONG.Application.Repositories
         void SaveChanges();
         List<Animal> GetAll(AnimalFilter filter);
         Animal? GetById(Guid id);
-
     }
 }
