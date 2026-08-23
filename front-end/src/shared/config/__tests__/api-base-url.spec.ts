@@ -8,14 +8,18 @@ describe('getApiBaseUrl', () => {
   })
 
   it('returns the configured base URL without a trailing slash', () => {
-    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:5127/')
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.org/')
 
-    expect(getApiBaseUrl()).toBe('http://localhost:5127')
+    expect(getApiBaseUrl()).toBe('https://api.example.org')
   })
 
-  it.each(['', '   '])('throws when VITE_API_BASE_URL is %j', (value) => {
+  it('returns an empty string when the env var is missing', () => {
+    expect(getApiBaseUrl()).toBe('')
+  })
+
+  it.each(['', '   '])('returns an empty string when VITE_API_BASE_URL is %j', (value) => {
     vi.stubEnv('VITE_API_BASE_URL', value)
 
-    expect(() => getApiBaseUrl()).toThrow('VITE_API_BASE_URL is not configured')
+    expect(getApiBaseUrl()).toBe('')
   })
 })

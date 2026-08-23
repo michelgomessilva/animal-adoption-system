@@ -25,7 +25,7 @@ describe('listAnimals', () => {
     await expect(listAnimals()).resolves.toEqual([fixture])
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('http://localhost:5127/api/animals')
+    expect(url).toBe('/api/animals')
     expect(new Headers(init.headers).get('Authorization')).toBe('Bearer jwt')
   })
 })

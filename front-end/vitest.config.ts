@@ -9,9 +9,6 @@ export default mergeConfig(
       environment: 'jsdom',
       exclude: [...configDefaults.exclude, 'e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
-      env: {
-        VITE_API_BASE_URL: 'http://localhost:5127',
-      },
     },
   }),
 )

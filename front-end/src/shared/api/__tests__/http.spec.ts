@@ -32,7 +32,7 @@ describe('apiRequest', () => {
     expect(result).toEqual({ token: 'abc' })
     expect(fetchMock).toHaveBeenCalledOnce()
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('http://localhost:5127/auth/login')
+    expect(url).toBe('/auth/login')
     expect(init.method).toBe('POST')
     expect(init.body).toBe(JSON.stringify({ username: 'admin', password: 'secret' }))
     expect(new Headers(init.headers).get('Authorization')).toBeNull()

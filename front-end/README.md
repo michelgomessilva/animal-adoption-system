@@ -15,7 +15,7 @@ SPA Vue do sistema de adoção de animais.
 
 Comandos de front-end rodam **dentro de `front-end/`** (`mise :tarefa`). Não use a raiz do repositório para check, test, lint ou `dev` do Vite.
 
-A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). Bootstrap e Vite:
+A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). O Vite encaminha `/api` e `/auth` para ela — o browser não chama a API direto e o backend não precisa de CORS. Bootstrap e Vite:
 
 ```sh
 cd front-end
@@ -57,7 +57,7 @@ src/
 │   ├── api/                # http, login, listAnimals
 │   ├── components/         # BrandLogo
 │   ├── composables/        # useAnimalsList
-│   ├── config/             # VITE_API_BASE_URL
+│   ├── config/             # optional API origin (empty = Vite proxy)
 │   ├── stores/             # auth
 │   └── types/              # Animal
 └── styles/
@@ -70,7 +70,7 @@ Dois contextos de produto: `/*` (`PublicLayout`) e `/painel/*` (`PainelLayout`).
 
 Alias `@/` → `src/` (Vite `resolve.alias` e `tsconfig.app.json`). Use `@/styles/main.css`, não caminhos relativos profundos.
 
-`VITE_API_BASE_URL` é obrigatória (fail-fast). A API precisa liberar CORS para `http://localhost:5173`.
+No desenvolvimento, `fetch` usa URLs relativas (`/api/animals`, `/auth/login`). O proxy em `vite.config.ts` encaminha esses prefixos para `http://localhost:5127` (ou `API_PROXY_TARGET`). Não defina `VITE_API_BASE_URL` apontando para a API — isso fura o proxy. Deixe vazio, ou omita, para same-origin.
 
 Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/cadastrar-ong`, `/painel/animais`. Aliases: `/adotar` → `/`, `/login` → `/entrar`.
 
