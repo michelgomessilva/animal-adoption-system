@@ -26,7 +26,7 @@ Do not use deep relative imports (`../../../`) across `src/`.
 | Public page | `src/views/public/pages/` | `HomePage.vue` |
 | Painel page | `src/views/painel/pages/` | `AnimalListPage.vue` |
 | Module chrome | `src/views/<module>/components/` | `PublicHeader.vue` |
-| Shared UI | `src/shared/components/` | `BrandLogo.vue` |
+| Shared UI | `src/shared/components/` | `BrandLogo.vue`, `AppIcon.vue` |
 | Pinia store | `src/shared/stores/` | `auth.store.ts` |
 | HTTP / API | `src/shared/api/` | `http.ts`, `auth.ts` |
 | Shared composable | `src/shared/composables/` | `useAnimalsList.ts` |

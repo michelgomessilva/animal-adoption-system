@@ -94,8 +94,13 @@ describe('LoginPage', () => {
     const password = wrapper.get('input[name="password"]')
 
     expect(password.attributes('type')).toBe('password')
+    expect(wrapper.get('button[type="button"]').attributes('aria-label')).toBe('Mostrar senha')
+    expect(wrapper.find('[data-icon="eye"]').exists()).toBe(true)
+
     await wrapper.get('button[type="button"]').trigger('click')
+
     expect(wrapper.get('input[name="password"]').attributes('type')).toBe('text')
-    expect(wrapper.get('button[type="button"]').text()).toBe('ocultar')
+    expect(wrapper.get('button[type="button"]').attributes('aria-label')).toBe('Ocultar senha')
+    expect(wrapper.find('[data-icon="eye-off"]').exists()).toBe(true)
   })
 })

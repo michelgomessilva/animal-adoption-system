@@ -10,6 +10,7 @@ SPA Vue do sistema de adoção de animais.
 - [Pinia](https://pinia.vuejs.org/)
 - [ky](https://github.com/sindresorhus/ky) (HTTP client over Fetch)
 - [Tailwind CSS 4](https://tailwindcss.com/) + [daisyUI 5](https://daisyui.com/)
+- [unplugin-icons](https://github.com/unplugin/unplugin-icons) + [Lucide](https://lucide.dev/) (`@iconify-json/lucide`). Ícones só via `AppIcon`.
 - [Vitest](https://vitest.dev/) + [ESLint](https://eslint.org/) + [Oxlint](https://oxc.rs/) + [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)
 
 ## Desenvolvimento
@@ -57,11 +58,11 @@ src/
 │   └── painel/             # área autenticada
 ├── shared/
 │   ├── api/                # http, login, listAnimals, createAnimal
-│   ├── components/         # BrandLogo
+│   ├── components/         # BrandLogo, AppIcon
 │   ├── composables/        # useAnimalsList
 │   ├── config/             # VITE_API_BASE_URL (fallback: page origin)
 │   ├── stores/             # auth
-│   └── types/              # Animal
+│   └── types/              # Animal, app-icon
 └── styles/
     ├── main.css
     ├── layout.css

@@ -24,8 +24,9 @@ describe('AnimalListPage', () => {
     expect(wrapper.get('h1').text()).toBe('Meus pets')
     expect(wrapper.get('table').text()).toContain('Luna')
     expect(wrapper.get('table').text()).toContain('Disponível')
-    expect(wrapper.get('a.btn-primary').text()).toBe('Cadastrar pet')
+    expect(wrapper.get('a.btn-primary').text()).toContain('Cadastrar pet')
     expect(wrapper.get('a.btn-primary').attributes('href')).toBe('/painel/animais/novo')
+    expect(wrapper.find('[data-icon="plus"]').exists()).toBe(true)
   })
 
   it('shows an empty state', async () => {

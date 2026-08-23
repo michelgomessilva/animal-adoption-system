@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 
+import AppIcon from '@/shared/components/AppIcon.vue'
 import { useAnimalsList } from '@/shared/composables/useAnimalsList'
 import {
   animalSexLabel,
@@ -16,9 +17,10 @@ const { animals, isLoading, hasError } = useAnimalsList()
   <section class="animal-list">
     <header class="animal-list-header">
       <h1>Meus pets</h1>
-      <RouterLink :to="{ name: 'painel-animais-novo' }" class="btn btn-primary"
-        >Cadastrar pet</RouterLink
-      >
+      <RouterLink :to="{ name: 'painel-animais-novo' }" class="btn btn-primary">
+        <AppIcon name="plus" />
+        Cadastrar pet
+      </RouterLink>
     </header>
     <p v-if="isLoading" role="status">Carregando cadastros…</p>
     <p v-else-if="hasError" role="alert">Não foi possível carregar os animais.</p>

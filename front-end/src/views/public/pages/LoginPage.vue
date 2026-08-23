@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { isApiError, type ApiErrorCode } from '@/shared/api/api-error'
+import AppIcon from '@/shared/components/AppIcon.vue'
 import { useAuthStore } from '@/shared/stores/auth.store'
 import LoginSupportPanel from '@/views/public/components/LoginSupportPanel.vue'
 
@@ -23,8 +24,11 @@ const isPasswordVisible = ref(false)
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
 
-const passwordInputType = computed(() => (isPasswordVisible.value ? 'text' : 'password'))
-const passwordToggleLabel = computed(() => (isPasswordVisible.value ? 'ocultar' : 'ver'))
+const passwordToggle = computed(() =>
+  isPasswordVisible.value
+    ? { inputType: 'text' as const, label: 'Ocultar senha', icon: 'eye-off' as const }
+    : { inputType: 'password' as const, label: 'Mostrar senha', icon: 'eye' as const },
+)
 
 function togglePasswordVisibility(): void {
   isPasswordVisible.value = !isPasswordVisible.value
@@ -84,13 +88,18 @@ async function onSubmit(): Promise<void> {
           <label class="input w-full">
             <input
               v-model="password"
-              :type="passwordInputType"
+              :type="passwordToggle.inputType"
               name="password"
               autocomplete="current-password"
               required
             />
-            <button type="button" class="btn btn-ghost btn-xs" @click="togglePasswordVisibility">
-              {{ passwordToggleLabel }}
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs"
+              :aria-label="passwordToggle.label"
+              @click="togglePasswordVisibility"
+            >
+              <AppIcon :name="passwordToggle.icon" />
             </button>
           </label>
         </fieldset>

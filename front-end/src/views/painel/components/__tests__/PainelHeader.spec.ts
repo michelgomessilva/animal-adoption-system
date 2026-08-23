@@ -15,6 +15,11 @@ describe('PainelHeader', () => {
     const push = vi.spyOn(router, 'push')
 
     const wrapper = await mountWithPlugins(PainelHeader, { router, pinia })
+
+    expect(wrapper.find('[aria-label="Abrir menu"]').exists()).toBe(true)
+    expect(wrapper.find('[data-icon="menu"]').exists()).toBe(true)
+    expect(wrapper.find('[data-icon="log-out"]').exists()).toBe(true)
+
     await wrapper.get('button').trigger('click')
 
     expect(logout).toHaveBeenCalledOnce()

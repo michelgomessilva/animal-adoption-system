@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '@/shared/components/AppIcon.vue'
 import ComingSoon from '@/views/painel/components/ComingSoon.vue'
 
 defineProps<{
@@ -15,13 +16,17 @@ const emit = defineEmits<{
 
 <template>
   <footer class="create-footer">
-    <button type="button" class="btn" :disabled="isFirstStep" @click="emit('back')">Voltar</button>
+    <button type="button" class="btn" :disabled="isFirstStep" @click="emit('back')">
+      <AppIcon name="chevron-left" />
+      Voltar
+    </button>
     <div class="create-footer-actions">
       <ComingSoon>
         <button type="button" class="btn">Arquivar</button>
       </ComingSoon>
       <button type="button" class="btn btn-primary" :disabled="!canContinue" @click="emit('next')">
         {{ isLastStep ? 'Cadastrar' : 'Continuar' }}
+        <AppIcon name="chevron-right" />
       </button>
     </div>
   </footer>

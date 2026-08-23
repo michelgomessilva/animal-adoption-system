@@ -44,6 +44,10 @@ const cardClasses = computed(() => ({
 
 Interactive elements need a name (`aria-label` or visible text). Errors: `role="alert"`. Loading: `role="status"`. Inputs have a label.
 
+## Icons
+
+Use `AppIcon` (`@/shared/components/AppIcon.vue`) for every icon. `AppIcon` is decorative (`aria-hidden`); the control keeps the accessible name (`aria-label` or visible text). Do not import `~icons/` outside `src/shared/components/app-icon.registry.ts`. Add a Lucide name to `APP_ICON_NAMES` and the registry when a new icon is needed.
+
 ## daisyUI modals
 
 Keep `modal-box` in the template. Teleport to `body`. Close via `<form method="dialog" class="modal-backdrop">`.

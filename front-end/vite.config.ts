@@ -4,6 +4,7 @@ import { defineConfig, loadEnv, type ProxyOptions } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import Icons from 'unplugin-icons/vite'
 
 const envDir = fileURLToPath(new URL('.', import.meta.url))
 const env = loadEnv(process.env.NODE_ENV ?? 'development', envDir, '')
@@ -27,6 +28,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     vue(),
+    Icons({ compiler: 'vue3' }),
     vueDevTools(),
   ],
   resolve: {

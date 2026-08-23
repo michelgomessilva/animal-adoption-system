@@ -10,7 +10,8 @@ describe('AnimalCreateFooter', () => {
     })
 
     expect(wrapper.get('button').attributes('disabled')).toBeDefined()
-    expect(wrapper.get('button').text()).toBe('Voltar')
+    expect(wrapper.get('button').text()).toContain('Voltar')
+    expect(wrapper.find('[data-icon="chevron-left"]').exists()).toBe(true)
   })
 
   it('shows Cadastrar on the last step', () => {
@@ -18,8 +19,9 @@ describe('AnimalCreateFooter', () => {
       props: { isFirstStep: false, isLastStep: true, canContinue: true },
     })
 
-    const primary = wrapper.findAll('button').find((button) => button.text() === 'Cadastrar')
+    const primary = wrapper.findAll('button').find((button) => button.text().includes('Cadastrar'))
     expect(primary).toBeDefined()
+    expect(wrapper.find('[data-icon="chevron-right"]').exists()).toBe(true)
   })
 
   it('does not emit from Arquivar', async () => {

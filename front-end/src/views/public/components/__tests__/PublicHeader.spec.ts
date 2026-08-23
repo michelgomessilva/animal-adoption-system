@@ -16,5 +16,7 @@ describe('PublicHeader', () => {
     expect(hrefs).toEqual(
       expect.arrayContaining(['/', '/ongs', '/como-funciona', '/entrar', '/cadastrar-ong']),
     )
+    expect(wrapper.find('[aria-label="Abrir menu"]').exists()).toBe(true)
+    expect(wrapper.find('[data-icon="menu"]').exists()).toBe(true)
   })
 })
