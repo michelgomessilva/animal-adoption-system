@@ -8,6 +8,7 @@ import { AUTH_SESSION_KEY, useAuthStore } from '@/shared/stores/auth.store'
 
 vi.mock('@/shared/api/animals', () => ({
   listAnimals: vi.fn<() => Promise<never[]>>().mockResolvedValue([]),
+  createAnimal: vi.fn<() => Promise<never>>(),
 }))
 
 async function createGuardedRouter() {
@@ -43,5 +44,15 @@ describe('router guards', () => {
     await router.isReady()
 
     expect(router.currentRoute.value.name).toBe('painel-animais')
+  })
+
+  it('sends anonymous users from the create page to login with redirect', async () => {
+    const router = await createGuardedRouter()
+
+    await router.push('/painel/animais/novo')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query.redirect).toBe('/painel/animais/novo')
   })
 })

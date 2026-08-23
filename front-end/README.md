@@ -16,7 +16,7 @@ SPA Vue do sistema de adoção de animais.
 
 Comandos de front-end rodam **dentro de `front-end/`** (`mise :tarefa`). Não use a raiz do repositório para check, test, lint ou `dev` do Vite.
 
-A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). `VITE_API_BASE_URL` aponta a origem da API; se faltar, o cliente usa a origem da página e emite um warning. Bootstrap e Vite:
+A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). Em local, deixe `VITE_API_BASE_URL` sem valor: o cliente usa a origem da página (com warning) e o proxy do Vite encaminha `/api` e `/auth`, sem CORS. Só defina a env quando a SPA tiver de chamar outra origem. Bootstrap e Vite:
 
 ```sh
 cd front-end
@@ -38,10 +38,11 @@ IDE: [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://market
 | `mise :type-check`      | Verificação de tipos (`vue-tsc`)               |
 | `mise :test:unit`       | Testes unitários (Vitest, uma execução)        |
 | `mise :test:unit:watch` | Testes unitários em watch                      |
-| `mise :lint`            | Oxlint + ESLint                                |
+| `mise :lint`            | Oxlint + ESLint (com auto-fix)                 |
+| `mise :lint:check`      | Oxlint + ESLint sem alterar arquivos           |
 | `mise :format`          | Formata `src/` com Oxfmt                       |
 | `mise :format:check`    | Verifica formatação sem alterar arquivos       |
-| `mise :check`           | format:check + lint + type-check + test:unit   |
+| `mise :check`           | format:check + lint:check + type-check + test:unit |
 | `mise :ci`              | `:check` + `:build`                            |
 
 ## Estrutura
@@ -55,7 +56,7 @@ src/
 │   ├── public/             # site público (layout, chrome, páginas, login)
 │   └── painel/             # área autenticada
 ├── shared/
-│   ├── api/                # http, login, listAnimals
+│   ├── api/                # http, login, listAnimals, createAnimal
 │   ├── components/         # BrandLogo
 │   ├── composables/        # useAnimalsList
 │   ├── config/             # VITE_API_BASE_URL (fallback: page origin)
@@ -71,9 +72,13 @@ Dois contextos de produto: `/*` (`PublicLayout`) e `/painel/*` (`PainelLayout`).
 
 Alias `@/` → `src/` (Vite `resolve.alias` e `tsconfig.app.json`). Use `@/styles/main.css`, não caminhos relativos profundos.
 
-O cliente HTTP ([ky](https://github.com/sindresorhus/ky)) usa `VITE_API_BASE_URL` como `baseUrl` (com barra no final). Sem a env, cai na origem da página (`console.warn`) e o proxy do Vite encaminha `/api` e `/auth`. Local explícito: `http://localhost:5127` (Docker) ou `https://localhost:7067` (`dotnet run`). Produção: a origem pública da API. Se a SPA e a API não forem o mesmo host, a API precisa liberar CORS.
+O cliente HTTP ([ky](https://github.com/sindresorhus/ky)) usa `VITE_API_BASE_URL` como `baseUrl` (com barra no final). Sem a env (o default local), cai na origem da página (`console.warn`) e o proxy do Vite encaminha `/api` e `/auth`. Para chamar a API direto: `http://localhost:5127` (Docker) ou `https://localhost:7067` (`dotnet run`) — nesse caso a API precisa liberar CORS. Produção: a origem pública da API.
 
-Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/cadastrar-ong`, `/painel/animais`. Aliases: `/adotar` → `/`, `/login` → `/entrar`.
+Auth: `POST /auth/login` com `username` e `password` devolve `{ token }`. A sessão fica em `localStorage` (Manter conectado) ou `sessionStorage`. O cliente envia `Authorization: Bearer`. JWT vale 60 minutos; não há refresh — um 401 autenticado faz logout e volta ao login.
+
+Cadastro de animais: `POST /api/animals` (Bearer, resposta **201**). O painel usa um wizard em `/painel/animais/novo` (Dados básicos → Descrição → Localização). Saúde, upload de fotos, rascunho, Arquivar, Estado, espécie “Outra” e os itens Pedidos de adoção / Perfil da ONG aparecem faded com “Em breve”. `image` é URL opcional (string vazia se não houver foto); **não há upload**.
+
+Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/cadastrar-ong`, `/painel/animais` (Meus pets), `/painel/animais/novo`. Aliases: `/adotar` → `/`, `/login` → `/entrar`.
 
 ## Tailwind CSS e daisyUI
 

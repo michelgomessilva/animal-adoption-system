@@ -26,8 +26,44 @@ describe('LoginPage', () => {
     await wrapper.get('form').trigger('submit')
     await flushPromises()
 
-    expect(wrapper.get('[role="alert"]').text()).toBe('E-mail ou senha inválidos.')
+    expect(wrapper.get('[role="alert"]').text()).toBe('Usuário ou senha inválidos.')
     expect(push).not.toHaveBeenCalled()
+  })
+
+  it('shows a network alert and stays on login', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const auth = useAuthStore()
+    vi.spyOn(auth, 'login').mockRejectedValue(new ApiError('network', 0, 'Network request failed'))
+    const router = await createTestRouter()
+    const replace = vi.spyOn(router, 'replace')
+
+    const wrapper = await mountWithPlugins(LoginPage, { router, pinia })
+    await wrapper.get('input[name="username"]').setValue('admin')
+    await wrapper.get('input[name="password"]').setValue('secret')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.get('[role="alert"]').text()).toBe('Não foi possível conectar. Tente novamente.')
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('shows an unknown error alert and stays on login', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const auth = useAuthStore()
+    vi.spyOn(auth, 'login').mockRejectedValue(new ApiError('unknown', 500, 'Request failed'))
+    const router = await createTestRouter()
+    const replace = vi.spyOn(router, 'replace')
+
+    const wrapper = await mountWithPlugins(LoginPage, { router, pinia })
+    await wrapper.get('input[name="username"]').setValue('admin')
+    await wrapper.get('input[name="password"]').setValue('secret')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.get('[role="alert"]').text()).toBe('Não foi possível entrar. Tente novamente.')
+    expect(replace).not.toHaveBeenCalled()
   })
 
   it('calls login with rememberMe and navigates to the painel', async () => {

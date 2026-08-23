@@ -1,9 +1,20 @@
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, type Pinia } from 'pinia'
+import { vi } from 'vitest'
 import { createMemoryHistory, createRouter, type RouteRecordRaw, type Router } from 'vue-router'
 import type { Component } from 'vue'
 
 import type { Animal } from '@/shared/types/animal'
+
+export function firstFetchRequest(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>): Request {
+  const call = fetchMock.mock.calls[0]
+  if (call === undefined) {
+    throw new Error('Expected fetch to have been called')
+  }
+
+  const [input, init] = call
+  return input instanceof Request ? input : new Request(input, init)
+}
 
 export function createAnimal(overrides: Partial<Animal> = {}): Animal {
   return {
@@ -30,6 +41,11 @@ export const stubRoutes: RouteRecordRaw[] = [
   { path: '/entrar', name: 'login', component: { template: '<div>login</div>' } },
   { path: '/cadastrar-ong', name: 'register-ong', component: { template: '<div>register</div>' } },
   { path: '/painel/animais', name: 'painel-animais', component: { template: '<div>painel</div>' } },
+  {
+    path: '/painel/animais/novo',
+    name: 'painel-animais-novo',
+    component: { template: '<div>cadastro</div>' },
+  },
 ]
 
 export async function createTestRouter(routes: RouteRecordRaw[] = stubRoutes): Promise<Router> {

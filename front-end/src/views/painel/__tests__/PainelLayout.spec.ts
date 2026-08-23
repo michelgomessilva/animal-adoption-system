@@ -6,6 +6,7 @@ import { createTestRouter, mountWithPlugins } from '@/__tests__/helpers'
 
 vi.mock('@/shared/api/animals', () => ({
   listAnimals: vi.fn<() => Promise<never[]>>().mockResolvedValue([]),
+  createAnimal: vi.fn<() => Promise<never>>(),
 }))
 
 describe('PainelLayout', () => {
@@ -29,7 +30,7 @@ describe('PainelLayout', () => {
 
     const wrapper = await mountWithPlugins(PainelLayout, { router })
 
-    expect(wrapper.text()).toContain('Animais')
+    expect(wrapper.text()).toContain('Meus pets')
     expect(wrapper.text()).toContain('Sair')
     expect(wrapper.text()).toContain('lista')
   })

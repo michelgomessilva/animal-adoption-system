@@ -21,8 +21,11 @@ describe('AnimalListPage', () => {
     const wrapper = await mountWithPlugins(AnimalListPage)
     await flushPromises()
 
+    expect(wrapper.get('h1').text()).toBe('Meus pets')
     expect(wrapper.get('table').text()).toContain('Luna')
     expect(wrapper.get('table').text()).toContain('Disponível')
+    expect(wrapper.get('a.btn-primary').text()).toBe('Cadastrar pet')
+    expect(wrapper.get('a.btn-primary').attributes('href')).toBe('/painel/animais/novo')
   })
 
   it('shows an empty state', async () => {

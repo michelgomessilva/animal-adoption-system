@@ -16,7 +16,7 @@ const sizeText = computed(() => animalSizeLabel[props.animal.size])
 
 <template>
   <article class="card bg-base-100 shadow-sm">
-    <figure>
+    <figure v-if="animal.image.length > 0">
       <img :src="animal.image" :alt="`Foto de ${animal.name}`" />
     </figure>
     <div class="card-body">

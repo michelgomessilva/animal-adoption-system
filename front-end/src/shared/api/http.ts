@@ -2,7 +2,7 @@ import ky, { isHTTPError, isNetworkError } from 'ky'
 
 import { getApiBaseUrl } from '@/shared/config/api-base-url'
 
-import { ApiError } from './api-error'
+import { ApiError, parseValidationBody } from './api-error'
 
 export interface ApiRequestInit {
   method?: string
@@ -52,6 +52,13 @@ const api = ky.create({
             }
 
             return new ApiError('unauthorized', 401, 'Unauthorized')
+          }
+
+          if (error.response.status === 400) {
+            const parsed = parseValidationBody(error.data)
+            if (parsed !== null) {
+              return new ApiError('validation', 400, parsed.message, parsed.fieldErrors)
+            }
           }
 
           return new ApiError('unknown', error.response.status, 'Request failed')

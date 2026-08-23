@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
+
 import { useAnimalsList } from '@/shared/composables/useAnimalsList'
 import {
   animalSexLabel,
@@ -12,7 +14,12 @@ const { animals, isLoading, hasError } = useAnimalsList()
 
 <template>
   <section class="animal-list">
-    <h1>Animais</h1>
+    <header class="animal-list-header">
+      <h1>Meus pets</h1>
+      <RouterLink :to="{ name: 'painel-animais-novo' }" class="btn btn-primary"
+        >Cadastrar pet</RouterLink
+      >
+    </header>
     <p v-if="isLoading" role="status">Carregando cadastros…</p>
     <p v-else-if="hasError" role="alert">Não foi possível carregar os animais.</p>
     <p v-else-if="animals.length === 0">Nenhum animal cadastrado.</p>
@@ -50,7 +57,11 @@ const { animals, isLoading, hasError } = useAnimalsList()
   @apply flex flex-col gap-4;
 }
 
-.animal-list h1 {
+.animal-list-header {
+  @apply flex flex-wrap items-center justify-between gap-4;
+}
+
+.animal-list-header h1 {
   @apply text-3xl font-bold;
 }
 </style>

@@ -2,11 +2,15 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
-import { isApiError } from '@/shared/api/api-error'
+import { isApiError, type ApiErrorCode } from '@/shared/api/api-error'
 import { useAuthStore } from '@/shared/stores/auth.store'
 import LoginSupportPanel from '@/views/public/components/LoginSupportPanel.vue'
 
-const INVALID_CREDENTIALS_MESSAGE = 'E-mail ou senha inválidos.'
+const LOGIN_ERROR_MESSAGE: Partial<Record<ApiErrorCode, string>> = {
+  unauthorized: 'Usuário ou senha inválidos.',
+  network: 'Não foi possível conectar. Tente novamente.',
+  unknown: 'Não foi possível entrar. Tente novamente.',
+}
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -17,7 +21,7 @@ const password = ref('')
 const rememberMe = ref(false)
 const isPasswordVisible = ref(false)
 const isSubmitting = ref(false)
-const hasAuthError = ref(false)
+const formError = ref<string | null>(null)
 
 const passwordInputType = computed(() => (isPasswordVisible.value ? 'text' : 'password'))
 const passwordToggleLabel = computed(() => (isPasswordVisible.value ? 'ocultar' : 'ver'))
@@ -28,7 +32,7 @@ function togglePasswordVisibility(): void {
 
 async function onSubmit(): Promise<void> {
   isSubmitting.value = true
-  hasAuthError.value = false
+  formError.value = null
 
   try {
     await auth.login({
@@ -40,12 +44,16 @@ async function onSubmit(): Promise<void> {
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
     await router.replace(redirect ?? { name: 'painel-animais' })
   } catch (error: unknown) {
-    if (isApiError(error) && error.code === 'unauthorized') {
-      hasAuthError.value = true
-      return
+    if (!isApiError(error)) {
+      throw error
     }
 
-    throw error
+    const message = LOGIN_ERROR_MESSAGE[error.code]
+    if (message === undefined) {
+      throw error
+    }
+
+    formError.value = message
   } finally {
     isSubmitting.value = false
   }
@@ -59,14 +67,14 @@ async function onSubmit(): Promise<void> {
       <h1 id="login-title">Login</h1>
       <form class="login-form" @submit.prevent="onSubmit">
         <fieldset class="fieldset">
-          <legend class="fieldset-legend">Email</legend>
+          <legend class="fieldset-legend">Usuário</legend>
           <input
             v-model="username"
             class="input w-full"
             type="text"
             name="username"
             autocomplete="username"
-            placeholder="nome@ong.org.br"
+            placeholder="seu usuário"
             required
           />
         </fieldset>
@@ -99,8 +107,8 @@ async function onSubmit(): Promise<void> {
         </button>
       </form>
 
-      <div v-if="hasAuthError" role="alert" class="alert alert-error">
-        {{ INVALID_CREDENTIALS_MESSAGE }}
+      <div v-if="formError !== null" role="alert" class="alert alert-error">
+        {{ formError }}
       </div>
 
       <p>

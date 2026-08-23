@@ -33,6 +33,14 @@ describe('HomePage', () => {
     expect(wrapper.text()).toContain('Nenhum animal disponível no momento.')
   })
 
+  it('omits the image when the animal has no photo URL', async () => {
+    listAnimalsMock.mockResolvedValue([createAnimal({ image: '' })])
+    const wrapper = await mountWithPlugins(HomePage)
+    await flushPromises()
+
+    expect(wrapper.find('img').exists()).toBe(false)
+  })
+
   it('shows an error when the catalog fails to load', async () => {
     listAnimalsMock.mockRejectedValue(new ApiError('network', 0, 'Network request failed'))
     const wrapper = await mountWithPlugins(HomePage)

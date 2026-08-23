@@ -8,16 +8,7 @@ import {
   setUnauthorizedHandler,
 } from '@/shared/api/http'
 import { getApiBaseUrl } from '@/shared/config/api-base-url'
-
-function firstFetchRequest(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>): Request {
-  const call = fetchMock.mock.calls[0]
-  if (call === undefined) {
-    throw new Error('Expected fetch to have been called')
-  }
-
-  const [input, init] = call
-  return input instanceof Request ? input : new Request(input, init)
-}
+import { firstFetchRequest } from '@/__tests__/helpers'
 
 describe('apiRequest', () => {
   afterEach(() => {
@@ -114,7 +105,49 @@ describe('apiRequest', () => {
     expect(onUnauthorized).toHaveBeenCalledOnce()
   })
 
-  it('throws unknown on a non-401 error status', async () => {
+  it('throws validation from a ProblemDetails 400 body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            title: 'One or more validation errors occurred.',
+            status: 400,
+            errors: { Name: ['The Name field is required.'] },
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } },
+        ),
+      ),
+    )
+
+    await expect(apiRequest('api/animals', { method: 'POST', body: {} })).rejects.toMatchObject({
+      code: 'validation',
+      status: 400,
+      message: 'The Name field is required.',
+      fieldErrors: { name: 'The Name field is required.' },
+    } satisfies Partial<ApiError>)
+  })
+
+  it('throws validation from a message-only 400 body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify({ message: 'Species is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    )
+
+    await expect(apiRequest('api/animals', { method: 'POST', body: {} })).rejects.toMatchObject({
+      code: 'validation',
+      status: 400,
+      message: 'Species is required',
+      fieldErrors: {},
+    } satisfies Partial<ApiError>)
+  })
+
+  it('throws unknown on a 400 without a parseable body', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 400 })),
@@ -123,6 +156,18 @@ describe('apiRequest', () => {
     await expect(apiRequest('api/animals')).rejects.toMatchObject({
       code: 'unknown',
       status: 400,
+    })
+  })
+
+  it('throws unknown on a non-401 error status', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 500 })),
+    )
+
+    await expect(apiRequest('api/animals')).rejects.toMatchObject({
+      code: 'unknown',
+      status: 500,
     })
   })
 
