@@ -11,7 +11,7 @@
 @reference "@/styles/main.css";
 
 .coming-soon {
-  @apply pointer-events-none text-base-content opacity-50;
+  @apply pointer-events-none opacity-50;
 }
 
 .coming-soon-label {

@@ -23,20 +23,4 @@ describe('AnimalCreateFooter', () => {
     expect(primary).toBeDefined()
     expect(wrapper.find('[data-icon="chevron-right"]').exists()).toBe(true)
   })
-
-  it('does not emit from Arquivar', async () => {
-    const wrapper = mount(AnimalCreateFooter, {
-      props: { isFirstStep: false, isLastStep: false, canContinue: true },
-    })
-
-    const archive = wrapper.findAll('button').find((button) => button.text() === 'Arquivar')
-    if (archive === undefined) {
-      throw new Error('Expected the Arquivar button')
-    }
-
-    await archive.trigger('click')
-
-    expect(wrapper.emitted('next')).toBeUndefined()
-    expect(wrapper.emitted('back')).toBeUndefined()
-  })
 })

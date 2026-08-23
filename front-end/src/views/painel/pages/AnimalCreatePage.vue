@@ -2,10 +2,14 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { isApiError } from '@/shared/api/api-error'
+import { isApiError, type ApiErrorCode } from '@/shared/api/api-error'
 import { createAnimal, type CreateAnimalInput } from '@/shared/api/animals'
-import ComingSoon from '@/views/painel/components/ComingSoon.vue'
 import AnimalCreateWizard from '@/views/painel/components/AnimalCreateWizard.vue'
+
+const CREATE_ERROR_MESSAGE: Partial<Record<ApiErrorCode, string>> = {
+  network: 'Não foi possível conectar. Tente novamente.',
+  unknown: 'Não foi possível cadastrar o animal. Tente novamente.',
+}
 
 const router = useRouter()
 const isSubmitting = ref(false)
@@ -31,12 +35,12 @@ async function onSubmit(payload: CreateAnimalInput): Promise<void> {
       return
     }
 
-    formError.value =
-      error.code === 'validation'
-        ? error.message
-        : error.code === 'network'
-          ? 'Não foi possível conectar. Tente novamente.'
-          : 'Não foi possível cadastrar o animal. Tente novamente.'
+    const message = error.code === 'validation' ? error.message : CREATE_ERROR_MESSAGE[error.code]
+    if (message === undefined) {
+      throw error
+    }
+
+    formError.value = message
   } finally {
     isSubmitting.value = false
   }
@@ -46,10 +50,11 @@ async function onSubmit(payload: CreateAnimalInput): Promise<void> {
 <template>
   <section class="animal-create">
     <header class="animal-create-header">
+      <p class="animal-create-kicker">Novo cadastro</p>
       <h1>Cadastro do pet</h1>
-      <ComingSoon>
-        <p>Rascunho salvo automaticamente</p>
-      </ComingSoon>
+      <p class="animal-create-lead">
+        Três etapas: dados básicos, descrição com foto por URL e localização.
+      </p>
     </header>
 
     <AnimalCreateWizard @submit="onSubmit" />
@@ -67,11 +72,15 @@ async function onSubmit(payload: CreateAnimalInput): Promise<void> {
   @apply flex flex-col gap-6;
 }
 
-.animal-create-header {
-  @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+.animal-create-kicker {
+  @apply mb-1 text-xs font-semibold tracking-[0.18em] text-primary uppercase;
 }
 
 .animal-create-header h1 {
-  @apply text-3xl font-bold;
+  @apply font-serif text-4xl font-bold tracking-tight;
+}
+
+.animal-create-lead {
+  @apply mt-2 max-w-2xl text-base-content/70;
 }
 </style>

@@ -3,27 +3,30 @@ import { describe, expect, it } from 'vitest'
 import { useAnimalCreateWizard } from '@/views/painel/composables/useAnimalCreateWizard'
 
 describe('useAnimalCreateWizard', () => {
-  it('skips the health step when advancing and going back', () => {
+  it('advances through the three active steps', () => {
     const wizard = useAnimalCreateWizard()
     wizard.draft.value.name = 'Luna'
 
     wizard.goNext()
 
-    expect(wizard.currentStep.value).toBe(3)
+    expect(wizard.currentStep.value).toBe('description')
 
+    wizard.draft.value.description = 'Calma'
+    wizard.goNext()
+
+    expect(wizard.currentStep.value).toBe('location')
     wizard.goBack()
 
-    expect(wizard.currentStep.value).toBe(1)
-    expect(wizard.currentStep.value).not.toBe(2)
+    expect(wizard.currentStep.value).toBe('description')
   })
 
-  it('does not advance from step 1 when the name is empty', () => {
+  it('does not advance from basic data when the name is empty', () => {
     const wizard = useAnimalCreateWizard()
 
     expect(wizard.canGoNext.value).toBe(false)
     wizard.goNext()
 
-    expect(wizard.currentStep.value).toBe(1)
+    expect(wizard.currentStep.value).toBe('basic')
   })
 
   it('does not advance past the last step', () => {
@@ -33,13 +36,13 @@ describe('useAnimalCreateWizard', () => {
     wizard.draft.value.description = 'Calma'
     wizard.goNext()
 
-    expect(wizard.currentStep.value).toBe(4)
+    expect(wizard.currentStep.value).toBe('location')
     wizard.draft.value.district = 'Centro'
     wizard.draft.value.city = 'Porto Alegre'
     expect(wizard.canGoNext.value).toBe(true)
     wizard.goNext()
 
-    expect(wizard.currentStep.value).toBe(4)
+    expect(wizard.currentStep.value).toBe('location')
   })
 
   it('returns a payload with an empty image string and no nulls', () => {
@@ -55,11 +58,13 @@ describe('useAnimalCreateWizard', () => {
     })
   })
 
-  it('ignores selecting the faded health step', () => {
+  it('revisits a visited step', () => {
     const wizard = useAnimalCreateWizard()
+    wizard.draft.value.name = 'Luna'
+    wizard.goNext()
 
-    wizard.selectStep(2)
+    wizard.selectStep('basic')
 
-    expect(wizard.currentStep.value).toBe(1)
+    expect(wizard.currentStep.value).toBe('basic')
   })
 })

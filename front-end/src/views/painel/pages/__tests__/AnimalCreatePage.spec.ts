@@ -26,14 +26,14 @@ async function completeWizard(
   await wrapper.get('input[name="name"]').setValue('Luna')
   const continueFirst = wrapper.findAll('button').find((button) => button.text() === 'Continuar')
   if (continueFirst === undefined) {
-    throw new Error('Expected Continuar on step 1')
+    throw new Error('Expected Continuar on basic step')
   }
   await continueFirst.trigger('click')
 
   await wrapper.get('textarea[name="description"]').setValue('Calma')
   const continueSecond = wrapper.findAll('button').find((button) => button.text() === 'Continuar')
   if (continueSecond === undefined) {
-    throw new Error('Expected Continuar on step 3')
+    throw new Error('Expected Continuar on description step')
   }
   await continueSecond.trigger('click')
 
@@ -96,6 +96,24 @@ describe('AnimalCreatePage', () => {
     await flushPromises()
 
     expect(wrapper.get('[role="alert"]').text()).toBe('The Name field is required.')
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('shows a network alert and stays on the page', async () => {
+    createAnimalMock.mockRejectedValue(new ApiError('network', 0, 'Network request failed'))
+    const router = await createTestRouter()
+    const replace = vi.spyOn(router, 'replace')
+    const wrapper = await mountWithPlugins(AnimalCreatePage, { router })
+
+    await completeWizard(wrapper)
+    const submit = wrapper.findAll('button').find((button) => button.text() === 'Cadastrar')
+    if (submit === undefined) {
+      throw new Error('Expected Cadastrar')
+    }
+    await submit.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[role="alert"]').text()).toBe('Não foi possível conectar. Tente novamente.')
     expect(replace).not.toHaveBeenCalled()
   })
 })

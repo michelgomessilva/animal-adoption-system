@@ -10,6 +10,6 @@ describe('OngsPage', () => {
     expect(wrapper.get('h1').text()).toBe('A ONG por trás do POA')
     expect(wrapper.text()).toContain('única organização')
     expect(wrapper.get('a[href="/"]').text()).toContain('Ver animais')
-    expect(wrapper.get('a[href="/entrar"]').text()).toContain('Entrar no painel')
+    expect(wrapper.get('a[href="/entrar"]').text()).toContain('Área da ONG')
   })
 })

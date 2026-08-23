@@ -20,12 +20,11 @@ describe('App', () => {
       { path: '/ongs', name: 'ongs', component: { template: '<div />' } },
       { path: '/como-funciona', name: 'how-it-works', component: { template: '<div />' } },
       { path: '/entrar', name: 'login', component: { template: '<div />' } },
-      { path: '/cadastrar-ong', name: 'register-ong', component: { template: '<div />' } },
     ])
 
     const wrapper = await mountWithPlugins(App, { router })
 
     expect(wrapper.text()).toContain('Adotar')
-    expect(wrapper.text()).toContain('Adote um animal')
+    expect(wrapper.text()).toContain('Encontre o próximo membro da casa')
   })
 })

@@ -4,6 +4,7 @@ import PainelNav from './PainelNav.vue'
 
 <template>
   <aside class="painel-sidebar">
+    <p class="painel-sidebar-label">Operação</p>
     <PainelNav />
   </aside>
 </template>
@@ -12,6 +13,10 @@ import PainelNav from './PainelNav.vue'
 @reference "@/styles/main.css";
 
 .painel-sidebar {
-  @apply flex min-h-full w-64 flex-col bg-base-200 p-4;
+  @apply flex min-h-full w-72 flex-col bg-neutral p-5 text-neutral-content;
+}
+
+.painel-sidebar-label {
+  @apply mb-3 px-2 text-xs font-semibold tracking-[0.18em] text-neutral-content/55 uppercase;
 }
 </style>

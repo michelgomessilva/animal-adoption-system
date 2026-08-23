@@ -2,7 +2,20 @@ import { computed, ref } from 'vue'
 
 import type { CreateAnimalInput } from '@/shared/api/animals'
 
-export type WizardStep = 1 | 2 | 3 | 4
+export const WIZARD_STEPS = ['basic', 'description', 'location'] as const
+
+export type WizardStep = (typeof WIZARD_STEPS)[number]
+
+export const WIZARD_STEP_META: Record<WizardStep, { title: string; subtitle: string }> = {
+  basic: { title: 'Dados básicos', subtitle: 'Nome, espécie, porte, idade' },
+  description: { title: 'Descrição e foto', subtitle: 'Texto e URL opcional' },
+  location: { title: 'Localização e revisão', subtitle: 'Bairro, cidade, status' },
+}
+
+export const ANIMAL_NAME_MAX = 20
+export const ANIMAL_AGE_MAX = 30
+export const ANIMAL_DESCRIPTION_MAX = 200
+export const ANIMAL_LOCATION_MAX = 30
 
 export function createEmptyDraft(): CreateAnimalInput {
   return {
@@ -20,63 +33,40 @@ export function createEmptyDraft(): CreateAnimalInput {
 }
 
 function isStepValid(step: WizardStep, draft: CreateAnimalInput): boolean {
-  if (step === 1) {
+  if (step === 'basic') {
     const name = draft.name.trim()
     return (
       name.length > 0 &&
-      name.length <= 20 &&
+      name.length <= ANIMAL_NAME_MAX &&
       Number.isInteger(draft.approximateAge) &&
       draft.approximateAge >= 0 &&
-      draft.approximateAge <= 30
+      draft.approximateAge <= ANIMAL_AGE_MAX
     )
   }
 
-  if (step === 3) {
+  if (step === 'description') {
     const description = draft.description.trim()
-    return description.length > 0 && description.length <= 200
+    return description.length > 0 && description.length <= ANIMAL_DESCRIPTION_MAX
   }
 
-  if (step === 4) {
-    const district = draft.district.trim()
-    const city = draft.city.trim()
-    return district.length > 0 && district.length <= 30 && city.length > 0 && city.length <= 30
-  }
-
-  return false
-}
-
-function nextActiveStep(step: WizardStep): WizardStep | null {
-  if (step === 1) {
-    return 3
-  }
-
-  if (step === 3) {
-    return 4
-  }
-
-  return null
-}
-
-function previousActiveStep(step: WizardStep): WizardStep | null {
-  if (step === 4) {
-    return 3
-  }
-
-  if (step === 3) {
-    return 1
-  }
-
-  return null
+  const district = draft.district.trim()
+  const city = draft.city.trim()
+  return (
+    district.length > 0 &&
+    district.length <= ANIMAL_LOCATION_MAX &&
+    city.length > 0 &&
+    city.length <= ANIMAL_LOCATION_MAX
+  )
 }
 
 export function useAnimalCreateWizard() {
   const draft = ref<CreateAnimalInput>(createEmptyDraft())
-  const currentStep = ref<WizardStep>(1)
-  const visitedSteps = ref<WizardStep[]>([1])
+  const currentStep = ref<WizardStep>('basic')
+  const visitedSteps = ref<WizardStep[]>(['basic'])
 
   const canGoNext = computed(() => isStepValid(currentStep.value, draft.value))
-  const isFirstStep = computed(() => currentStep.value === 1)
-  const isLastStep = computed(() => currentStep.value === 4)
+  const isFirstStep = computed(() => currentStep.value === 'basic')
+  const isLastStep = computed(() => currentStep.value === 'location')
 
   function markVisited(step: WizardStep): void {
     if (!visitedSteps.value.includes(step)) {
@@ -89,8 +79,8 @@ export function useAnimalCreateWizard() {
       return
     }
 
-    const next = nextActiveStep(currentStep.value)
-    if (next === null) {
+    const next = WIZARD_STEPS[WIZARD_STEPS.indexOf(currentStep.value) + 1]
+    if (next === undefined) {
       return
     }
 
@@ -99,8 +89,8 @@ export function useAnimalCreateWizard() {
   }
 
   function goBack(): void {
-    const previous = previousActiveStep(currentStep.value)
-    if (previous === null) {
+    const previous = WIZARD_STEPS[WIZARD_STEPS.indexOf(currentStep.value) - 1]
+    if (previous === undefined) {
       return
     }
 
@@ -108,11 +98,7 @@ export function useAnimalCreateWizard() {
   }
 
   function selectStep(step: WizardStep): void {
-    if (step === 2) {
-      return
-    }
-
-    if (step === currentStep.value || visitedSteps.value.includes(step)) {
+    if (visitedSteps.value.includes(step)) {
       currentStep.value = step
     }
   }

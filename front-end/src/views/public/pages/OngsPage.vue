@@ -7,6 +7,7 @@ import PageContainer from '@/views/public/components/PageContainer.vue'
 <template>
   <PageContainer>
     <article class="ongs-page">
+      <p class="ongs-page-kicker">A organização</p>
       <h1>A ONG por trás do POA</h1>
       <p>
         O POA é o catálogo de uma única organização de proteção animal. Não somos uma vitrine de
@@ -14,12 +15,12 @@ import PageContainer from '@/views/public/components/PageContainer.vue'
         e o mesmo canal de contato.
       </p>
       <p>
-        Se você quer conhecer um pet, comece pelo catálogo. Se você já é da equipe da ONG, entre no
-        painel para manter os cadastros em dia.
+        A conta administrativa é provisionada pela equipe — não há auto-cadastro de ONGs. Se você já
+        recebeu as credenciais, entre no painel para manter os cadastros em dia.
       </p>
       <div class="ongs-page-actions">
         <RouterLink :to="{ name: 'home' }" class="btn">Ver animais</RouterLink>
-        <RouterLink :to="{ name: 'login' }" class="btn btn-ghost">Entrar no painel</RouterLink>
+        <RouterLink :to="{ name: 'login' }" class="btn btn-primary">Área da ONG</RouterLink>
       </div>
     </article>
   </PageContainer>
@@ -29,14 +30,18 @@ import PageContainer from '@/views/public/components/PageContainer.vue'
 @reference "@/styles/main.css";
 
 .ongs-page {
-  @apply flex max-w-3xl flex-col gap-4;
+  @apply flex max-w-3xl flex-col gap-4 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8;
+}
+
+.ongs-page-kicker {
+  @apply text-xs font-semibold tracking-[0.18em] text-primary uppercase;
 }
 
 .ongs-page h1 {
-  @apply text-3xl font-bold;
+  @apply font-serif text-4xl font-bold tracking-tight;
 }
 
 .ongs-page-actions {
-  @apply flex flex-wrap gap-2;
+  @apply mt-2 flex flex-wrap gap-2;
 }
 </style>

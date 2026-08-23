@@ -2,7 +2,7 @@
 import type { CreateAnimalInput } from '@/shared/api/animals'
 import type { AnimalSex, AnimalSize, AnimalSpecies } from '@/shared/types/animal'
 import { animalSexLabel, animalSizeLabel, animalSpeciesLabel } from '@/shared/types/animal-labels'
-import ComingSoon from '@/views/painel/components/ComingSoon.vue'
+import { ANIMAL_AGE_MAX, ANIMAL_NAME_MAX } from '@/views/painel/composables/useAnimalCreateWizard'
 
 const model = defineModel<CreateAnimalInput>({ required: true })
 
@@ -20,30 +20,26 @@ const sexOptions: AnimalSex[] = ['Male', 'Female']
         class="input w-full"
         type="text"
         name="name"
-        maxlength="20"
+        :maxlength="ANIMAL_NAME_MAX"
         placeholder="Como o pet é chamado"
         required
       />
+      <p class="basic-step-hint">Até {{ ANIMAL_NAME_MAX }} caracteres.</p>
     </fieldset>
 
     <fieldset class="fieldset">
       <legend class="fieldset-legend">Espécie</legend>
-      <div class="basic-step-choices">
-        <div class="join">
-          <button
-            v-for="species in speciesOptions"
-            :key="species"
-            type="button"
-            class="btn join-item"
-            :class="{ 'btn-active': model.species === species }"
-            @click="model.species = species"
-          >
-            {{ animalSpeciesLabel[species] }}
-          </button>
-        </div>
-        <ComingSoon>
-          <button type="button" class="btn">Outra</button>
-        </ComingSoon>
+      <div class="join">
+        <button
+          v-for="species in speciesOptions"
+          :key="species"
+          type="button"
+          class="btn join-item"
+          :class="{ 'btn-active': model.species === species }"
+          @click="model.species = species"
+        >
+          {{ animalSpeciesLabel[species] }}
+        </button>
       </div>
     </fieldset>
 
@@ -80,21 +76,17 @@ const sexOptions: AnimalSex[] = ['Male', 'Female']
     </fieldset>
 
     <fieldset class="fieldset">
-      <legend class="fieldset-legend">Idade</legend>
-      <div class="basic-step-age">
-        <input
-          v-model.number="model.approximateAge"
-          class="input"
-          type="number"
-          name="approximateAge"
-          min="0"
-          max="30"
-          required
-        />
-        <ComingSoon>
-          <span>Anos</span>
-        </ComingSoon>
-      </div>
+      <legend class="fieldset-legend">Idade aproximada (anos)</legend>
+      <input
+        v-model.number="model.approximateAge"
+        class="input"
+        type="number"
+        name="approximateAge"
+        min="0"
+        :max="ANIMAL_AGE_MAX"
+        required
+      />
+      <p class="basic-step-hint">De 0 a {{ ANIMAL_AGE_MAX }} anos.</p>
     </fieldset>
   </div>
 </template>
@@ -106,8 +98,7 @@ const sexOptions: AnimalSex[] = ['Male', 'Female']
   @apply flex flex-col gap-4;
 }
 
-.basic-step-choices,
-.basic-step-age {
-  @apply flex flex-wrap items-center gap-3;
+.basic-step-hint {
+  @apply mt-1 text-xs text-base-content/60;
 }
 </style>

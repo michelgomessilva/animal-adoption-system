@@ -16,24 +16,17 @@ describe('AnimalCreateDescriptionStep', () => {
 
     expect(model.description).toBe('Calma e brincalhona')
     expect(model.image).toBe('https://example.com/luna.jpg')
+    expect(wrapper.get('img').attributes('src')).toBe('https://example.com/luna.jpg')
   })
 
-  it('has no file input and does not add photos from Adicionar', async () => {
+  it('has no file input and no preview without a URL', () => {
     const model = createEmptyDraft()
     const wrapper = mount(AnimalCreateDescriptionStep, {
       props: { modelValue: model },
     })
 
     expect(wrapper.findAll('input[type="file"]')).toHaveLength(0)
-
-    const add = wrapper.findAll('button').find((button) => button.text() === 'Adicionar')
-    if (add === undefined) {
-      throw new Error('Expected the Adicionar button')
-    }
-
-    await add.trigger('click')
-
-    expect(wrapper.findAll('input[type="file"]')).toHaveLength(0)
-    expect(model.image).toBe('')
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Adicionar')
   })
 })

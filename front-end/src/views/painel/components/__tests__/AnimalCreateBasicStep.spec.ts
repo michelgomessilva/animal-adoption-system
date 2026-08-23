@@ -22,27 +22,13 @@ describe('AnimalCreateBasicStep', () => {
     expect(model.species).toBe('Cat')
   })
 
-  it('does not change species when Outra is clicked', async () => {
-    const model = createEmptyDraft()
-    const wrapper = mount(AnimalCreateBasicStep, {
-      props: { modelValue: model },
-    })
-
-    const outra = wrapper.findAll('button').find((button) => button.text() === 'Outra')
-    if (outra === undefined) {
-      throw new Error('Expected the Outra button')
-    }
-
-    await outra.trigger('click')
-
-    expect(model.species).toBe('Dog')
-  })
-
-  it('limits age to 30', () => {
+  it('limits age to 30 and name to 20', () => {
     const wrapper = mount(AnimalCreateBasicStep, {
       props: { modelValue: createEmptyDraft() },
     })
 
     expect(wrapper.get('input[name="approximateAge"]').attributes('max')).toBe('30')
+    expect(wrapper.get('input[name="name"]').attributes('maxlength')).toBe('20')
+    expect(wrapper.text()).not.toContain('Outra')
   })
 })

@@ -26,7 +26,7 @@ Do not use deep relative imports (`../../../`) across `src/`.
 | Public page | `src/views/public/pages/` | `HomePage.vue` |
 | Painel page | `src/views/painel/pages/` | `AnimalListPage.vue` |
 | Module chrome | `src/views/<module>/components/` | `PublicHeader.vue` |
-| Shared UI | `src/shared/components/` | `BrandLogo.vue`, `AppIcon.vue` |
+| Shared UI | `src/shared/components/` | `BrandLogo.vue`, `AppIcon.vue`, `AnimalImage.vue` |
 | Pinia store | `src/shared/stores/` | `auth.store.ts` |
 | HTTP / API | `src/shared/api/` | `http.ts`, `auth.ts` |
 | Shared composable | `src/shared/composables/` | `useAnimalsList.ts` |
@@ -44,14 +44,15 @@ A file starts in its view module. Move it to `shared/` only when a second module
 src/styles/
 ├── main.css      # Tailwind + daisyUI entry (import this once from main.ts)
 ├── layout.css    # App shell (html / body / #app)
-└── tokens.css    # Optional — custom theme tokens when a brand theme is added
+└── tokens.css    # POA daisyUI theme and typography tokens
 ```
 
-- Entry: `src/styles/main.css` — `@import 'tailwindcss';` + `@plugin 'daisyui';`
+- Entry: `src/styles/main.css` — Tailwind + daisyUI (`themes: false`) + `tokens.css` + `layout.css`
 - Global import: `src/main.ts` → `import '@/styles/main.css'`
+- Theme: `poa` on `<html data-theme="poa">`. Fonts: Fraunces + Manrope via Google Fonts in `index.html`
 - Scoped `@apply`: first line of `<style scoped>` must be `@reference "@/styles/main.css";`
-- Keep the default daisyUI `light` / `dark` themes until a brand theme is specified
-- Put a custom theme in `tokens.css` (imported from `main.css`), not in components
+- Put brand tokens only in `tokens.css`, not in components
+- Animal photos are optional URLs. Render them through `AnimalImage`. Icons only through `AppIcon`
 
 > See @vue-components-style.mdc for CSS conventions.
 

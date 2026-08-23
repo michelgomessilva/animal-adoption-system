@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import ComingSoon from '@/views/painel/components/ComingSoon.vue'
-import type { WizardStep } from '@/views/painel/composables/useAnimalCreateWizard'
-
-interface StepItem {
-  id: WizardStep
-  title: string
-  subtitle: string
-  isComingSoon?: boolean
-}
+import {
+  WIZARD_STEP_META,
+  WIZARD_STEPS,
+  type WizardStep,
+} from '@/views/painel/composables/useAnimalCreateWizard'
 
 const props = defineProps<{
   currentStep: WizardStep
@@ -18,27 +14,16 @@ const emit = defineEmits<{
   select: [step: WizardStep]
 }>()
 
-const steps: StepItem[] = [
-  { id: 1, title: 'Dados básicos', subtitle: 'Nome, espécie, porte, idade' },
-  { id: 2, title: 'Saúde', subtitle: 'Vacinas, histórico de doenças', isComingSoon: true },
-  { id: 3, title: 'Imagens e descrição', subtitle: 'Descrição e URL da foto' },
-  { id: 4, title: 'Localização e revisão', subtitle: 'Estado, cidade, status' },
-]
-
-function isSelectable(step: StepItem): boolean {
-  if (step.isComingSoon) {
-    return false
-  }
-
-  return step.id === props.currentStep || props.visitedSteps.includes(step.id)
+function isVisited(step: WizardStep): boolean {
+  return props.visitedSteps.includes(step)
 }
 
-function onSelect(step: StepItem): void {
-  if (!isSelectable(step)) {
+function onSelect(step: WizardStep): void {
+  if (!isVisited(step)) {
     return
   }
 
-  emit('select', step.id)
+  emit('select', step)
 }
 </script>
 
@@ -46,23 +31,19 @@ function onSelect(step: StepItem): void {
   <nav class="step-nav" aria-label="Etapas">
     <p class="step-nav-heading">Etapas</p>
     <ol class="step-nav-list">
-      <li v-for="step in steps" :key="step.id">
-        <ComingSoon v-if="step.isComingSoon">
-          <div class="step-nav-item">
-            <span class="step-nav-title">{{ step.title }}</span>
-            <span class="step-nav-subtitle">{{ step.subtitle }}</span>
-          </div>
-        </ComingSoon>
+      <li v-for="(step, index) in WIZARD_STEPS" :key="step">
         <button
-          v-else
           type="button"
           class="step-nav-item"
-          :class="{ 'step-nav-item--current': currentStep === step.id }"
-          :disabled="!isSelectable(step)"
+          :class="{ 'step-nav-item--current': currentStep === step }"
+          :disabled="!isVisited(step)"
           @click="onSelect(step)"
         >
-          <span class="step-nav-title">{{ step.title }}</span>
-          <span class="step-nav-subtitle">{{ step.subtitle }}</span>
+          <span class="step-nav-index">{{ index + 1 }}</span>
+          <span>
+            <span class="step-nav-title">{{ WIZARD_STEP_META[step].title }}</span>
+            <span class="step-nav-subtitle">{{ WIZARD_STEP_META[step].subtitle }}</span>
+          </span>
         </button>
       </li>
     </ol>
@@ -72,8 +53,12 @@ function onSelect(step: StepItem): void {
 <style scoped>
 @reference "@/styles/main.css";
 
+.step-nav {
+  @apply rounded-box border border-base-300 bg-base-100 p-5 shadow-sm;
+}
+
 .step-nav-heading {
-  @apply mb-3 text-xs font-semibold tracking-wide uppercase;
+  @apply mb-3 text-xs font-semibold tracking-[0.18em] text-primary uppercase;
 }
 
 .step-nav-list {
@@ -81,18 +66,26 @@ function onSelect(step: StepItem): void {
 }
 
 .step-nav-item {
-  @apply flex w-full flex-col items-start gap-0.5 text-left;
+  @apply flex w-full items-start gap-3 text-left;
 }
 
 .step-nav-item--current .step-nav-title {
   @apply font-bold;
 }
 
+.step-nav-item--current .step-nav-index {
+  @apply bg-primary text-primary-content;
+}
+
+.step-nav-index {
+  @apply mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-base-200 text-xs font-semibold;
+}
+
 .step-nav-title {
-  @apply text-sm;
+  @apply block text-sm;
 }
 
 .step-nav-subtitle {
-  @apply text-xs opacity-70;
+  @apply block text-xs opacity-70;
 }
 </style>

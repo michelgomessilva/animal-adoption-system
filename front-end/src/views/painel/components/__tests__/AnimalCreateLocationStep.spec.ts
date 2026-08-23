@@ -24,16 +24,15 @@ describe('AnimalCreateLocationStep', () => {
     expect(model.status).toBe('Adopted')
   })
 
-  it('shows Estado faded and the review name', () => {
+  it('shows the review name without a state field', () => {
     const model = createEmptyDraft()
     model.name = 'Luna'
     const wrapper = mount(AnimalCreateLocationStep, {
       props: { modelValue: model },
     })
 
-    expect(wrapper.text()).toContain('Estado')
-    expect(wrapper.text()).toContain('Em breve')
-    expect(wrapper.get('input[name="state"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).not.toContain('Estado')
+    expect(wrapper.find('input[name="state"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Luna')
   })
 })

@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import type { CreateAnimalInput } from '@/shared/api/animals'
-import ComingSoon from '@/views/painel/components/ComingSoon.vue'
+import AnimalImage from '@/shared/components/AnimalImage.vue'
+import { ANIMAL_DESCRIPTION_MAX } from '@/views/painel/composables/useAnimalCreateWizard'
 
 const model = defineModel<CreateAnimalInput>({ required: true })
+
+const hasImageUrl = computed(() => model.value.image.trim().length > 0)
 </script>
 
 <template>
@@ -13,13 +18,14 @@ const model = defineModel<CreateAnimalInput>({ required: true })
         v-model="model.description"
         class="textarea w-full"
         name="description"
-        maxlength="200"
+        :maxlength="ANIMAL_DESCRIPTION_MAX"
         required
       />
+      <p class="description-step-hint">Até {{ ANIMAL_DESCRIPTION_MAX }} caracteres.</p>
     </fieldset>
 
     <fieldset class="fieldset">
-      <legend class="fieldset-legend">URL da foto</legend>
+      <legend class="fieldset-legend">Foto por URL (opcional)</legend>
       <input
         v-model="model.image"
         class="input w-full"
@@ -27,14 +33,18 @@ const model = defineModel<CreateAnimalInput>({ required: true })
         name="image"
         placeholder="https://"
       />
+      <p class="description-step-hint">Sem upload. Deixe em branco se ainda não houver foto.</p>
     </fieldset>
 
-    <ComingSoon>
-      <div class="description-step-gallery">
-        <p>Imagens (etapa 3, pré-visualização)</p>
-        <button type="button" class="btn">Adicionar</button>
-      </div>
-    </ComingSoon>
+    <div v-if="hasImageUrl" class="description-step-preview">
+      <p class="description-step-hint">Pré-visualização</p>
+      <AnimalImage
+        :src="model.image"
+        :name="model.name || 'pet'"
+        :species="model.species"
+        class="description-step-media"
+      />
+    </div>
   </div>
 </template>
 
@@ -45,7 +55,11 @@ const model = defineModel<CreateAnimalInput>({ required: true })
   @apply flex flex-col gap-4;
 }
 
-.description-step-gallery {
-  @apply flex flex-col gap-2;
+.description-step-hint {
+  @apply mt-1 text-xs text-base-content/60;
+}
+
+.description-step-media {
+  @apply mt-2 aspect-4/3 w-full max-w-sm rounded-box border border-base-300;
 }
 </style>

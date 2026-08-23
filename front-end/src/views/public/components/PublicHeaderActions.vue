@@ -4,8 +4,7 @@ import { RouterLink } from 'vue-router'
 
 <template>
   <div class="public-header-actions">
-    <RouterLink :to="{ name: 'login' }" class="btn btn-ghost">Entrar</RouterLink>
-    <RouterLink :to="{ name: 'register-ong' }" class="btn btn-primary">Cadastrar ONG</RouterLink>
+    <RouterLink :to="{ name: 'login' }" class="btn btn-primary">Área da ONG</RouterLink>
   </div>
 </template>
 

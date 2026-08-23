@@ -52,13 +52,14 @@ IDE: [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://market
 src/
 ├── main.ts                 # Pinia → hydrate → guard HTTP 401 → router
 ├── App.vue                 # <RouterView />
+├── assets/                 # ilustração local do login
 ├── router/                 # rotas públicas + /painel + auth-guard
 ├── views/
 │   ├── public/             # site público (layout, chrome, páginas, login)
 │   └── painel/             # área autenticada
 ├── shared/
 │   ├── api/                # http, login, listAnimals, createAnimal
-│   ├── components/         # BrandLogo, AppIcon
+│   ├── components/         # BrandLogo, AppIcon, AnimalImage
 │   ├── composables/        # useAnimalsList
 │   ├── config/             # VITE_API_BASE_URL (fallback: page origin)
 │   ├── stores/             # auth
@@ -77,9 +78,9 @@ O cliente HTTP ([ky](https://github.com/sindresorhus/ky)) usa `VITE_API_BASE_URL
 
 Auth: `POST /auth/login` com `username` e `password` devolve `{ token }`. A sessão fica em `localStorage` (Manter conectado) ou `sessionStorage`. O cliente envia `Authorization: Bearer`. JWT vale 60 minutos; não há refresh — um 401 autenticado faz logout e volta ao login.
 
-Cadastro de animais: `POST /api/animals` (Bearer, resposta **201**). O painel usa um wizard em `/painel/animais/novo` (Dados básicos → Descrição → Localização). Saúde, upload de fotos, rascunho, Arquivar, Estado, espécie “Outra” e os itens Pedidos de adoção / Perfil da ONG aparecem faded com “Em breve”. `image` é URL opcional (string vazia se não houver foto); **não há upload**.
+Cadastro de animais: `POST /api/animals` (Bearer, resposta **201**). O painel usa um wizard em `/painel/animais/novo` com três etapas ativas: Dados básicos → Descrição e foto → Localização e revisão. `image` é URL opcional (string vazia se não houver foto); **não há upload**. Fotos usam `AnimalImage` (URL válida ou fallback por espécie). Pedidos de adoção e Perfil da ONG continuam faded com “Em breve”.
 
-Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/cadastrar-ong`, `/painel/animais` (Meus pets), `/painel/animais/novo`. Aliases: `/adotar` → `/`, `/login` → `/entrar`.
+Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/painel/animais` (Meus pets), `/painel/animais/novo`. Aliases: `/adotar` → `/`, `/login` → `/entrar`. A área da ONG entra pelo login; não há auto-cadastro.
 
 ## Tailwind CSS e daisyUI
 
@@ -90,13 +91,16 @@ Não há `tailwind.config.js` (Tailwind v4). A integração é:
 
 ```css
 @import 'tailwindcss';
-@plugin 'daisyui';
+@plugin 'daisyui' {
+  themes: false;
+}
+@import './tokens.css';
 @import './layout.css';
 ```
 
 3. Import global em `src/main.ts`: `import '@/styles/main.css'`.
 
-daisyUI habilita os temas `light` e `dark` por padrão. Troque com `data-theme` no `<html>`. Um tema de marca, quando existir, vai em `src/styles/tokens.css` — não espalhe tokens nos componentes.
+O tema de marca é `poa` (`data-theme="poa"` em `index.html`). Tokens, raios e tipografia ficam em `src/styles/tokens.css`. As fontes Fraunces e Manrope vêm do Google Fonts. Não espalhe tokens nos componentes.
 
 Em `<style scoped>`, a primeira linha de um bloco que usa `@apply` deve ser:
 

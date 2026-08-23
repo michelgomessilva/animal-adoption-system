@@ -10,3 +10,11 @@ import PublicHeader from '@/views/public/components/PublicHeader.vue'
     <RouterView />
   </div>
 </template>
+
+<style scoped>
+@reference "@/styles/main.css";
+
+.public-layout {
+  @apply min-h-dvh;
+}
+</style>

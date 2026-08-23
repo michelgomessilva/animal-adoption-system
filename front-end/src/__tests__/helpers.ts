@@ -39,7 +39,6 @@ export const stubRoutes: RouteRecordRaw[] = [
   { path: '/ongs', name: 'ongs', component: { template: '<div>ongs</div>' } },
   { path: '/como-funciona', name: 'how-it-works', component: { template: '<div>how</div>' } },
   { path: '/entrar', name: 'login', component: { template: '<div>login</div>' } },
-  { path: '/cadastrar-ong', name: 'register-ong', component: { template: '<div>register</div>' } },
   { path: '/painel/animais', name: 'painel-animais', component: { template: '<div>painel</div>' } },
   {
     path: '/painel/animais/novo',

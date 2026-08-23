@@ -9,7 +9,7 @@ import BrandLogo from '@/shared/components/BrandLogo.vue'
     <BrandLogo />
     <h1>Página não encontrada</h1>
     <p>O endereço que você abriu não existe no POA.</p>
-    <RouterLink :to="{ name: 'home' }" class="btn">Voltar ao catálogo</RouterLink>
+    <RouterLink :to="{ name: 'home' }" class="btn btn-primary">Voltar ao catálogo</RouterLink>
   </main>
 </template>
 
@@ -21,6 +21,6 @@ import BrandLogo from '@/shared/components/BrandLogo.vue'
 }
 
 .not-found h1 {
-  @apply text-3xl font-bold;
+  @apply font-serif text-4xl font-bold tracking-tight;
 }
 </style>

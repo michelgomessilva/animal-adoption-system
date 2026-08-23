@@ -7,12 +7,14 @@ import PageContainer from '@/views/public/components/PageContainer.vue'
 <template>
   <PageContainer>
     <article class="how-it-works">
+      <p class="how-it-works-kicker">O caminho</p>
       <h1>Como funciona</h1>
       <ol class="how-it-works-steps">
         <li>
           <h2>1. Encontre um animal</h2>
           <p>
-            O catálogo mostra apenas pets disponíveis para adoção, com foto e informações básicas.
+            O catálogo mostra apenas pets disponíveis para adoção, com informações básicas e foto
+            quando a ONG cadastrou uma URL.
           </p>
         </li>
         <li>
@@ -30,7 +32,7 @@ import PageContainer from '@/views/public/components/PageContainer.vue'
           </p>
         </li>
       </ol>
-      <RouterLink :to="{ name: 'home' }" class="btn">Ver o catálogo</RouterLink>
+      <RouterLink :to="{ name: 'home' }" class="btn btn-primary">Ver o catálogo</RouterLink>
     </article>
   </PageContainer>
 </template>
@@ -42,15 +44,23 @@ import PageContainer from '@/views/public/components/PageContainer.vue'
   @apply flex max-w-3xl flex-col gap-6;
 }
 
+.how-it-works-kicker {
+  @apply text-xs font-semibold tracking-[0.18em] text-primary uppercase;
+}
+
 .how-it-works h1 {
-  @apply text-3xl font-bold;
+  @apply font-serif text-4xl font-bold tracking-tight;
 }
 
 .how-it-works-steps {
   @apply flex list-none flex-col gap-4 p-0;
 }
 
+.how-it-works-steps li {
+  @apply rounded-box border border-base-300 bg-base-100 p-5 shadow-sm;
+}
+
 .how-it-works-steps h2 {
-  @apply text-xl font-semibold;
+  @apply mb-1 font-serif text-xl font-semibold;
 }
 </style>

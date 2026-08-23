@@ -12,7 +12,7 @@ Styles use **Tailwind CSS 4** and **daisyUI 5**. Entry: `src/styles/main.css`.
 
 1. Vite plugin `@tailwindcss/vite` is first in `vite.config.ts`.
 2. `src/main.ts` imports `@/styles/main.css` once.
-3. daisyUI ships `light` and `dark`. Switch with `data-theme` on `<html>`.
+3. The app uses the custom daisyUI theme `poa` (`data-theme="poa"` on `<html>`). Tokens live in `src/styles/tokens.css`.
 
 ### Required: `@reference` in scoped styles
 

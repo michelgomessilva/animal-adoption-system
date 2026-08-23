@@ -8,7 +8,7 @@ import PainelSidebar from '@/views/painel/components/PainelSidebar.vue'
 <template>
   <div class="drawer lg:drawer-open">
     <input id="painel-drawer" type="checkbox" class="drawer-toggle" />
-    <div class="drawer-content">
+    <div class="drawer-content painel-content">
       <PainelHeader />
       <main class="painel-main">
         <RouterView />
@@ -24,7 +24,11 @@ import PainelSidebar from '@/views/painel/components/PainelSidebar.vue'
 <style scoped>
 @reference "@/styles/main.css";
 
+.painel-content {
+  @apply min-h-dvh bg-base-200;
+}
+
 .painel-main {
-  @apply p-6;
+  @apply p-5 sm:p-8;
 }
 </style>

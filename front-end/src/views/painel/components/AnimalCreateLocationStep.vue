@@ -7,7 +7,7 @@ import {
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
-import ComingSoon from '@/views/painel/components/ComingSoon.vue'
+import { ANIMAL_LOCATION_MAX } from '@/views/painel/composables/useAnimalCreateWizard'
 
 const model = defineModel<CreateAnimalInput>({ required: true })
 
@@ -17,20 +17,13 @@ const statusOptions: AnimalStatus[] = ['Available', 'Adopted']
 <template>
   <div class="location-step">
     <fieldset class="fieldset">
-      <legend class="fieldset-legend">Estado</legend>
-      <ComingSoon>
-        <input class="input w-full" type="text" name="state" disabled />
-      </ComingSoon>
-    </fieldset>
-
-    <fieldset class="fieldset">
       <legend class="fieldset-legend">Bairro</legend>
       <input
         v-model="model.district"
         class="input w-full"
         type="text"
         name="district"
-        maxlength="30"
+        :maxlength="ANIMAL_LOCATION_MAX"
         required
       />
     </fieldset>
@@ -42,7 +35,7 @@ const statusOptions: AnimalStatus[] = ['Available', 'Adopted']
         class="input w-full"
         type="text"
         name="city"
-        maxlength="30"
+        :maxlength="ANIMAL_LOCATION_MAX"
         required
       />
     </fieldset>
@@ -103,15 +96,15 @@ const statusOptions: AnimalStatus[] = ['Available', 'Adopted']
 }
 
 .location-step-review {
-  @apply flex flex-col gap-2;
+  @apply flex flex-col gap-3 rounded-box bg-base-200 p-4;
 }
 
 .location-step-review h2 {
-  @apply text-lg font-bold;
+  @apply font-serif text-lg font-bold;
 }
 
 .location-step-review dl {
-  @apply flex flex-col gap-2;
+  @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
 }
 
 .location-step-review div {

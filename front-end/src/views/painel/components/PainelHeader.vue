@@ -15,7 +15,7 @@ async function onLogout(): Promise<void> {
 </script>
 
 <template>
-  <header class="navbar bg-base-200">
+  <header class="painel-header">
     <div class="navbar-start">
       <label for="painel-drawer" class="btn btn-ghost btn-square lg:hidden" aria-label="Abrir menu">
         <AppIcon name="menu" />
@@ -35,7 +35,11 @@ async function onLogout(): Promise<void> {
 <style scoped>
 @reference "@/styles/main.css";
 
+.painel-header {
+  @apply navbar border-b border-base-300 bg-base-100;
+}
+
 .painel-header-context {
-  @apply ml-2 text-sm opacity-70;
+  @apply ml-2 rounded-selector bg-secondary/12 px-2 py-0.5 text-xs font-semibold tracking-wide text-secondary uppercase;
 }
 </style>

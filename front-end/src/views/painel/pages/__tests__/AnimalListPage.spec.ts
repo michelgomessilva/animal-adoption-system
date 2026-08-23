@@ -44,4 +44,17 @@ describe('AnimalListPage', () => {
 
     expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar os animais')
   })
+
+  it('retries after a list failure', async () => {
+    listAnimalsMock
+      .mockRejectedValueOnce(new ApiError('unknown', 500, 'Request failed'))
+      .mockResolvedValueOnce([luna])
+    const wrapper = await mountWithPlugins(AnimalListPage)
+    await flushPromises()
+
+    await wrapper.get('[role="alert"] button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('table').text()).toContain('Luna')
+  })
 })

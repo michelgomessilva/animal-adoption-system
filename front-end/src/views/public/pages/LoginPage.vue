@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { isApiError, type ApiErrorCode } from '@/shared/api/api-error'
 import AppIcon from '@/shared/components/AppIcon.vue'
@@ -68,7 +68,8 @@ async function onSubmit(): Promise<void> {
   <div class="login-page">
     <LoginSupportPanel />
     <section class="login-page-form" aria-labelledby="login-title">
-      <h1 id="login-title">Login</h1>
+      <h1 id="login-title">Área da ONG</h1>
+      <p class="login-page-lead">Entre com as credenciais provisionadas pela equipe.</p>
       <form class="login-form" @submit.prevent="onSubmit">
         <fieldset class="fieldset">
           <legend class="fieldset-legend">Usuário</legend>
@@ -119,11 +120,6 @@ async function onSubmit(): Promise<void> {
       <div v-if="formError !== null" role="alert" class="alert alert-error">
         {{ formError }}
       </div>
-
-      <p>
-        Não tem conta?
-        <RouterLink :to="{ name: 'register-ong' }" class="link">Cadastre a ONG</RouterLink>
-      </p>
     </section>
   </div>
 </template>
@@ -132,15 +128,19 @@ async function onSubmit(): Promise<void> {
 @reference "@/styles/main.css";
 
 .login-page {
-  @apply grid min-h-[calc(100dvh-4rem)] grid-cols-1 gap-8 px-4 py-8 lg:grid-cols-2 lg:items-center;
+  @apply mx-auto grid min-h-[calc(100dvh-5rem)] w-full max-w-6xl grid-cols-1 gap-10 px-4 py-10 lg:grid-cols-2 lg:items-center;
 }
 
 .login-page-form {
-  @apply mx-auto flex w-full max-w-md flex-col gap-4;
+  @apply mx-auto flex w-full max-w-md flex-col gap-4 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8;
 }
 
 .login-page-form h1 {
-  @apply text-4xl font-bold;
+  @apply font-serif text-4xl font-bold tracking-tight;
+}
+
+.login-page-lead {
+  @apply text-base-content/70;
 }
 
 .login-form {

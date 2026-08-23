@@ -19,7 +19,6 @@ describe('PublicLayout', () => {
           { path: '/ongs', name: 'ongs', component: { template: '<div />' } },
           { path: '/como-funciona', name: 'how-it-works', component: { template: '<div />' } },
           { path: '/entrar', name: 'login', component: { template: '<div />' } },
-          { path: '/cadastrar-ong', name: 'register-ong', component: { template: '<div />' } },
         ],
       },
     ])

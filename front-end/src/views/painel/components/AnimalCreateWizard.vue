@@ -42,9 +42,9 @@ function onNext(): void {
       @select="selectStep"
     />
     <div class="create-wizard-body">
-      <AnimalCreateBasicStep v-if="currentStep === 1" v-model="draft" />
-      <AnimalCreateDescriptionStep v-else-if="currentStep === 3" v-model="draft" />
-      <AnimalCreateLocationStep v-else-if="currentStep === 4" v-model="draft" />
+      <AnimalCreateBasicStep v-if="currentStep === 'basic'" v-model="draft" />
+      <AnimalCreateDescriptionStep v-else-if="currentStep === 'description'" v-model="draft" />
+      <AnimalCreateLocationStep v-else-if="currentStep === 'location'" v-model="draft" />
       <AnimalCreateFooter
         :is-first-step="isFirstStep"
         :is-last-step="isLastStep"
@@ -64,6 +64,6 @@ function onNext(): void {
 }
 
 .create-wizard-body {
-  @apply flex flex-col;
+  @apply flex flex-col rounded-box border border-base-300 bg-base-100 p-5 shadow-sm sm:p-7;
 }
 </style>
