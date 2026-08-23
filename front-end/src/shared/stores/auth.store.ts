@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { login as loginRequest } from '@/shared/api/auth'
-import { setAccessTokenGetter } from '@/shared/api/http'
+import { setAccessToken } from '@/shared/api/http'
 
 export const AUTH_SESSION_KEY = 'poa.auth.session'
 
@@ -49,7 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function applySession(next: AuthSession | null): void {
     session.value = next
-    setAccessTokenGetter(() => session.value?.token ?? null)
+    setAccessToken(next?.token ?? null)
   }
 
   async function login(input: LoginInput): Promise<void> {

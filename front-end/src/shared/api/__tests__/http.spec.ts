@@ -4,7 +4,7 @@ import { ApiError } from '@/shared/api/api-error'
 import {
   apiRequest,
   resetHttpClient,
-  setAccessTokenGetter,
+  setAccessToken,
   setUnauthorizedHandler,
 } from '@/shared/api/http'
 
@@ -39,7 +39,7 @@ describe('apiRequest', () => {
   })
 
   it('sends the bearer token when auth is enabled', async () => {
-    setAccessTokenGetter(() => 'jwt-token')
+    setAccessToken('jwt-token')
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify([]), {
         status: 200,
@@ -85,19 +85,19 @@ describe('apiRequest', () => {
     expect(onUnauthorized).toHaveBeenCalledOnce()
   })
 
-  it('throws bad_request on 400', async () => {
+  it('throws unknown on a non-401 error status', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 400 })),
     )
 
     await expect(apiRequest('/api/animals')).rejects.toMatchObject({
-      code: 'bad_request',
+      code: 'unknown',
       status: 400,
     })
   })
 
-  it('throws network when fetch fails', async () => {
+  it('throws network when fetch fails with a TypeError', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch')),
@@ -107,5 +107,12 @@ describe('apiRequest', () => {
       code: 'network',
       status: 0,
     })
+  })
+
+  it('rethrows non-TypeError fetch failures', async () => {
+    const abortError = new DOMException('Aborted', 'AbortError')
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(abortError))
+
+    await expect(apiRequest('/api/animals')).rejects.toBe(abortError)
   })
 })

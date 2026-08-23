@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { listAnimals } from '@/shared/api/animals'
-import { resetHttpClient, setAccessTokenGetter } from '@/shared/api/http'
+import { resetHttpClient, setAccessToken } from '@/shared/api/http'
 import { createAnimal } from '@/__tests__/helpers'
 
 const fixture = createAnimal({ description: 'Calma e brincalhona' })
@@ -13,7 +13,7 @@ describe('listAnimals', () => {
   })
 
   it('returns the animal list from the API', async () => {
-    setAccessTokenGetter(() => 'jwt')
+    setAccessToken('jwt')
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify([fixture]), {
         status: 200,

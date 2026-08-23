@@ -2,16 +2,17 @@ import { getApiBaseUrl } from '@/shared/config/api-base-url'
 
 import { ApiError } from './api-error'
 
-export interface ApiRequestInit extends Omit<RequestInit, 'body'> {
+export interface ApiRequestInit {
+  method?: string
   body?: unknown
   skipAuth?: boolean
 }
 
-let accessTokenGetter: () => string | null = () => null
+let accessToken: string | null = null
 let unauthorizedHandler: () => void = () => {}
 
-export function setAccessTokenGetter(getter: () => string | null): void {
-  accessTokenGetter = getter
+export function setAccessToken(token: string | null): void {
+  accessToken = token
 }
 
 export function setUnauthorizedHandler(handler: () => void): void {
@@ -19,39 +20,36 @@ export function setUnauthorizedHandler(handler: () => void): void {
 }
 
 export function resetHttpClient(): void {
-  accessTokenGetter = () => null
+  accessToken = null
   unauthorizedHandler = () => {}
 }
 
 export async function apiRequest<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
-  const { skipAuth = false, body, headers, ...rest } = init
-  const url = `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`
+  const { skipAuth = false, body, method } = init
+  const url = `${getApiBaseUrl()}${path}`
 
-  const requestHeaders = new Headers(headers)
-  if (!requestHeaders.has('Accept')) {
-    requestHeaders.set('Accept', 'application/json')
-  }
-
-  if (body !== undefined && !requestHeaders.has('Content-Type')) {
+  const requestHeaders = new Headers({ Accept: 'application/json' })
+  if (body !== undefined) {
     requestHeaders.set('Content-Type', 'application/json')
   }
 
-  if (!skipAuth) {
-    const token = accessTokenGetter()
-    if (token !== null) {
-      requestHeaders.set('Authorization', `Bearer ${token}`)
-    }
+  if (!skipAuth && accessToken !== null) {
+    requestHeaders.set('Authorization', `Bearer ${accessToken}`)
   }
 
   let response: Response
   try {
     response = await fetch(url, {
-      ...rest,
+      method,
       headers: requestHeaders,
       body: body === undefined ? undefined : JSON.stringify(body),
     })
-  } catch {
-    throw new ApiError('network', 0, 'Network request failed')
+  } catch (error: unknown) {
+    if (error instanceof TypeError) {
+      throw new ApiError('network', 0, 'Network request failed')
+    }
+
+    throw error
   }
 
   if (response.status === 401) {
@@ -60,10 +58,6 @@ export async function apiRequest<T>(path: string, init: ApiRequestInit = {}): Pr
     }
 
     throw new ApiError('unauthorized', 401, 'Unauthorized')
-  }
-
-  if (response.status === 400) {
-    throw new ApiError('bad_request', 400, 'Bad request')
   }
 
   if (!response.ok) {

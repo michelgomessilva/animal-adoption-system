@@ -1,4 +1,4 @@
-export type ApiErrorCode = 'unauthorized' | 'bad_request' | 'network' | 'unknown'
+export type ApiErrorCode = 'unauthorized' | 'network' | 'unknown'
 
 export class ApiError extends Error {
   readonly code: ApiErrorCode
