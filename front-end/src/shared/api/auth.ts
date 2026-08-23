@@ -5,7 +5,7 @@ export interface LoginResponse {
 }
 
 export function login(username: string, password: string): Promise<LoginResponse> {
-  return apiRequest<LoginResponse>('/auth/login', {
+  return apiRequest<LoginResponse>('auth/login', {
     method: 'POST',
     skipAuth: true,
     body: { username, password },

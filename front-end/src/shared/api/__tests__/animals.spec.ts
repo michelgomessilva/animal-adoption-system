@@ -24,8 +24,9 @@ describe('listAnimals', () => {
 
     await expect(listAnimals()).resolves.toEqual([fixture])
 
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('/api/animals')
-    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer jwt')
+    const [input, init] = fetchMock.mock.calls[0] as [RequestInfo, RequestInit | undefined]
+    const request = input instanceof Request ? input : new Request(input, init)
+    expect(new URL(request.url).pathname).toBe('/api/animals')
+    expect(request.headers.get('Authorization')).toBe('Bearer jwt')
   })
 })

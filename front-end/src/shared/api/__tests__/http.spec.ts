@@ -7,6 +7,17 @@ import {
   setAccessToken,
   setUnauthorizedHandler,
 } from '@/shared/api/http'
+import { getApiBaseUrl } from '@/shared/config/api-base-url'
+
+function firstFetchRequest(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>): Request {
+  const call = fetchMock.mock.calls[0]
+  if (call === undefined) {
+    throw new Error('Expected fetch to have been called')
+  }
+
+  const [input, init] = call
+  return input instanceof Request ? input : new Request(input, init)
+}
 
 describe('apiRequest', () => {
   afterEach(() => {
@@ -15,15 +26,17 @@ describe('apiRequest', () => {
   })
 
   it('returns parsed JSON on 200', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      new Response(JSON.stringify({ token: 'abc' }), {
+    let captured: Request | undefined
+    const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
+      captured = input instanceof Request ? input.clone() : new Request(input, init)
+      return new Response(JSON.stringify({ token: 'abc' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-      }),
-    )
+      })
+    })
     vi.stubGlobal('fetch', fetchMock)
 
-    const result = await apiRequest<{ token: string }>('/auth/login', {
+    const result = await apiRequest<{ token: string }>('auth/login', {
       method: 'POST',
       skipAuth: true,
       body: { username: 'admin', password: 'secret' },
@@ -31,11 +44,14 @@ describe('apiRequest', () => {
 
     expect(result).toEqual({ token: 'abc' })
     expect(fetchMock).toHaveBeenCalledOnce()
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('/auth/login')
-    expect(init.method).toBe('POST')
-    expect(init.body).toBe(JSON.stringify({ username: 'admin', password: 'secret' }))
-    expect(new Headers(init.headers).get('Authorization')).toBeNull()
+    if (captured === undefined) {
+      throw new Error('Expected fetch to have been called')
+    }
+
+    expect(new URL(captured.url).pathname).toBe('/auth/login')
+    expect(captured.method).toBe('POST')
+    expect(await captured.json()).toEqual({ username: 'admin', password: 'secret' })
+    expect(captured.headers.get('Authorization')).toBeNull()
   })
 
   it('sends the bearer token when auth is enabled', async () => {
@@ -48,10 +64,23 @@ describe('apiRequest', () => {
     )
     vi.stubGlobal('fetch', fetchMock)
 
-    await apiRequest('/api/animals')
+    await apiRequest('api/animals')
 
-    const headers = new Headers((fetchMock.mock.calls[0] as [string, RequestInit])[1].headers)
-    expect(headers.get('Authorization')).toBe('Bearer jwt-token')
+    expect(firstFetchRequest(fetchMock).headers.get('Authorization')).toBe('Bearer jwt-token')
+  })
+
+  it('resolves paths against the API base URL', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiRequest('api/animals')
+
+    expect(firstFetchRequest(fetchMock).url).toBe(new URL('api/animals', getApiBaseUrl()).href)
   })
 
   it('throws unauthorized without calling the handler when skipAuth is true', async () => {
@@ -64,7 +93,7 @@ describe('apiRequest', () => {
         .mockResolvedValue(new Response(JSON.stringify({ message: 'nope' }), { status: 401 })),
     )
 
-    await expect(apiRequest('/auth/login', { skipAuth: true })).rejects.toMatchObject({
+    await expect(apiRequest('auth/login', { skipAuth: true })).rejects.toMatchObject({
       code: 'unauthorized',
       status: 401,
     } satisfies Partial<ApiError>)
@@ -79,7 +108,7 @@ describe('apiRequest', () => {
       vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 401 })),
     )
 
-    await expect(apiRequest('/api/animals')).rejects.toMatchObject({
+    await expect(apiRequest('api/animals')).rejects.toMatchObject({
       code: 'unauthorized',
     })
     expect(onUnauthorized).toHaveBeenCalledOnce()
@@ -91,7 +120,7 @@ describe('apiRequest', () => {
       vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 400 })),
     )
 
-    await expect(apiRequest('/api/animals')).rejects.toMatchObject({
+    await expect(apiRequest('api/animals')).rejects.toMatchObject({
       code: 'unknown',
       status: 400,
     })
@@ -103,7 +132,7 @@ describe('apiRequest', () => {
       vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch')),
     )
 
-    await expect(apiRequest('/api/animals')).rejects.toMatchObject({
+    await expect(apiRequest('api/animals')).rejects.toMatchObject({
       code: 'network',
       status: 0,
     })
@@ -113,6 +142,6 @@ describe('apiRequest', () => {
     const abortError = new DOMException('Aborted', 'AbortError')
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(abortError))
 
-    await expect(apiRequest('/api/animals')).rejects.toBe(abortError)
+    await expect(apiRequest('api/animals')).rejects.toBe(abortError)
   })
 })

@@ -1,3 +1,5 @@
+import ky, { isHTTPError, isNetworkError } from 'ky'
+
 import { getApiBaseUrl } from '@/shared/config/api-base-url'
 
 import { ApiError } from './api-error'
@@ -24,45 +26,53 @@ export function resetHttpClient(): void {
   unauthorizedHandler = () => {}
 }
 
+function isSkipAuth(context: Record<string, unknown>): boolean {
+  return context.skipAuth === true
+}
+
+const api = ky.create({
+  baseUrl: getApiBaseUrl(),
+  // Keep a single attempt so 401 logout, login failures, and network errors stay as they were with fetch.
+  retry: { limit: 0 },
+  timeout: false,
+  hooks: {
+    beforeRequest: [
+      ({ request, options }) => {
+        if (!isSkipAuth(options.context) && accessToken !== null) {
+          request.headers.set('Authorization', `Bearer ${accessToken}`)
+        }
+      },
+    ],
+    beforeError: [
+      ({ error, options }) => {
+        if (isHTTPError(error)) {
+          if (error.response.status === 401) {
+            if (!isSkipAuth(options.context)) {
+              unauthorizedHandler()
+            }
+
+            return new ApiError('unauthorized', 401, 'Unauthorized')
+          }
+
+          return new ApiError('unknown', error.response.status, 'Request failed')
+        }
+
+        if (isNetworkError(error) || error instanceof TypeError) {
+          return new ApiError('network', 0, 'Network request failed')
+        }
+
+        return error
+      },
+    ],
+  },
+})
+
 export async function apiRequest<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
   const { skipAuth = false, body, method } = init
-  const url = `${getApiBaseUrl()}${path}`
 
-  const requestHeaders = new Headers({ Accept: 'application/json' })
-  if (body !== undefined) {
-    requestHeaders.set('Content-Type', 'application/json')
-  }
-
-  if (!skipAuth && accessToken !== null) {
-    requestHeaders.set('Authorization', `Bearer ${accessToken}`)
-  }
-
-  let response: Response
-  try {
-    response = await fetch(url, {
-      method,
-      headers: requestHeaders,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
-  } catch (error: unknown) {
-    if (error instanceof TypeError) {
-      throw new ApiError('network', 0, 'Network request failed')
-    }
-
-    throw error
-  }
-
-  if (response.status === 401) {
-    if (!skipAuth) {
-      unauthorizedHandler()
-    }
-
-    throw new ApiError('unauthorized', 401, 'Unauthorized')
-  }
-
-  if (!response.ok) {
-    throw new ApiError('unknown', response.status, 'Request failed')
-  }
-
-  return (await response.json()) as T
+  return api(path, {
+    method,
+    ...(body === undefined ? {} : { json: body }),
+    context: { skipAuth },
+  }).json<T>()
 }
