@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { authNavigationGuard } from './auth-guard'
+import { documentTitleFor } from './document-title'
 import { routes } from './routes'
 
 const router = createRouter({
@@ -12,5 +13,8 @@ const router = createRouter({
 })
 
 router.beforeEach(authNavigationGuard)
+router.afterEach((to) => {
+  document.title = documentTitleFor(to.meta.title)
+})
 
 export default router

@@ -27,11 +27,11 @@ describe('router guards', () => {
   it('sends anonymous users from the painel to login with redirect', async () => {
     const router = await createGuardedRouter()
 
-    await router.push('/painel/animais')
+    await router.push('/panel/animals')
     await router.isReady()
 
     expect(router.currentRoute.value.name).toBe('login')
-    expect(router.currentRoute.value.query.redirect).toBe('/painel/animais')
+    expect(router.currentRoute.value.query.redirect).toBe('/panel/animals')
   })
 
   it('sends authenticated users away from login', async () => {
@@ -43,16 +43,16 @@ describe('router guards', () => {
     await router.push('/entrar')
     await router.isReady()
 
-    expect(router.currentRoute.value.name).toBe('painel-animais')
+    expect(router.currentRoute.value.name).toBe('panel-animals')
   })
 
   it('sends anonymous users from the create page to login with redirect', async () => {
     const router = await createGuardedRouter()
 
-    await router.push('/painel/animais/novo')
+    await router.push('/panel/animals/new')
     await router.isReady()
 
     expect(router.currentRoute.value.name).toBe('login')
-    expect(router.currentRoute.value.query.redirect).toBe('/painel/animais/novo')
+    expect(router.currentRoute.value.query.redirect).toBe('/panel/animals/new')
   })
 })

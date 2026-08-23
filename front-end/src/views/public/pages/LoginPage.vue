@@ -46,7 +46,7 @@ async function onSubmit(): Promise<void> {
     })
 
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
-    await router.replace(redirect ?? { name: 'painel-animais' })
+    await router.replace(redirect ?? { name: 'panel-animals' })
   } catch (error: unknown) {
     if (!isApiError(error)) {
       throw error

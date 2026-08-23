@@ -11,7 +11,7 @@ Monorepo with two top-level areas:
 - `back-end/` — .NET 10 ASP.NET Core Web API, Clean Architecture, actively developed.
   All command/architecture guidance below is scoped to this directory.
 - `front-end/` — Vue 3 + Vite + TypeScript + Pinia + Tailwind CSS 4 + daisyUI 5.
-  Two view modules (`src/views/public/`, `src/views/painel/`) plus `src/shared/`
+  Two view modules (`src/views/public/`, `src/views/panel/`) plus `src/shared/`
   (HTTP, auth store, BrandLogo). Conventions live in `front-end/README.md` and
   `front-end/.cursor/rules/`. Out of scope for backend slices unless the task
   is frontend.

@@ -16,7 +16,7 @@ describe('PublicLayout', () => {
             name: 'home',
             component: defineComponent({ template: '<p>catalogo</p>' }),
           },
-          { path: '/ongs', name: 'ongs', component: { template: '<div />' } },
+          { path: '/ongs', name: 'organization', component: { template: '<div />' } },
           { path: '/como-funciona', name: 'how-it-works', component: { template: '<div />' } },
           { path: '/entrar', name: 'login', component: { template: '<div />' } },
         ],

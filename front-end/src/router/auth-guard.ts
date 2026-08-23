@@ -10,7 +10,7 @@ export const authNavigationGuard: NavigationGuard = (to) => {
   }
 
   if (to.meta.guestOnly && auth.isAuthenticated) {
-    return { name: 'painel-animais' }
+    return { name: 'panel-animals' }
   }
 
   return true

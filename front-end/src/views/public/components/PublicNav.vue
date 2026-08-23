@@ -19,7 +19,7 @@ const menuClass = computed(() => (props.isVertical ? 'menu menu-vertical' : 'men
       <RouterLink :to="{ name: 'home' }">Adotar</RouterLink>
     </li>
     <li>
-      <RouterLink :to="{ name: 'ongs' }">ONGs</RouterLink>
+      <RouterLink :to="{ name: 'organization' }">ONGs</RouterLink>
     </li>
     <li>
       <RouterLink :to="{ name: 'how-it-works' }">Como funciona</RouterLink>

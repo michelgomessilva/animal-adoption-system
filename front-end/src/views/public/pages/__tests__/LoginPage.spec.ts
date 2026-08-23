@@ -86,7 +86,7 @@ describe('LoginPage', () => {
       password: 'secret',
       rememberMe: true,
     })
-    expect(replace).toHaveBeenCalledWith({ name: 'painel-animais' })
+    expect(replace).toHaveBeenCalledWith({ name: 'panel-animals' })
   })
 
   it('toggles password visibility', async () => {

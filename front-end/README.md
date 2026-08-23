@@ -53,10 +53,10 @@ src/
 ├── main.ts                 # Pinia → hydrate → guard HTTP 401 → router
 ├── App.vue                 # <RouterView />
 ├── assets/                 # ilustração local do login
-├── router/                 # rotas públicas + /painel + auth-guard
+├── router/                 # rotas públicas + /panel + auth-guard
 ├── views/
 │   ├── public/             # site público (layout, chrome, páginas, login)
-│   └── painel/             # área autenticada
+│   └── panel/              # área autenticada
 ├── shared/
 │   ├── api/                # http, login, listAnimals, createAnimal
 │   ├── components/         # BrandLogo, AppIcon, AnimalImage
@@ -70,7 +70,7 @@ src/
     └── tokens.css
 ```
 
-Dois contextos de produto: `/*` (`PublicLayout`) e `/painel/*` (`PainelLayout`). Código usado pelos dois módulos (ou pelo router) fica em `shared/`. Componentes de um só módulo ficam em `views/<módulo>/components/`. Promova para `shared/` no segundo consumidor.
+Dois contextos de produto: `/*` (`PublicLayout`) e `/panel/*` (`PanelLayout`). Código usado pelos dois módulos (ou pelo router) fica em `shared/`. Componentes de um só módulo ficam em `views/<módulo>/components/`. Promova para `shared/` no segundo consumidor.
 
 Alias `@/` → `src/` (Vite `resolve.alias` e `tsconfig.app.json`). Use `@/styles/main.css`, não caminhos relativos profundos.
 
@@ -78,9 +78,9 @@ O cliente HTTP ([ky](https://github.com/sindresorhus/ky)) usa `VITE_API_BASE_URL
 
 Auth: `POST /auth/login` com `username` e `password` devolve `{ token }`. A sessão fica em `localStorage` (Manter conectado) ou `sessionStorage`. O cliente envia `Authorization: Bearer`. JWT vale 60 minutos; não há refresh — um 401 autenticado faz logout e volta ao login.
 
-Cadastro de animais: `POST /api/animals` (Bearer, resposta **201**). O painel usa um wizard em `/painel/animais/novo` com três etapas ativas: Dados básicos → Descrição e foto → Localização e revisão. `image` é URL opcional (string vazia se não houver foto); **não há upload**. Fotos usam `AnimalImage` (URL válida ou fallback por espécie). Pedidos de adoção e Perfil da ONG continuam faded com “Em breve”.
+Cadastro de animais: `POST /api/animals` (Bearer, resposta **201**). O painel usa um wizard em `/panel/animals/new` com três etapas ativas: Dados básicos → Descrição e foto → Localização e revisão. `image` é URL opcional (string vazia se não houver foto); **não há upload**. Fotos usam `AnimalImage` (URL válida ou fallback por espécie). Pedidos de adoção e Perfil da ONG continuam faded com “Em breve”.
 
-Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/painel/animais` (Meus pets), `/painel/animais/novo`. Aliases: `/adotar` → `/`, `/login` → `/entrar`. A área da ONG entra pelo login; não há auto-cadastro.
+Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/panel/animals` (Meus pets), `/panel/animals/new`. Aliases: `/adotar` → `/`, `/login` → `/entrar`. A área da ONG entra pelo login; não há auto-cadastro.
 
 ## Tailwind CSS e daisyUI
 
