@@ -1,0 +1,35 @@
+min_version = "2026.3.0"
+
+# https://mise.jdx.dev/tasks/monorepo.html
+# mise 2026.3.x still uses this name; docs now call it monorepo_root.
+experimental_monorepo_root = true
+
+[settings]
+experimental = true
+
+[monorepo]
+config_roots = ["front-end", "back-end"]
+
+[tools]
+# Shared by JS packages. The backend Docker cycle does not need the .NET SDK.
+node = "24"
+
+[env]
+NODE_ENV = "development"
+
+# Package tasks stay namespaced — do not wrap them at the root:
+#   mise //front-end:check | test | ci | dev
+#   mise //back-end:check | smoke | up | down
+#   mise '//...:check'     # every package that defines check
+#
+# From inside a package: `cd front-end && mise :check`
+
+[tasks."dev:up"]
+description = "Start backend Docker (wait for Swagger) then frontend Vite"
+alias = "d"
+depends = ["//back-end:smoke"]
+run = { task = "//front-end:dev" }
+
+[tasks."dev:down"]
+description = "Stop the backend Docker stack (frontend is Ctrl+C)"
+run = { task = "//back-end:down" }

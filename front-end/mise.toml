@@ -1,0 +1,105 @@
+# ---------------------------------------------------------------------------
+# Bootstrap
+# ---------------------------------------------------------------------------
+
+[tasks.install]
+description = "Install dependencies from the lockfile"
+run = "npm ci"
+sources = ["package.json", "package-lock.json"]
+outputs = ["node_modules/.package-lock.json"]
+
+[tasks.setup]
+description = "Bootstrap the project for local development"
+depends = [":install"]
+run = "[ -f .env.local ] || cp .env.example .env.local"
+
+# ---------------------------------------------------------------------------
+# Development
+# ---------------------------------------------------------------------------
+
+[tasks.dev]
+description = "Start the Vite dev server with hot reload"
+alias = "d"
+depends = [":setup"]
+run = "npm run dev"
+
+[tasks.build]
+description = "Type-check and build the production bundle"
+depends = [":setup"]
+run = "npm run build"
+sources = ["src/**/*", "index.html", "vite.config.ts", "env.d.ts", "tsconfig*.json", "package.json"]
+outputs = ["dist/**"]
+
+[tasks.preview]
+description = "Preview the production build locally"
+depends = [":build"]
+run = "npm run preview"
+
+[tasks."type-check"]
+description = "Run vue-tsc without emitting files"
+depends = [":install"]
+run = "npm run type-check"
+sources = ["src/**/*", "env.d.ts", "tsconfig*.json"]
+
+[tasks.lint]
+description = "Run ESLint and Oxlint with auto-fix"
+depends = [":install"]
+run = "npm run lint"
+
+[tasks.format]
+description = "Format src/ with Oxfmt"
+depends = [":install"]
+run = "npm run format"
+
+[tasks."format:check"]
+description = "Verify Oxfmt formatting without writing files"
+depends = [":install"]
+run = "npm run format:check"
+
+[tasks.fix]
+description = "Format and lint the codebase"
+depends = [":format", ":lint"]
+
+[tasks.clean]
+description = "Remove build artifacts, caches, and coverage"
+run = "rm -rf dist dist-ssr coverage .eslintcache *.tsbuildinfo"
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+[tasks."test:unit"]
+description = "Run unit tests once with Vitest"
+depends = [":install"]
+run = "npm run test:unit -- --run"
+
+[tasks."test:unit:watch"]
+description = "Run unit tests in watch mode"
+depends = [":install"]
+run = "npm run test:unit"
+
+[tasks.test]
+description = "Run unit tests"
+depends = [":test:unit"]
+
+# ---------------------------------------------------------------------------
+# Quality gates
+# ---------------------------------------------------------------------------
+
+[tasks.check]
+description = "Run format check, lint, type-check, and unit tests"
+alias = "verify"
+run = [
+  { tasks = [
+    ":format:check",
+    ":lint",
+    ":type-check",
+  ] },
+  { tasks = [
+    ":test:unit",
+  ] },
+]
+
+[tasks.ci]
+description = "Full CI pipeline: check and build"
+depends = [":check", ":build"]

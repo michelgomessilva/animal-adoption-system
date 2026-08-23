@@ -14,3 +14,5 @@ When working under `front-end/`, read and follow:
 - `front-end/.cursor/rules/vue-components-qa.mdc`
 
 Setup summary: Tailwind CSS 4 + daisyUI 5, entry at `@/styles/main.css`, import alias `@/` → `src/`.
+
+Run frontend mise tasks **from `front-end/`** (`mise :dev`, `mise :check`). Do not run them from the repo root.

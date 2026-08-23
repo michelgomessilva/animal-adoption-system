@@ -13,28 +13,35 @@ SPA Vue do sistema de adoção de animais.
 
 ## Desenvolvimento
 
-A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). Copie o ambiente e suba o Vite:
+Comandos de front-end rodam **dentro de `front-end/`** (`mise :tarefa`). Não use a raiz do repositório para check, test, lint ou `dev` do Vite.
+
+A API precisa estar no ar (Docker `5127` ou `dotnet run` em `7067`). Bootstrap e Vite:
 
 ```sh
-cp .env.example .env.local
-npm install
-npm run dev
+cd front-end
+mise setup    # npm ci + .env.local a partir do example
+mise :dev     # Vite com hot reload
 ```
+
+Para subir API (Docker) e Vite juntos, na raiz do repo: `mise dev:up` (derruba o Docker com `mise dev:down`; o Vite é Ctrl+C).
 
 IDE: [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (desative o Vetur) + [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss).
 
-### Scripts
+### Tasks (`mise`, a partir de `front-end/`)
 
-| Comando               | Descrição                                      |
-| --------------------- | ---------------------------------------------- |
-| `npm run dev`         | Servidor de desenvolvimento com hot reload     |
-| `npm run build`       | Type-check e build de produção                 |
-| `npm run preview`     | Preview do build de produção                   |
-| `npm run type-check`  | Verificação de tipos (`vue-tsc`)               |
-| `npm run test:unit`   | Testes unitários (Vitest)                      |
-| `npm run lint`        | Oxlint + ESLint                                |
-| `npm run format`      | Formata `src/` com Oxfmt                       |
-| `npm run format:check`| Verifica formatação sem alterar arquivos       |
+| Comando                 | Descrição                                      |
+| ----------------------- | ---------------------------------------------- |
+| `mise :dev`             | Servidor de desenvolvimento com hot reload     |
+| `mise :build`           | Type-check e build de produção                 |
+| `mise :preview`         | Preview do build de produção                   |
+| `mise :type-check`      | Verificação de tipos (`vue-tsc`)               |
+| `mise :test:unit`       | Testes unitários (Vitest, uma execução)        |
+| `mise :test:unit:watch` | Testes unitários em watch                      |
+| `mise :lint`            | Oxlint + ESLint                                |
+| `mise :format`          | Formata `src/` com Oxfmt                       |
+| `mise :format:check`    | Verifica formatação sem alterar arquivos       |
+| `mise :check`           | format:check + lint + type-check + test:unit   |
+| `mise :ci`              | `:check` + `:build`                            |
 
 ## Estrutura
 
@@ -94,4 +101,4 @@ Convenções de componente, CSS e QA para agentes: `front-end/.cursor/rules/`.
 
 ## Type-check de `.vue`
 
-O `tsc` não entende SFC. Use `vue-tsc` (`npm run type-check`) e Volar no editor.
+O `tsc` não entende SFC. Use `vue-tsc` (`mise :type-check` em `front-end/`) e Volar no editor.
