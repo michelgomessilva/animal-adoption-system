@@ -77,16 +77,17 @@ builder.Services.AddScoped<IPasswordHasher<Admin>, PasswordHasher<Admin>>();
 builder.Services.AddScoped<LoginHandler>();
 
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+if (corsOrigins.Length == 0)
+{
+    throw new InvalidOperationException("Cors:Origins is required and must contain at least one origin.");
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        if (corsOrigins.Length > 0)
-        {
-            policy.WithOrigins(corsOrigins);
-        }
-
         policy
+            .WithOrigins(corsOrigins)
             .WithHeaders("Authorization", "Content-Type")
             .WithMethods("GET", "POST", "OPTIONS");
     });
