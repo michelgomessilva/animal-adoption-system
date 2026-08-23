@@ -46,6 +46,11 @@ description = "Run ESLint and Oxlint with auto-fix"
 depends = [":install"]
 run = "npm run lint"
 
+[tasks."lint:check"]
+description = "Run ESLint and Oxlint without writing files"
+depends = [":install"]
+run = "npm run lint:check"
+
 [tasks.format]
 description = "Format src/ with Oxfmt"
 depends = [":install"]
@@ -92,7 +97,7 @@ alias = "verify"
 run = [
   { tasks = [
     ":format:check",
-    ":lint",
+    ":lint:check",
     ":type-check",
   ] },
   { tasks = [
