@@ -41,5 +41,29 @@ namespace ONG.Domain.Entitites
             District = district;
             City = city;
         }
+
+        public void Update(
+        string name,
+        Species species,
+        Sex sex,
+        Size size,
+        int approximateAge,
+        string description,
+        string image,
+        Status status,
+        string district,
+        string city)
+        {
+            Name = name;
+            Species = species;
+            Sex = sex;
+            Size = size;
+            ApproximateAge = approximateAge;
+            Description = description;
+            Image = image;
+            Status = status;
+            District = district;
+            City = city;
+        }
     }
 }
