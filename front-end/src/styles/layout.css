@@ -1,0 +1,60 @@
+html {
+  height: auto;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: clip;
+  font-family: var(--font-body);
+  background-color: var(--color-base-200);
+  background-image:
+    radial-gradient(
+      1200px 640px at 8% -10%,
+      color-mix(in oklch, var(--color-primary) 14%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      900px 520px at 108% 8%,
+      color-mix(in oklch, var(--color-accent) 18%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(180deg, var(--color-base-100), var(--color-base-200) 72%);
+  color: var(--color-base-content);
+}
+
+::selection {
+  background-color: color-mix(in oklch, var(--color-primary) 28%, transparent);
+  color: var(--color-base-content);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+#app {
+  min-height: 100dvh;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

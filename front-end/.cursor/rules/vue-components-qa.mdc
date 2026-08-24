@@ -1,0 +1,41 @@
+---
+description: QA loop for Vue SFCs and TypeScript under front-end/
+globs: **/*.{ts,vue}
+alwaysApply: false
+---
+
+# QA loop
+
+Run **from `front-end/`** after any Vue/TypeScript/CSS change. Fix failures before continuing.
+
+Frontend mise tasks use the current config-root prefix (`:`). Do not run them from the repo root (`mise check` / `mise //front-end:check` are not the frontend workflow).
+
+```bash
+cd front-end          # required — this is the config root
+mise :type-check      # vue-tsc --build
+mise :format:check    # oxfmt --check src/  (fix with mise :format)
+mise :lint            # oxlint + ESLint
+mise :test:unit       # Vitest once (if the change is covered)
+mise :build           # type-check + Vite production build
+```
+
+`mise :test:unit` already runs Vitest once. Watch mode is `mise :test:unit:watch`.
+
+Full gate in one shot: `mise :check` (format:check + lint + type-check + test:unit). Playwright E2E is `mise :test:e2e` and is **not** part of `:check` — start the API yourself first (`e2e/README.md`).
+
+Skip tests only for comment-only or docs-only edits (still run type-check + format:check + lint).
+
+## Rules
+
+- Test public behavior (props, DOM, user actions), not Vue internals.
+- Do not change observable behavior unless asked.
+- Limit the diff to the files the task needs.
+
+## Checklist
+
+- [ ] `mise :type-check` — zero errors
+- [ ] `mise :format:check` — clean
+- [ ] `mise :lint` — zero warnings
+- [ ] `mise :test:unit` — pass when tests are affected
+- [ ] `mise :build` — succeeds
+- [ ] Follows @vue-components.mdc and @vue-components-style.mdc
