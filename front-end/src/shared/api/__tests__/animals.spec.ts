@@ -54,12 +54,15 @@ describe('listAnimals', () => {
     )
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(listAnimals({ species: 'Dog', status: 'Adopted' })).resolves.toEqual([fixture])
+    await expect(
+      listAnimals({ species: 'Dog', status: 'Adopted', orderBy: 'name' }),
+    ).resolves.toEqual([fixture])
 
     const url = new URL(firstFetchRequest(fetchMock).url)
     expect(url.pathname).toBe('/api/animals')
     expect(url.searchParams.get('species')).toBe('Dog')
     expect(url.searchParams.get('status')).toBe('Adopted')
+    expect(url.searchParams.get('orderBy')).toBe('name')
     expect(firstFetchRequest(fetchMock).headers.get('Authorization')).toBe('Bearer jwt')
   })
 

@@ -2,6 +2,15 @@ export type AnimalSpecies = 'Dog' | 'Cat'
 export type AnimalSex = 'Male' | 'Female'
 export type AnimalSize = 'Small' | 'Medium' | 'Large'
 export type AnimalStatus = 'Available' | 'Adopted'
+export type AnimalOrderBy =
+  | 'name'
+  | 'name_desc'
+  | 'species'
+  | 'species_desc'
+  | 'size'
+  | 'size_desc'
+  | 'createdAt'
+  | 'createdAt_desc'
 
 export const ANIMAL_SPECIES_OPTIONS = ['Dog', 'Cat'] as const satisfies readonly AnimalSpecies[]
 export const ANIMAL_SEX_OPTIONS = ['Male', 'Female'] as const satisfies readonly AnimalSex[]
@@ -14,6 +23,16 @@ export const ANIMAL_STATUS_OPTIONS = [
   'Available',
   'Adopted',
 ] as const satisfies readonly AnimalStatus[]
+export const ANIMAL_ORDER_BY_OPTIONS = [
+  'name',
+  'name_desc',
+  'species',
+  'species_desc',
+  'size',
+  'size_desc',
+  'createdAt',
+  'createdAt_desc',
+] as const satisfies readonly AnimalOrderBy[]
 
 const ANIMAL_ID_PATTERN =
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
@@ -46,11 +65,16 @@ export function isAnimalStatus(value: string): value is AnimalStatus {
   return (ANIMAL_STATUS_OPTIONS as readonly string[]).includes(value)
 }
 
+export function isAnimalOrderBy(value: string): value is AnimalOrderBy {
+  return (ANIMAL_ORDER_BY_OPTIONS as readonly string[]).includes(value)
+}
+
 export interface AnimalListQuery {
   species?: AnimalSpecies
   sex?: AnimalSex
   size?: AnimalSize
   status?: AnimalStatus
+  orderBy?: AnimalOrderBy
 }
 
 function firstQueryString(value: unknown): string | undefined {
@@ -97,6 +121,11 @@ export function parseAnimalListQuery(query: Record<string, unknown>): AnimalList
     result.status = status
   }
 
+  const orderBy = parseEnumQueryValue(query.orderBy, ANIMAL_ORDER_BY_OPTIONS)
+  if (orderBy !== undefined) {
+    result.orderBy = orderBy
+  }
+
   return result
 }
 
@@ -115,12 +144,24 @@ export function toAnimalListSearchParams(query: AnimalListQuery): Record<string,
   if (query.status !== undefined) {
     params.status = query.status
   }
+  if (query.orderBy !== undefined) {
+    params.orderBy = query.orderBy
+  }
 
   return params
 }
 
 export function animalListQueryIsEmpty(query: AnimalListQuery): boolean {
   return Object.keys(toAnimalListSearchParams(query)).length === 0
+}
+
+export function animalListHasNarrowingFilters(query: AnimalListQuery): boolean {
+  return (
+    query.species !== undefined ||
+    query.sex !== undefined ||
+    query.size !== undefined ||
+    query.status !== undefined
+  )
 }
 
 export interface AnimalWriteInput {

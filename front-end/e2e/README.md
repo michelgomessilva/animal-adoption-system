@@ -28,6 +28,7 @@ npm run test:e2e:ui                     # Playwright UI
 - Create animal through the wizard (session via `POST /auth/login`)
 - Edit animal through the wizard (`GET` + `PUT /api/animals/{id}`)
 - Filter Meus pets by species (`GET /api/animals?species=…`)
+- Sort Meus pets by name (`GET /api/animals?orderBy=name`)
 - Public catalog shows an animal created via `POST /api/animals`
 
 Each test creates its own unique `e2e-<hex>` name. There is no cleanup: leftover `e2e-*` rows stay in the database. There is no required seed.

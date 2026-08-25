@@ -10,6 +10,13 @@ describe('uniqueAnimalName', () => {
     expect(name.length).toBeLessThanOrEqual(20)
   })
 
+  it('accepts a custom prefix for ordered names', () => {
+    const name = uniqueAnimalName('e2e-a')
+
+    expect(name).toMatch(/^e2e-a-[a-z0-9]{8}$/)
+    expect(name.length).toBeLessThanOrEqual(20)
+  })
+
   it('returns a different value on each call', () => {
     expect(uniqueAnimalName()).not.toBe(uniqueAnimalName())
   })

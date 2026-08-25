@@ -47,9 +47,9 @@ describe('AnimalListPage', () => {
 
   it('loads with query filters from the URL', async () => {
     listAnimalsMock.mockResolvedValue([])
-    await mountListPage('/panel/animals?status=Adopted')
+    await mountListPage('/panel/animals?status=Adopted&orderBy=name')
 
-    expect(listAnimalsMock).toHaveBeenCalledWith({ status: 'Adopted' })
+    expect(listAnimalsMock).toHaveBeenCalledWith({ status: 'Adopted', orderBy: 'name' })
   })
 
   it('updates the URL and refetches when a filter changes', async () => {
@@ -64,11 +64,31 @@ describe('AnimalListPage', () => {
     expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: 'Cat' })
   })
 
+  it('updates the URL and refetches when orderBy changes', async () => {
+    listAnimalsMock.mockResolvedValue([luna])
+    const { wrapper, router } = await mountListPage()
+
+    listAnimalsMock.mockResolvedValue([luna])
+    await wrapper.get('select[name="orderBy"]').setValue('createdAt_desc')
+    await flushPromises()
+
+    expect(router.currentRoute.value.query).toEqual({ orderBy: 'createdAt_desc' })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ orderBy: 'createdAt_desc' })
+  })
+
   it('shows an empty state when there are no animals', async () => {
     listAnimalsMock.mockResolvedValue([])
     const { wrapper } = await mountListPage()
 
     expect(wrapper.text()).toContain('Nenhum animal cadastrado.')
+  })
+
+  it('shows a catalog empty state when only orderBy is set', async () => {
+    listAnimalsMock.mockResolvedValue([])
+    const { wrapper } = await mountListPage('/panel/animals?orderBy=name')
+
+    expect(wrapper.text()).toContain('Nenhum animal cadastrado.')
+    expect(wrapper.text()).not.toContain('Nenhum animal encontrado com esses filtros.')
   })
 
   it('shows a filtered empty state when filters match nothing', async () => {

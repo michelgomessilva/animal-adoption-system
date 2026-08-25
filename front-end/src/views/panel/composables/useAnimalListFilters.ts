@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import {
-  animalListQueryIsEmpty,
+  animalListHasNarrowingFilters,
   parseAnimalListQuery,
   toAnimalListSearchParams,
   type AnimalListQuery,
@@ -14,7 +14,7 @@ export function useAnimalListFilters() {
 
   const filters = computed(() => parseAnimalListQuery(route.query))
 
-  const hasActiveFilters = computed(() => !animalListQueryIsEmpty(filters.value))
+  const hasActiveFilters = computed(() => animalListHasNarrowingFilters(filters.value))
 
   function setFilter<K extends keyof AnimalListQuery>(
     key: K,

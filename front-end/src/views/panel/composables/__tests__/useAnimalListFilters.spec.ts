@@ -29,14 +29,29 @@ describe('useAnimalListFilters', () => {
   }
 
   it('reads valid filters from the route query', async () => {
-    const { wrapper } = await mountFilters('/panel/animals?status=Adopted&species=Dog')
+    const { wrapper } = await mountFilters(
+      '/panel/animals?status=Adopted&species=Dog&orderBy=name_desc',
+    )
 
-    expect(wrapper.vm.filters).toEqual({ status: 'Adopted', species: 'Dog' })
+    expect(wrapper.vm.filters).toEqual({
+      status: 'Adopted',
+      species: 'Dog',
+      orderBy: 'name_desc',
+    })
     expect(wrapper.vm.hasActiveFilters).toBe(true)
   })
 
+  it('treats orderBy alone as inactive filters', async () => {
+    const { wrapper } = await mountFilters('/panel/animals?orderBy=name')
+
+    expect(wrapper.vm.filters).toEqual({ orderBy: 'name' })
+    expect(wrapper.vm.hasActiveFilters).toBe(false)
+  })
+
   it('ignores invalid query values without rewriting the URL', async () => {
-    const { wrapper, replaceSpy } = await mountFilters('/panel/animals?species=Elephant')
+    const { wrapper, replaceSpy } = await mountFilters(
+      '/panel/animals?species=Elephant&orderBy=bogus',
+    )
 
     expect(wrapper.vm.filters).toEqual({})
     expect(wrapper.vm.hasActiveFilters).toBe(false)

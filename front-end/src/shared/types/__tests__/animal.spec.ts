@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  animalListHasNarrowingFilters,
   animalListQueryIsEmpty,
   isAnimalId,
+  isAnimalOrderBy,
   isAnimalSex,
   isAnimalSize,
   isAnimalSpecies,
@@ -30,6 +32,7 @@ describe('enum type guards', () => {
     expect(isAnimalSex('Female')).toBe(true)
     expect(isAnimalSize('Medium')).toBe(true)
     expect(isAnimalStatus('Adopted')).toBe(true)
+    expect(isAnimalOrderBy('createdAt_desc')).toBe(true)
   })
 
   it('rejects unknown and wrong-case values', () => {
@@ -38,6 +41,8 @@ describe('enum type guards', () => {
     expect(isAnimalSex('Other')).toBe(false)
     expect(isAnimalSize('Tiny')).toBe(false)
     expect(isAnimalStatus('Pending')).toBe(false)
+    expect(isAnimalOrderBy('bogus')).toBe(false)
+    expect(isAnimalOrderBy('createdat_desc')).toBe(false)
   })
 })
 
@@ -48,15 +53,19 @@ describe('parseAnimalListQuery / toAnimalListSearchParams', () => {
       sex: 'Male' as const,
       size: 'Small' as const,
       status: 'Adopted' as const,
+      orderBy: 'name' as const,
     }
 
     expect(parseAnimalListQuery(toAnimalListSearchParams(query))).toEqual(query)
   })
 
-  it('normalizes case-insensitive enum values to canonical casing', () => {
-    expect(parseAnimalListQuery({ species: 'cat', status: 'available' })).toEqual({
+  it('normalizes case-insensitive enum and orderBy values to canonical casing', () => {
+    expect(
+      parseAnimalListQuery({ species: 'cat', status: 'available', orderBy: 'createdat_desc' }),
+    ).toEqual({
       species: 'Cat',
       status: 'Available',
+      orderBy: 'createdAt_desc',
     })
   })
 
@@ -64,6 +73,7 @@ describe('parseAnimalListQuery / toAnimalListSearchParams', () => {
     expect(parseAnimalListQuery({ species: 'Elephant' })).toEqual({})
     expect(parseAnimalListQuery({ species: '' })).toEqual({})
     expect(parseAnimalListQuery({ species: 'Dog', size: 'Tiny' })).toEqual({ species: 'Dog' })
+    expect(parseAnimalListQuery({ orderBy: 'bogus' })).toEqual({})
   })
 
   it('uses the first string when a key is an array', () => {
@@ -71,15 +81,28 @@ describe('parseAnimalListQuery / toAnimalListSearchParams', () => {
   })
 
   it('omits undefined keys from search params', () => {
-    expect(toAnimalListSearchParams({ species: 'Dog' })).toEqual({ species: 'Dog' })
+    expect(toAnimalListSearchParams({ species: 'Dog', orderBy: 'name_desc' })).toEqual({
+      species: 'Dog',
+      orderBy: 'name_desc',
+    })
     expect(toAnimalListSearchParams({})).toEqual({})
   })
 })
 
 describe('animalListQueryIsEmpty', () => {
-  it('is true only when every filter key is absent', () => {
+  it('is true only when every query key is absent', () => {
     expect(animalListQueryIsEmpty({})).toBe(true)
     expect(animalListQueryIsEmpty({ species: 'Dog' })).toBe(false)
+    expect(animalListQueryIsEmpty({ orderBy: 'name' })).toBe(false)
+  })
+})
+
+describe('animalListHasNarrowingFilters', () => {
+  it('ignores orderBy and tracks only filter dimensions', () => {
+    expect(animalListHasNarrowingFilters({})).toBe(false)
+    expect(animalListHasNarrowingFilters({ orderBy: 'name' })).toBe(false)
+    expect(animalListHasNarrowingFilters({ species: 'Dog' })).toBe(true)
+    expect(animalListHasNarrowingFilters({ status: 'Adopted', orderBy: 'name' })).toBe(true)
   })
 })
 

@@ -2,11 +2,13 @@
 import { computed } from 'vue'
 
 import {
+  ANIMAL_ORDER_BY_OPTIONS,
   ANIMAL_SEX_OPTIONS,
   ANIMAL_SIZE_OPTIONS,
   ANIMAL_SPECIES_OPTIONS,
   ANIMAL_STATUS_OPTIONS,
   animalListQueryIsEmpty,
+  isAnimalOrderBy,
   isAnimalSex,
   isAnimalSize,
   isAnimalSpecies,
@@ -14,6 +16,7 @@ import {
   type AnimalListQuery,
 } from '@/shared/types/animal'
 import {
+  animalOrderByLabel,
   animalSexLabel,
   animalSizeLabel,
   animalSpeciesLabel,
@@ -57,6 +60,11 @@ function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
     case 'status':
       if (isAnimalStatus(raw)) {
         emit('setFilter', 'status', raw)
+      }
+      break
+    case 'orderBy':
+      if (isAnimalOrderBy(raw)) {
+        emit('setFilter', 'orderBy', raw)
       }
       break
   }
@@ -121,6 +129,21 @@ function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
         <option value="">Todas</option>
         <option v-for="status in ANIMAL_STATUS_OPTIONS" :key="status" :value="status">
           {{ animalStatusLabel[status] }}
+        </option>
+      </select>
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Ordenar por</legend>
+      <select
+        class="select"
+        name="orderBy"
+        :value="filters.orderBy ?? ''"
+        @change="onFilterChange('orderBy', $event)"
+      >
+        <option value="">Padrão</option>
+        <option v-for="orderBy in ANIMAL_ORDER_BY_OPTIONS" :key="orderBy" :value="orderBy">
+          {{ animalOrderByLabel[orderBy] }}
         </option>
       </select>
     </fieldset>

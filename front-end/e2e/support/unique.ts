@@ -1,4 +1,4 @@
-export function uniqueAnimalName(): string {
+export function uniqueAnimalName(prefix = 'e2e'): string {
   const id = crypto.randomUUID().replaceAll('-', '').slice(0, 8)
-  return `e2e-${id}`
+  return `${prefix}-${id}`
 }
