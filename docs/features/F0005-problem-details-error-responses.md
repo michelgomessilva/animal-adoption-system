@@ -17,7 +17,7 @@
 | ID       | F0005                                  |
 | Slug     | problem-details-error-responses         |
 | Domain   | Cross-cutting (API error handling)      |
-| Status   | draft                                   |
+| Status   | delivered — single slice F0005.1 delivered (implemented, `code-reviewer` APPROVED with one non-blocking nit, `secret-scanner`/`injection-reviewer` clean, 112/112 tests green, PR to `main` pending); feature closes once that PR merges |
 | PROJECT  | *(none — standalone technical hardening, not tied to a PRD epic)* |
 | Updated  | 2026-08-25                              |
 
@@ -170,7 +170,7 @@ research for this spec, not to be re-verified per slice.
 
 | Slice    | Slug                              | Short description                                                                 | Status  |
 | -------- | ---------------------------------- | ----------------------------------------------------------------------------------- | ------- |
-| F0005.1  | problem-details-error-responses    | Wire up `AddProblemDetails()`; rewrite `ExceptionHandlingMiddleware` and `ClientTokenEnforcementMiddleware` to emit `ProblemDetails`; update `AuthController`, `OAuthController`, and `AnimalController`'s `NotFound()` responses to the same shape. | spec created / in research |
+| F0005.1  | problem-details-error-responses    | Wire up `AddProblemDetails()`; rewrite `ExceptionHandlingMiddleware` and `ClientTokenEnforcementMiddleware` to emit `ProblemDetails`; update `AuthController`, `OAuthController`, and `AnimalController`'s `NotFound()` responses to the same shape. Scope extended (human-requested) to also complete Swagger `ProducesResponseType(ProblemDetails)` annotations on the remaining endpoints and add `app.UseStatusCodePages()` for unmatched-route/challenge responses. | delivered — implemented, `code-reviewer` APPROVED (one non-blocking nit), `secret-scanner`/`injection-reviewer` clean, 112/112 tests green, PR to `main` pending |
 
 > Each slice should be independently shippable and reviewable. If a planned slice
 > looks like it will exceed ~400 lines of diff, split it into two.
