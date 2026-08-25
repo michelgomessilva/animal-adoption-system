@@ -352,5 +352,36 @@ namespace ONG.Tests.Api
             Assert.NotEmpty(animals);
             Assert.All(animals, a => Assert.Equal("Available", a.GetProperty("status").GetString()));
         }
+
+        [Fact]
+        public async Task GetById_NonExistentId_Returns404ProblemDetails()
+        {
+            var response = await _client.GetAsync($"/api/animals/{Guid.NewGuid()}");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
+        }
+
+        [Fact]
+        public async Task Update_NonExistentId_Returns404ProblemDetails()
+        {
+            var token = await GetValidTokenAsync();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PutAsJsonAsync($"/api/animals/{Guid.NewGuid()}", ValidAnimalBody());
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
+        }
     }
 }

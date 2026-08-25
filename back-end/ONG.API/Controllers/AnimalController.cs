@@ -50,8 +50,8 @@ namespace ONG.API.Controllers
         }
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public IActionResult GetById(Guid id)
         {
             var query = new GetAnimalByIdQuery
@@ -62,7 +62,10 @@ namespace ONG.API.Controllers
             var animal = _getByIdHandler.Handle(query);
 
             if (animal is null)
-                return NotFound();
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Animal not found.",
+                    detail: $"No animal found with id '{id}'.");
 
             return Ok(animal);
         }
@@ -75,7 +78,10 @@ namespace ONG.API.Controllers
             var animal = _updateHandler.Handle(command);
 
             if (animal is null)
-                return NotFound();
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Animal not found.",
+                    detail: $"No animal found with id '{id}'.");
 
             return Ok(animal);
         }
