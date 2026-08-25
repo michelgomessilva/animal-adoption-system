@@ -32,14 +32,16 @@ so cross-origin browser calls fail. This is blocking active front-end work today
 
 ## Context
 
-`docs/product/PRD.md` (§ "Decisão de produto — CORS aberto", `EP06` scope) already
-records the product decision: CORS is deliberately left open (`AllowAnyOrigin`), at
-the project mentor's explicit request, because the front-end doesn't yet have a fixed
-domain to allow-list. That decision was never assigned to a sprint or feature —
-`docs/product/PROJECT-api-security-hardening.md`'s Sprint S01 (`F0004`,
-client-credentials-auth) and Sprint S02 (`F0005`, api-hardening, not yet created)
-cover client identity and security headers/IP visibility respectively, neither of
-which includes CORS. This hotfix closes that gap on its own, fast, instead of waiting
+The product decision itself — CORS deliberately left open (`AllowAnyOrigin`), at the
+project mentor's explicit request, because the front-end doesn't yet have a fixed
+domain to allow-list — was confirmed directly with the user in the session that
+produced this doc. It is *not yet* recorded in `docs/product/PRD.md` at this branch's
+history: the full `EP06` PRD revision (goals G5–G9, user stories, the "Decisão de
+produto — CORS aberto" section) is still pending, uncommitted, and travels with the
+separate `F0004`/`F0005` feature work (`docs/product/PROJECT-api-security-hardening.md`,
+also not yet committed) — deliberately kept out of this hotfix so the two land
+independently. This hotfix stands on the user's direct confirmation alone and closes
+the CORS gap on its own, fast, instead of waiting
 on the full `F0004`/`F0005` RDPI cycles.
 
 ---
