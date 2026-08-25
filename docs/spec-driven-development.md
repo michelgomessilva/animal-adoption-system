@@ -220,6 +220,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 | PRD                  | PRD     | —           | active | `docs/product/PRD.md`               |
 | Administrative Authentication | PROJECT | EP05 | draft | `docs/product/PROJECT-admin-authentication.md` |
 | Public Animal Catalog | PROJECT | EP02 | draft | `docs/product/PROJECT-public-animal-catalog.md` |
+| API Security Hardening | PROJECT | EP06 | draft | `docs/product/PROJECT-api-security-hardening.md` |
 
 ---
 
@@ -230,6 +231,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 | F0001  | admin-login  | Authentication | complete (F0001.1 merged; F0001.2 PR pending) | F0001.1, F0001.2 | `docs/features/F0001-admin-login.md` |
 | F0002  | route-protection | Authentication | in progress (F0002.1 implemented, `code-reviewer` APPROVED, PR to `main` pending; F0002.2 not started) | F0002.1, F0002.2 | `docs/features/F0002-route-protection.md` |
 | F0003  | public-animal-listing | Animal Catalog | in progress (F0003.1 delivered — implemented, `code-reviewer` APPROVED, PR to `main` pending; F0003.2 delivered — implemented, `code-reviewer` APPROVED final round, 66/66 tests green, PR to `main` pending — final slice) | F0003.1, F0003.2 | `docs/features/F0003-public-animal-listing.md` |
+| F0004  | client-credentials-auth | Authentication (client identity) | in progress (F0004.1 delivered — implemented, `code-reviewer` APPROVED, 87/87 tests green, PR to `main` pending; F0004.2 not started) | F0004.1, F0004.2 | `docs/features/F0004-client-credentials-auth.md` |
 
 ---
 

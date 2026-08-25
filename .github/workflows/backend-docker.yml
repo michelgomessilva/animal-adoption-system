@@ -48,6 +48,8 @@ jobs:
       ADMIN_SEED_USERNAME: ${{ vars.CI_ADMIN_SEED_USERNAME }}
       ADMIN_SEED_PASSWORD: ${{ secrets.CI_ADMIN_SEED_PASSWORD }}
       JWT_KEY: ${{ secrets.CI_JWT_KEY }}
+      CLIENT_ID: ${{ vars.CI_CLIENT_ID }}
+      CLIENT_SECRET: ${{ secrets.CI_CLIENT_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

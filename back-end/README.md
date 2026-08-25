@@ -1,294 +1,243 @@
 # Back-end — Projeto ONG - Sistema de Adoção de Animais
 
-Resumo rápido
+![.NET](https://img.shields.io/badge/.NET-10-512BD4)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED)
+[![CI](https://github.com/michelgomessilva/animal-adoption-system/actions/workflows/backend-docker.yml/badge.svg)](https://github.com/michelgomessilva/animal-adoption-system/actions/workflows/backend-docker.yml)
 
-Projeto em andamento para gerenciar o cadastro de animais disponíveis para adoção (o fluxo de adoção em si está fora do escopo atual). Atualmente a aplicação implementa a criação (POST) de registros de animais, persistindo-os no banco de dados por meio de EF Core e uma implementação simples de repositório, um endpoint de login administrativo (`POST /auth/login`) que emite um JWT, autenticação JWT bearer protegendo `POST /api/animals` (slice `F0002.1`), e um endpoint público de listagem (`GET /api/animals`, slice `F0003.1`) que retorna somente animais com status `Available` para chamadas anônimas/com token inválido e o catálogo completo para um admin autenticado.
+API REST para o sistema de adoção de animais: cadastro, listagem, consulta e atualização de
+animais disponíveis para adoção, autenticação administrativa via JWT, e emissão de token
+OAuth2 (client-credentials) para futuras integrações máquina-a-máquina. O fluxo de adoção em
+si (associar um animal a um adotante) está fora do escopo atual.
 
-Principais tecnologias
+Em produção: [animal-adoption-system.onrender.com/swagger](https://animal-adoption-system.onrender.com/swagger/).
+
+## Stack
 
 - .NET 10 (ASP.NET Core Web API)
-- Entity Framework Core
-- Npgsql (PostgreSQL) como provedor de banco de dados
-- Swagger (OpenAPI) para documentação e testes da API
-- Injeção de dependência e padrão de Use Cases (Handler/Command)
-- `Microsoft.AspNetCore.Identity.PasswordHasher<T>` para hashing de senha e
-  `System.IdentityModel.Tokens.Jwt` para emissão de tokens JWT (HMAC-SHA256), desde a
-  slice `F0001.2`
-- `Microsoft.AspNetCore.Authentication.JwtBearer` para validar o JWT em rotas protegidas
-  (`AddAuthentication`/`AddJwtBearer`, `[Authorize]`), desde a slice `F0002.1`
+- Entity Framework Core + Npgsql (PostgreSQL)
+- Swagger (OpenAPI)
+- `Microsoft.AspNetCore.Identity.PasswordHasher<T>` (hash de senha) +
+  `System.IdentityModel.Tokens.Jwt` (emissão de JWT, HMAC-SHA256)
+- `Microsoft.AspNetCore.Authentication.JwtBearer` (validação de JWT em rotas protegidas)
+- `System.Security.Cryptography.CryptographicOperations.FixedTimeEquals` (comparação de
+  credenciais em tempo constante no fluxo OAuth2)
+- xUnit + EF Core InMemory + `Microsoft.AspNetCore.Mvc.Testing`
 
-Estrutura da solução
+## Arquitetura
 
-- ONG.API
-  - Projeto Web API: controllers, configuração do app, Swagger, serialização de enums como string, autenticação JWT bearer (`AddAuthentication`/`AddJwtBearer`/`UseAuthentication`, desde `F0002.1`).
-  - Endpoints implementados: `POST /api/animals` (requer `Authorization: Bearer <token>` desde `F0002.1`), `GET /api/animals` (público, visibilidade escopada por autenticação, desde `F0003.1`), `POST /auth/login`.
-- ONG.Application
-  - Camada de aplicação: interfaces de repositório (`IAnimalRepository`, `IAdminRepository`), a abstração `ITokenGenerator`, e casos de uso (`CreateAnimalCommand`/`CreateAnimalHandler` — `CreateAnimalCommand.Name` agora `[Required]`, desde `F0002.1` —, `LoginCommand`/`LoginHandler`/`LoginResult`, `ListAnimalsCommand`/`ListAnimalsHandler` — desde `F0003.1`, aplica o filtro de visibilidade `Status == Available` em memória para chamadas não autenticadas).
-- ONG.Domain
-  - Entidades e enums do domínio (Animal, Admin, Sex, Size, Species, Status).
-- ONG.Infrastructure
-  - Implementação do DbContext (ONGDbContext), repositórios concretos (`AnimalRepository` — inclui `GetAll()`, um simples `_context.Animals.ToList()` sem filtragem, desde `F0003.1` —, `AdminRepository`), o seeder do usuário administrador (`AdminSeeder`, rodado na inicialização), `JwtTokenGenerator` (implementa `ITokenGenerator`, com validação de configuração fail-fast na inicialização) e as migrations (InitialCreate, AddAnimalLocation, FixAnimalAdoptedAtColumn, AddAdminTable, AddAdminUpdatedAtColumn).
-- ONG.Tests
-  - Projeto de testes: xUnit + EF Core InMemory (adicionados na slice F0001.1) e `Microsoft.AspNetCore.Mvc.Testing` (adicionado na slice F0001.2, para testes de API via `WebApplicationFactory<Program>`). 44 testes (35 anteriores + 9 novos na `F0003.1`) cobrindo `Admin`, `ONGDbContext`, `AdminSeeder`, `AdminRepository`, `LoginHandler`, `JwtTokenGenerator`, o endpoint `POST /auth/login` de ponta a ponta, `CreateAnimalCommand` (validação `[Required]`), o endpoint `POST /api/animals` protegido por JWT bearer (`F0002.1`), `ListAnimalsHandler` (3 testes unitários), `AnimalRepository.GetAll()` (1 teste de integração via EF Core InMemory) e o endpoint `GET /api/animals` de ponta a ponta (5 testes E2E cobrindo sem token, token válido, token expirado, token adulterado e catálogo vazio — `F0003.1`).
+Clean Architecture em 5 projetos: `ONG.API` (controllers, composição de DI, Swagger) →
+`ONG.Application` (casos de uso — um `Command`/`Handler` por operação — e interfaces de
+repositório) + `ONG.Infrastructure` (EF Core, repositórios concretos, segurança) →
+`ONG.Application` → `ONG.Domain` (entidades e enums, sem dependências externas). Controllers
+ficam finos; entidades concentram comportamento (ex.: `Animal.Update()`), não os handlers.
+Detalhamento completo — convenções, padrões, decisões de design — em
+[`CLAUDE.md`](../CLAUDE.md).
 
-Status atual (o que já funciona)
+## Funcionalidades atuais
 
-- Criar animal via endpoint POST /api/animals
-- Persistência no banco via AnimalRepository e ONGDbContext
-- Migrations criadas para as tabelas Animals e Admins
-- Enums serializados como string no JSON (configuração em Program.cs)
-- Usuário administrador único (`Admin`) provisionado automaticamente na inicialização
-  da API via `AdminSeeder`, com senha hasheada a partir de configuração
-  (`AdminSeed:Username`/`AdminSeed:Password` — ver seção "Como executar" abaixo).
-- Login administrativo via `POST /auth/login` (slice `F0001.2`, ver
-  `docs/features/F0001-admin-login.md`): valida usuário/senha contra o `Admin` seedado e
-  retorna um JWT assinado (HMAC-SHA256) em caso de sucesso; 401 genérico (sem revelar se
-  o usuário ou a senha estava errada, com tempo de resposta normalizado entre os dois
-  casos) em caso de credenciais inválidas; 400 em caso de corpo ausente/malformado.
-- `POST /api/animals` agora **exige** um token JWT válido e não expirado (slice `F0002.1`, ver
-  `docs/features/F0002.1-route-protection.md`): `Program.cs` valida o token via
-  `AddAuthentication`/`AddJwtBearer` (mesma chave/emissor/algoritmo do
-  `JwtTokenGenerator`) e o controller usa `[Authorize]`; requisição sem token, com token
-  malformado, expirado ou adulterado retorna `401`; token válido com corpo inválido
-  (ex.: `Name` ausente, agora `[Required]`) continua retornando `400` — um token válido
-  nunca substitui a validação de entrada.
-- `GET /api/animals` (slice `F0003.1`, ver
-  `docs/features/F0003.1-animal-listing-endpoint.md`): primeiro endpoint de leitura da
-  API. É público — **não** usa `[Authorize]` e nunca retorna `401` — mas escopa o
-  resultado pela identidade do chamador (`HttpContext.User.Identity?.IsAuthenticated`):
-  sem token, com token inválido/expirado/adulterado, retorna somente animais com
-  `status == "Available"`; com um token válido do admin seedado, retorna o catálogo
-  completo, qualquer que seja o status. Catálogo vazio retorna `200` com lista vazia,
-  nunca `404`/`500`. Ainda sem filtros por query-string (previstos para a slice
-  `F0003.2`).
+- CRUD parcial de animais: criação, leitura (lista com filtros/ordenação e por id) e
+  atualização. Exclusão ainda não implementada.
+- Listagem pública com visibilidade escopada pela identidade do chamador: anônimo (ou token
+  inválido) vê somente animais `Available`; admin autenticado vê o catálogo completo.
+- Login administrativo (usuário único, provisionado automaticamente na inicialização) que
+  emite um JWT.
+- Autenticação JWT bearer protegendo criação e atualização de animais.
+- Emissão de token de cliente OAuth2 (`client_credentials`) para autenticação
+  máquina-a-máquina — o token ainda não é aceito em nenhuma rota.
+- Validação de configuração fail-fast na inicialização: a API recusa subir (em vez de rodar
+  num estado quebrado ou inseguro) se credenciais obrigatórias estiverem ausentes ou
+  inválidas.
+- Migrations aplicadas automaticamente na inicialização, em qualquer ambiente.
 
-Como executar
+## Pré-requisitos
 
-Todos os comandos abaixo devem ser executados de dentro desta pasta (`back-end/`).
+- Docker (para o PostgreSQL, e também para a opção "tudo via Docker")
+- .NET 10 SDK, e opcionalmente Visual Studio 2022/2026 ou VS Code, para rodar a API no host
 
-Pré-requisitos
+## Como executar
 
-- Docker (para o PostgreSQL, e também para a Opção B abaixo)
-- Para a Opção A: .NET 10 SDK, (opcional) Visual Studio 2022/2026 ou VS Code
+Todos os comandos abaixo são executados de dentro desta pasta (`back-end/`). Existem dois
+jeitos de rodar o projeto:
 
-Existem dois jeitos de rodar o projeto — escolha o que fizer mais sentido pro seu momento:
+- **Desenvolvimento local (recomendado no dia a dia)**: só o Postgres roda em container; a
+  API roda nativamente via `dotnet run`/Visual Studio. Ciclo de build/debug mais rápido.
+- **Tudo via Docker**: banco e API containerizados — útil para validar o pacote de deploy
+  (mesmo Dockerfile usado em produção) ou para rodar sem instalar o SDK .NET.
 
-- **Opção A — desenvolvimento local (recomendado no dia a dia)**: só o Postgres roda em container; a API roda nativamente via `dotnet run`/Visual Studio. Ciclo de build/debug muito mais rápido — é o fluxo pra quando você está codando.
-- **Opção B — tudo via Docker**: banco e API rodam containerizados. Útil pra validar que a aplicação builda e roda corretamente empacotada (o mesmo Dockerfile que seria usado num deploy), ou pra subir o projeto sem precisar instalar o SDK .NET.
+### 0. Configurar segredos locais (obrigatório para as duas opções)
 
-0. **Antes de qualquer uma das duas opções**: `docker-compose.yml` não traz mais segredos
-   embutidos — ele lê um arquivo `.env` (git-ignorado) nesta pasta. Copie o template e
-   preencha valores reais (comentários no arquivo explicam cada chave e como gerar
-   `JWT_KEY`):
+```sh
+cp .env.example .env
+```
 
-   ```
-   cp .env.example .env
-   ```
+`.env` é git-ignorado; o template documenta cada chave inline. Sem esse arquivo, `docker
+compose up` falha imediatamente com uma mensagem clara apontando a variável faltante —
+nenhum valor placeholder é usado como fallback. Veja a tabela completa de segredos em
+["Configuração"](#configuração) abaixo.
 
-   Sem esse arquivo, `docker compose up` falha imediatamente com uma mensagem clara
-   apontando a variável faltante — nenhum valor placeholder é usado como fallback. Detalhe
-   completo de onde cada segredo mora (local/CI/Render) em `CLAUDE.md` → "Secrets &
-   Deployment Configuration".
+### Opção A — Desenvolvimento local
 
-Opção A — Desenvolvimento local
+1. Restaurar as ferramentas .NET (inclui `dotnet-ef`):
 
-1. Restaurar as ferramentas .NET do projeto (inclui o `dotnet-ef`, usado para aplicar migrations):
-
-   ```
+   ```sh
    dotnet tool restore
    ```
 
-2. Subir só o PostgreSQL via Docker:
+2. Subir só o PostgreSQL:
 
-   ```
+   ```sh
    docker compose up -d postgres
    ```
 
-3. Configurar a connection string via user-secrets — **apenas para desenvolvimento local, na sua máquina**. User-secrets é um armazenamento separado do `.env` do passo 0 (o `.env` alimenta o `docker-compose.yml`; user-secrets alimenta a API rodando no host) — use os mesmos valores de `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB` do seu `.env` para que a API no host converse com o mesmo Postgres. Nunca commitar credenciais no `appsettings.json`:
+3. Configurar os segredos via User Secrets (armazenamento separado do `.env` — usado pela
+   API rodando no host; use os mesmos valores de `POSTGRES_*` do seu `.env` para apontar
+   pro mesmo banco):
 
-   ```
+   ```sh
    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=<POSTGRES_DB>;Username=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>" --project ONG.API
-   ```
-
-   Em outros ambientes (deploy, ex.: Render), a connection string real **não** vem de user-secrets — ela é configurada como variável de ambiente da própria plataforma, usando a chave `ConnectionStrings__DefaultConnection` (com `__` duplo, convenção do .NET para representar o `:` de seções de configuração). O `ASP.NET Core` já lê variáveis de ambiente automaticamente, sem nenhuma mudança de código.
-
-   Da mesma forma, configure as credenciais do usuário administrador seedado na
-   inicialização — **obrigatório**: sem elas a API falha ao subir (`AdminSeeder.ValidateConfiguration`
-   lança exceção antes de qualquer acesso ao banco, de propósito, ver `docs/features/F0001.1-admin-identity.md`):
-
-   ```
    dotnet user-secrets set "AdminSeed:Username" "admin" --project ONG.API
    dotnet user-secrets set "AdminSeed:Password" "<uma senha local qualquer>" --project ONG.API
-   ```
-
-   Da mesma forma, configure a chave de assinatura dos tokens JWT emitidos por
-   `POST /auth/login` — **obrigatória**: sem ela a API também falha ao subir
-   (`JwtTokenGenerator.ValidateConfiguration` lança exceção antes de qualquer acesso ao
-   banco, mesmo padrão fail-fast do `AdminSeeder`, ver
-   `docs/features/F0001.2-login-endpoint.md`). Precisa ter pelo menos 32 caracteres:
-
-   ```
    dotnet user-secrets set "Jwt:Key" "<uma chave local qualquer com 32+ caracteres>" --project ONG.API
+   dotnet user-secrets set "ClientCredentials:ClientId" "front-web" --project ONG.API
+   dotnet user-secrets set "ClientCredentials:ClientSecret" "<um segredo local qualquer com 16+ caracteres>" --project ONG.API
    ```
 
-   `Jwt:Issuer` e `Jwt:ExpiryMinutes` não são secretos — já vêm configurados em
-   `appsettings.json` (`ong-api` / `60` minutos) e não precisam de user-secrets.
+   Todos os cinco são obrigatórios — a API falha ao subir se algum estiver ausente ou
+   inválido (`AdminSeeder`/`JwtTokenGenerator`/`ClientCredentialsProvider`, cada um com
+   `ValidateConfiguration` fail-fast). Chaves não-secretas (`Jwt:Issuer`,
+   `Jwt:ExpiryMinutes`, `ClientCredentials:ExpiryMinutes`, `PasswordHasher:*`) já vêm com
+   default seguro em `appsettings.json` e não precisam de User Secrets.
 
-   `PasswordHasher:IterationCount` (`100000`) e `PasswordHasher:CompatibilityMode`
-   (`IdentityV3`) também não são secretos e já vêm em `appsettings.json` — tornam
-   explícito o que antes era o default implícito do `PasswordHasher<Admin>` do
-   ASP.NET Core Identity. Também validados fail-fast na inicialização
-   (`AdminSeeder.ValidateConfiguration` rejeita `IterationCount` não-numérico/não-positivo
-   e qualquer `CompatibilityMode` que não seja `IdentityV3` — o formato legado
-   `IdentityV2`, baseado em MD5/SHA1, não é permitido).
+4. Aplicar migrations — opcional, a API já aplica migrations pendentes na inicialização:
 
-4. Aplicar migrations — **opcional**: a API aplica migrations pendentes automaticamente
-   na inicialização (`Program.cs` chama `dbContext.Database.Migrate()`, guardado por
-   `IsRelational()` — só roda contra um banco relacional de verdade, nunca contra o
-   provider InMemory usado pelos testes E2E). Rodar manualmente antes de subir a API é
-   útil se você quiser aplicar/conferir migrations sem depender do startup:
-
-   ```
+   ```sh
    dotnet ef database update --project ONG.Infrastructure --startup-project ONG.API
    ```
 
 5. Rodar a API:
 
-   - Via CLI:
-     ```
-     dotnet run --project ONG.API
-     ```
-   - Ou abrir `ONG.slnx` no Visual Studio e executar o projeto ONG.API.
-
-6. Acessar Swagger para testar endpoints:
-
-   - URL padrão: https://localhost:7067/swagger
-
-Opção B — Tudo via Docker
-
-1. Subir banco e API juntos (builda a imagem da API na primeira vez ou quando o código mudar):
-
+   ```sh
+   dotnet run --project ONG.API
    ```
+
+   Ou abrir `ONG.slnx` no Visual Studio e executar o projeto `ONG.API`.
+
+6. Swagger: https://localhost:7067/swagger
+
+### Opção B — Tudo via Docker
+
+1. Subir banco e API juntos:
+
+   ```sh
    docker compose up -d --build
    ```
 
-   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do Postgres, do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) e a chave de assinatura JWT (`Jwt__Key`) vêm do `.env` criado no passo 0 acima — sem ele, `docker compose` recusa subir com uma mensagem indicando a variável faltante; nunca use os valores do seu `.env` local fora de ambiente local.
+   As credenciais (Postgres, `AdminSeed`, `Jwt:Key`, `ClientCredentials`) vêm do `.env` do
+   passo 0. Nenhum passo manual de migration é necessário — a imagem final aplica migrations
+   pendentes sozinha na inicialização.
 
-   Nenhum passo manual de migration é necessário aqui — mesmo a imagem final do
-   `backend`, que usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), aplica migrations
-   pendentes sozinha na inicialização (`Program.cs` → `dbContext.Database.Migrate()`,
-   ver passo 4 da Opção A). É uma chamada pura da API do EF Core, não depende da CLI.
+2. Swagger: http://localhost:5127/swagger
 
-2. Acessar Swagger:
+## Configuração
 
-   - URL: http://localhost:5127/swagger
+Quatro grupos de segredos, cada um podendo viver em até três lugares diferentes, sem
+compartilhar armazenamento entre si — nenhum é commitado no git. Tabela organizada **por
+chave** (uma linha por segredo), para consulta direta:
 
-Endpoints principais
+| Chave (`IConfiguration`) | Local — User Secrets (`dotnet run`) | Docker — `.env` (`docker-compose`) | Render (variável no dashboard) |
+|---|---|---|---|
+| `ConnectionStrings:DefaultConnection` | montada à mão com os 3 valores de Postgres abaixo + `localhost` | montada automaticamente pelo `docker-compose.yml` a partir das 3 variáveis abaixo | `ConnectionStrings__DefaultConnection` — copiada do add-on gerenciado de Postgres do Render |
+| Usuário do Postgres | *(n/a — parte da connection string acima)* | `POSTGRES_USER` | *(gerenciado pelo add-on Postgres do Render)* |
+| Senha do Postgres | *(n/a — parte da connection string acima)* | `POSTGRES_PASSWORD` | *(gerenciado pelo add-on Postgres do Render)* |
+| Nome do banco | *(n/a — parte da connection string acima)* | `POSTGRES_DB` | *(gerenciado pelo add-on Postgres do Render)* |
+| Usuário admin seedado | `AdminSeed:Username` | `ADMIN_SEED_USERNAME` | `AdminSeed__Username` |
+| Senha do admin seedado | `AdminSeed:Password` | `ADMIN_SEED_PASSWORD` | `AdminSeed__Password` |
+| Chave de assinatura JWT | `Jwt:Key` | `JWT_KEY` | `Jwt__Key` |
+| Client ID OAuth | `ClientCredentials:ClientId` | `CLIENT_ID` | `ClientCredentials__ClientId` |
+| Client Secret OAuth | `ClientCredentials:ClientSecret` | `CLIENT_SECRET` | `ClientCredentials__ClientSecret` |
 
-POST /api/animals
-- **Requer autenticação** (`F0002.1`): header `Authorization: Bearer <token>` com um JWT
-  válido e não expirado, obtido via `POST /auth/login`. Sem o header, ou com um token
-  malformado/expirado/adulterado, a resposta é `401 Unauthorized`. `Name`, `Description`,
-  `District` e `City` são obrigatórios no corpo, e `Species`/`Sex`/`Size`/`Status` não
-  podem ficar no valor padrão do enum — se algum desses estiver ausente/inválido, mesmo
-  com um token válido, a resposta é `400 Bad Request`. Sucesso retorna `201 Created` com
-  o animal criado no corpo.
-- Body (JSON) — observação: enums aceitam valores por nome (string), pois o JsonStringEnumConverter está configurado.
+Chaves não-secretas com default seguro em `appsettings.json`, sem necessidade de configurar
+em lugar nenhum: `Jwt:Issuer`, `Jwt:ExpiryMinutes`, `ClientCredentials:ExpiryMinutes`,
+`PasswordHasher:IterationCount`, `PasswordHasher:CompatibilityMode`.
 
-Exemplo de requisição:
+O Render já está em produção — builda direto do `ONG.API/Dockerfile`, nunca lê
+`docker-compose.yml` nem `.env`; só as env vars reais do serviço importam. O pipeline de CI
+(GitHub Actions) usa seu próprio conjunto de segredos prefixados com `CI_`, configurados em
+Settings → Secrets and variables → Actions do repositório, alimentando um banco descartável
+só do CI.
 
-```json
-{
-  "name": "Rex",
-  "species": "Dog",
-  "sex": "Male",
-  "size": "Medium",
-  "description": "Cachorro amigável",
-  "approximateAge": 3,
-  "image": "https://exemplo.com/rex.jpg",
-  "status": "Available"
-}
+## Endpoints
+
+Schema completo de request/response no Swagger (ver "Como executar" acima). Referência
+rápida:
+
+| Método | Rota | Autenticação | Descrição |
+|---|---|---|---|
+| `POST` | `/api/animals` | Bearer (admin) | Cria um animal |
+| `GET` | `/api/animals` | Pública, escopada | Lista animais; aceita filtros (`species`, `sex`, `size`, `district`, `city`, `status`) e ordenação (`orderBy`) por query-string |
+| `GET` | `/api/animals/{id}` | Pública | Busca um animal por id — não escopado por status |
+| `PUT` | `/api/animals/{id}` | Bearer (admin) | Substitui um animal existente (corpo completo, sem atualização parcial) |
+| `POST` | `/auth/login` | — | Login administrativo, retorna `{ token }` |
+| `POST` | `/oauth/token` | — | Emite token de cliente OAuth2 (`client_credentials`) — ainda não aceito em nenhuma rota |
+
+Comportamentos não óbvios a partir do schema:
+
+- `GET /api/animals` com `status` na query só tem efeito para chamada **autenticada**; para
+  chamada anônima o filtro é sempre sobrescrito para `Available`.
+- `POST /oauth/token` responde `401` genérico tanto para `client_id` quanto para
+  `client_secret` incorretos (comparação em tempo constante, mensagem não distingue qual
+  campo errou) — mesmo padrão de `POST /auth/login` para usuário/senha.
+- O token emitido por `POST /oauth/token` usa um issuer distinto (`ong-api-oauth-clients`)
+  do usado pelo login administrativo — por design, isso impede que ele passe pela proteção
+  `[Authorize]` existente antes de uma rota aceitá-lo explicitamente.
+
+### Fluxo de exemplo
+
+Login e criação de um animal:
+
+```sh
+curl -X POST http://localhost:5127/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{ "username": "admin", "password": "<AdminSeed:Password configurado>" }'
+
+curl -X POST http://localhost:5127/api/animals \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token retornado acima>" \
+  -d '{
+    "name": "Rex", "species": "Dog", "sex": "Male", "size": "Medium",
+    "description": "Cachorro amigável", "approximateAge": 3,
+    "image": "https://exemplo.com/rex.jpg", "status": "Available",
+    "district": "Centro", "city": "Sao Paulo", "parish": "Se"
+  }'
+
+curl "http://localhost:5127/api/animals?species=Dog&orderBy=name_desc"
 ```
 
-GET /api/animals
-- **Público** (`F0003.1`) — sem `[Authorize]`, nunca retorna `401`. Sem `Authorization`
-  header, ou com um token inválido/expirado/adulterado, retorna `200` somente com
-  animais `status == "Available"`. Com `Authorization: Bearer <token>` válido do admin
-  seedado, retorna `200` com todos os animais, qualquer que seja o status. Sem body na
-  requisição, sem query params ainda (filtros previstos para `F0003.2`).
-- **Problema conhecido, não corrigido nesta slice:** o construtor de `Animal` nunca
-  atribui `Species` — todo animal retornado tem `"species": "None"` no JSON,
-  independentemente do valor enviado na criação. Defeito pré-existente (não introduzido
-  por `F0003.1`), agora visível pela primeira vez por existir um endpoint de leitura;
-  correção recomendada como hotfix dedicado (`/new-hotfix-spec`), fora do escopo desta
-  slice.
+## Testes
 
-Exemplo de resposta (`200`, chamada anônima):
-
-```json
-[
-  {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "name": "Rex",
-    "species": "None",
-    "sex": "Male",
-    "size": "Medium",
-    "description": "Cachorro amigável",
-    "approximateAge": 3,
-    "image": "https://exemplo.com/rex.jpg",
-    "status": "Available",
-    "district": "Centro",
-    "city": "Sao Paulo"
-  }
-]
+```sh
+dotnet test ONG.slnx --filter "Category!=Integration"   # rápido, não precisa de Postgres
+dotnet test ONG.slnx                                     # suíte completa
 ```
 
-POST /auth/login
-- Valida usuário/senha contra o `Admin` seedado e retorna um JWT assinado (HMAC-SHA256)
-  em caso de sucesso. Não protege nenhuma outra rota ainda — ver `docs/features/F0001.2-login-endpoint.md`.
+Um teste (`Category=Integration`) exige um Postgres real e local
+(`docker compose up -d postgres`) — `EntityFrameworkCore.InMemory` não valida índices únicos
+secundários, então esse teste específico cobre esse caso.
 
-Exemplo de requisição:
+## CI/CD
 
-```json
-{
-  "username": "admin",
-  "password": "<a mesma senha configurada em AdminSeed:Password>"
-}
-```
+Workflow [`.github/workflows/backend-docker.yml`](../.github/workflows/backend-docker.yml),
+roda em PR/push que tocam `back-end/**`, em três jobs:
 
-Resposta de sucesso (`200`):
+- **`build`** — build + suíte rápida (`Category!=Integration`).
+- **`docker-smoke-test`** (`needs: build`) — builda a imagem Docker, sobe Postgres real,
+  aplica migrations, roda o teste `Category=Integration`, sobe a stack completa e confere
+  se o Swagger responde.
+- **`deploy-render`** (`needs: [build, docker-smoke-test]`, só em push para `main`) —
+  dispara o deploy no Render depois que os dois jobs anteriores passam.
 
-```json
-{
-  "token": "<jwt assinado>"
-}
-```
+## Próximos passos
 
-Respostas de erro: `401` com `{"message": "Invalid username or password."}` para usuário
-desconhecido ou senha incorreta (mensagem genérica, não revela qual campo estava errado);
-`400` (via `ProblemDetails` automático do `[ApiController]`) para `username`/`password`
-ausente ou corpo malformado.
-
-Problema conhecido (resolvido)
-
-- `dotnet ef database update` falhava com "The model has pending changes": `Animal.AdoptedAt` não tinha migration correspondente. Resolvido na slice `F0001.1` pela migration `FixAnimalAdoptedAtColumn` (ver `docs/features/F0001.1-admin-identity.md`) — `dotnet ef database update` agora aplica normalmente num banco novo. A coluna `AdoptedAt` foi posteriormente removida por completo junto com o fluxo de adoção (migration `RemoveAnimalAdoptedAt`).
-
-CI
-
-- Workflow `.github/workflows/backend-docker.yml`, roda em PR/push que tocam `back-end/**`, como dois jobs:
-  - `build` — `dotnet build ONG.slnx` → `dotnet test ONG.slnx --filter "Category!=Integration"`. Feedback rápido de compilação e da suíte que não depende de Postgres real (unitários, integração via EF Core InMemory, E2E via `WebApplicationFactory<Program>`), sem esperar Docker.
-  - `docker-smoke-test` (`needs: build`, roda em runner próprio — jobs não compartilham estado, então tem seu próprio checkout/restore) — build da imagem Docker (`docker compose build backend`) → sobe só o `postgres` e espera ficar saudável → `dotnet ef database update` (contra o Postgres do próprio `docker compose`) → `dotnet test ONG.slnx --filter "Category=Integration"` (o único teste que precisa de um Postgres real, agora que as migrations já foram aplicadas) → sobe `docker compose up -d` (agora com o banco já migrado) e confere se o Swagger responde.
-- A suíte completa (`dotnet test ONG.slnx`, sem filtro) roda em CI desde a `F0001.2`, dividida entre os dois jobs conforme a dependência de Postgres — fecha a limitação anterior de testes rodarem só localmente.
-
-Notas e próximos passos sugeridos
-
-- Leitura em lista implementada (`GET /api/animals`, `F0003.1`); ainda faltam filtros por
-  query-string (species/sex/size/district/city/status admin-only — slice `F0003.2`,
-  planejada), leitura por id (`GET /api/animals/{id}`, fora do escopo do PROJECT atual
-  por decisão de produto), atualização e exclusão (PUT/DELETE).
-- Framework de teste: xUnit (+ EF Core InMemory desde `F0001.1`, + `Microsoft.AspNetCore.Mvc.Testing` desde `F0001.2`), testes cobrindo `Admin`/`ONGDbContext`/`AdminSeeder`/`AdminRepository`/`LoginHandler`/`JwtTokenGenerator`/o endpoint `POST /auth/login`/`CreateAnimalCommand`/o endpoint `POST /api/animals` protegido por JWT bearer/`ListAnimalsHandler`/`AnimalRepository.GetAll()`/o endpoint `GET /api/animals` (`F0003.1`).
-- O fluxo de adoção (`POST /animals/{id}/adopt`, `Animal.Adopt()`, `AdoptAnimalHandler`) foi removido por estar fora do escopo atual — não há próximo passo pendente para ele.
-- Considerar DTOs separadas para requests/responses se as entidades mudarem no domínio.
-- **Defeito conhecido, pré-existente:** o construtor de `Animal` nunca atribui `Species`
-  (todo animal serializa `"species": "None"`), agora visível via `GET /api/animals`
-  (`F0003.1`). Recomendado: hotfix dedicado (`/new-hotfix-spec`).
+- Exclusão de animais (`DELETE /api/animals/{id}`) ainda não implementada.
+- `POST /oauth/token` emite o token de cliente, mas nenhuma rota ainda o aceita.

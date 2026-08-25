@@ -36,6 +36,8 @@ namespace ONG.Tests.Application
                 WasCalled = true;
                 return _token;
             }
+
+            public string GenerateClientToken(string clientId, int expiryMinutes) => _token;
         }
 
         [Fact]

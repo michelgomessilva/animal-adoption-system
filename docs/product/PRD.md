@@ -22,7 +22,7 @@
 | Produto             | Catálogo de Animais para Adoção — API Back-end |
 | Status              | active                                  |
 | Responsável         | Squad Academy                           |
-| Última atualização  | 2026-08-17 (revisão: escopo de autenticação administrativa) |
+| Última atualização  | 2026-08-25 (revisão: escopo de segurança de comunicação e superfície da API — EP06) |
 | Fonte de verdade    | Este documento (negócio). Contexto de engenharia em `docs/spec-driven-development.md`. |
 | Documentos de origem | `back-end/docs/PRD.md` e `back-end/docs/MVP.md` (notas de discovery pré-existentes, reconciliadas aqui) |
 
@@ -66,6 +66,24 @@
   administrativas, medido por: 100% das rotas de gestão de animais (cadastro,
   edição, alteração de status, arquivamento) só respondem com sucesso a uma
   sessão autenticada válida; nenhuma é acessível sem login bem-sucedido.
+- G5 — *(adicionado nesta revisão, escopo de EP06)* Toda chamada à API carrega um
+  token de client autenticado, medido por: nenhuma rota (pública ou
+  administrativa) responde a uma requisição sem um token de client válido
+  (anônimo ou de admin) — a distinção "autenticado vs. não autenticado" de G4
+  passa a operar sobre essa base, não em paralelo a ela.
+- G6 — *(adicionado nesta revisão, escopo de EP06)* Um client (Front, Mobile,
+  futura integração) pode ser autorizado ou bloqueado sem publicar um novo
+  build, medido por: revogar ou reativar um client no cadastro reflete na
+  próxima chamada dele, sem deploy.
+- G7 — *(adicionado nesta revisão, escopo de EP06)* Toda resposta da API inclui
+  os headers de segurança definidos, medido por: 100% das respostas contêm os
+  headers recomendados (ex.: HSTS, X-Content-Type-Options, X-Frame-Options).
+- G8 — *(adicionado nesta revisão, escopo de EP06)* Existe visibilidade sobre o
+  volume de chamadas por IP de origem, medido por: um IP que ultrapassa um
+  limiar configurável gera um registro/alerta observável.
+- G9 — *(adicionado nesta revisão, escopo de EP06)* Requisições com headers
+  obrigatórios ausentes ou malformados são rejeitadas de forma clara, medido
+  por: uma requisição malformada retorna 400 compreensível, nunca 500.
 
 **Não-objetivos (explicitamente fora deste PRD):**
 
@@ -79,6 +97,19 @@
   não-objetivo e passou a ser objetivo — ver G4 e EP05. A restrição organizacional
   de "um único perfil administrativo" continua valendo; o que muda é que esse
   perfil agora precisa fazer login.)*
+- *(adicionado nesta revisão, escopo de EP06)* Login/OAuth para usuário final
+  (ex.: Authorization Code/PKCE) — a identidade de client (EP06) autentica a
+  *aplicação* que chama a API, não substitui nem reabre o login do admin
+  (EP05), e não introduz login para nenhuma outra pessoa. Não reabre RBAC.
+- *(adicionado nesta revisão, escopo de EP06)* mTLS (certificado mútuo) entre
+  front e back — mais infraestrutura do que o MVP educacional precisa; a
+  identidade de client é resolvida na camada de aplicação (token), não na
+  camada de transporte.
+- *(adicionado nesta revisão, escopo de EP06)* WAF / proteção DDoS de
+  infraestrutura — responsabilidade de rede/CDN, fora do código da API.
+- *(adicionado nesta revisão, escopo de EP06)* Portal de auto-registro de novos
+  clients — cadastro de client continua manual/administrativo, sem UI de
+  self-service.
 
 ---
 
@@ -108,6 +139,14 @@
 - *(adicionado nesta revisão, escopo de EP05)* Gestão de perfis/permissões (RBAC) —
   autenticação distingue apenas "autenticado" vs. "não autenticado", sem papéis
   granulares.
+- *(adicionado nesta revisão, escopo de EP06)* Login/OAuth para usuário final
+  (Authorization Code/PKCE ou equivalente) — fora de escopo.
+- *(adicionado nesta revisão, escopo de EP06)* mTLS entre front e back — fora de
+  escopo.
+- *(adicionado nesta revisão, escopo de EP06)* WAF / proteção DDoS de
+  infraestrutura — fora de escopo, é responsabilidade de rede/CDN.
+- *(adicionado nesta revisão, escopo de EP06)* Portal de auto-registro
+  (self-service) de novos clients — fora de escopo.
 
 ---
 
@@ -123,6 +162,7 @@
 | EP03  | Ciclo de Adoção                      | API para marcar um animal como adotado, registrando a data da adoção.                   |
 | EP04  | Canal de Contato Externo             | Suporte de dados (se necessário) para o front-end direcionar o interessado ao contato da ONG. |
 | EP05  | Autenticação Administrativa          | *(novo, nesta revisão)* API de login para o perfil administrativo único e proteção das rotas de gestão de animais. |
+| EP06  | Segurança de Comunicação e Superfície da API | *(novo, nesta revisão)* Identidade de client (Front/Mobile/outra API) via OAuth 2 Client Credentials, headers de segurança, observação de IP e validação de headers de request. |
 
 ---
 
@@ -209,6 +249,48 @@
     administrativas (redirecionado / resposta de não-autorizado) ao tentar.
   - *Status atual: não implementado — todas as rotas hoje são públicas.*
 
+### EP06 — Segurança de Comunicação e Superfície da API *(novo, nesta revisão)*
+
+> Mudança de escopo: hoje a API só distingue "admin autenticado" de "não
+> autenticado" (G4/EP05); não existe identidade de *aplicação* chamadora, nem
+> headers de segurança, observação de IP ou validação de header. Persona de
+> referência: responsável técnico pelo sistema (papel de engenharia/manutenção
+> do Squad Academy, distinto da Fernanda de EP05, que é a persona de negócio).
+
+- **US06.1** — Como responsável técnico do sistema, quero que toda comunicação
+  entre o front-end e a API passe por um client autenticado, para reduzir o
+  risco de que scrapers ou integrações não autorizadas consumam a API
+  diretamente.
+  - Critério de valor: uma chamada sem token de client válido nunca alcança a
+    lógica de negócio da API.
+  - *Status atual: não implementado — hoje qualquer chamador acessa `GET
+    /api/animals` sem se identificar como aplicação.*
+- **US06.2** — Como responsável técnico do sistema, quero poder autorizar ou
+  bloquear um client (Front, Mobile, futura integração) sem publicar um novo
+  build, para reagir rápido a uma credencial comprometida.
+  - Critério de valor: bloquear um client no cadastro impede imediatamente
+    novas chamadas dele, sem deploy.
+  - *Status atual: não implementado — nenhum cadastro de client existe hoje.*
+- **US06.3** — Como responsável técnico do sistema, quero que toda resposta da
+  API inclua os headers de segurança recomendados, para reduzir a superfície
+  de ataques comuns no navegador do consumidor (ex.: clickjacking, MIME
+  sniffing).
+  - Critério de valor: qualquer resposta da API aprova nos itens básicos de
+    uma auditoria de headers de segurança.
+  - *Status atual: não implementado.*
+- **US06.4** — Como responsável técnico do sistema, quero visibilidade sobre o
+  volume de chamadas por IP de origem, para identificar uso abusivo antes que
+  afete a disponibilidade da API.
+  - Critério de valor: existe um registro/alerta quando um IP ultrapassa um
+    limiar configurável de chamadas.
+  - *Status atual: não implementado.*
+- **US06.5** — Como responsável técnico do sistema, quero que requisições com
+  headers obrigatórios ausentes ou malformados sejam rejeitadas de forma
+  clara, para evitar comportamento inconsistente ou erros genéricos na API.
+  - Critério de valor: uma requisição malformada retorna 400 compreensível,
+    nunca 500.
+  - *Status atual: não implementado.*
+
 ---
 
 ## §6 — Contexto Técnico (Alto Nível)
@@ -230,6 +312,15 @@
 - **Decisões de arquitetura já tomadas:** Clean Architecture em 5 camadas (.NET),
   persistência via EF Core + PostgreSQL, padrão Command/Handler por caso de uso —
   detalhe completo em `docs/spec-driven-development.md`.
+- **Decisão de produto — CORS aberto** *(adicionado nesta revisão, escopo de
+  EP06)*: a política de CORS da API é liberada para qualquer origem
+  (`AllowAnyOrigin`), a pedido explícito do mentor do projeto. Isso não
+  substitui nem enfraquece G5–G9 — CORS é uma restrição aplicada pelo
+  navegador de quem chama, não uma camada de autenticação; a defesa real
+  continua na identidade de client (G5/G6), nos headers de resposta (G7) e na
+  observação de IP (G8). Motivo provável: o front-end (outra equipe) ainda não
+  tem domínio de deploy definido — decisão a revisitar quando esse domínio
+  existir.
 
 ---
 

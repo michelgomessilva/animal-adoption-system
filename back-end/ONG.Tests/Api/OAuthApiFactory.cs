@@ -11,8 +11,11 @@ using ONG.Infrastructure.DataBase;
 
 namespace ONG.Tests.Api
 {
-    public class LoginApiFactory : WebApplicationFactory<Program>
+    public class OAuthApiFactory : WebApplicationFactory<Program>
     {
+        public const string ConfiguredClientId = "front-web";
+        public const string ConfiguredClientSecret = "a-valid-client-secret16";
+
         private readonly string _dbName = Guid.NewGuid().ToString();
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -28,22 +31,14 @@ namespace ONG.Tests.Api
                     ["Jwt:ExpiryMinutes"] = "60",
                     ["PasswordHasher:IterationCount"] = "100000",
                     ["PasswordHasher:CompatibilityMode"] = "IdentityV3",
-                    ["ClientCredentials:ClientId"] = "front-web",
-                    ["ClientCredentials:ClientSecret"] = "test-only-client-secret-16chars",
+                    ["ClientCredentials:ClientId"] = ConfiguredClientId,
+                    ["ClientCredentials:ClientSecret"] = ConfiguredClientSecret,
                     ["ClientCredentials:ExpiryMinutes"] = "15"
                 });
             });
 
             builder.ConfigureServices(services =>
             {
-                // AddDbContext<ONGDbContext> in Program.cs registers both a
-                // DbContextOptions<ONGDbContext> descriptor and an
-                // IDbContextOptionsConfiguration<ONGDbContext> descriptor carrying the
-                // Npgsql configuration delegate (EF Core combines every registered
-                // IDbContextOptionsConfiguration<T> when building options). Removing only
-                // the former leaves the Npgsql delegate registered alongside the InMemory
-                // one added below, which EF Core rejects as "two providers registered" —
-                // both descriptor types must be removed for the provider swap to work.
                 services.RemoveAll<DbContextOptions<ONGDbContext>>();
                 services.RemoveAll<IDbContextOptionsConfiguration<ONGDbContext>>();
 
