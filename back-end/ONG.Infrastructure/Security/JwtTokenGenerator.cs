@@ -12,7 +12,7 @@ namespace ONG.Infrastructure.Security
 {
     public class JwtTokenGenerator : ITokenGenerator
     {
-        private const string ClientTokenIssuer = "ong-api-oauth-clients";
+        internal const string ClientTokenIssuer = "ong-api-oauth-clients";
 
         private readonly IConfiguration _configuration;
 
