@@ -10,10 +10,12 @@ interface Props {
   name: string
   species: AnimalSpecies
   compact?: boolean
+  priority?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   compact: false,
+  priority: false,
 })
 
 const hasLoadError = ref(false)
@@ -22,6 +24,7 @@ const trimmedSrc = computed(() => props.src.trim())
 const canShowImage = computed(() => trimmedSrc.value.length > 0 && !hasLoadError.value)
 const speciesIcon = computed(() => (props.species === 'Cat' ? 'cat' : 'dog'))
 const speciesToneClass = computed(() => animalSpeciesImageClass(props.species))
+const loadingMode = computed(() => (props.priority ? 'eager' : 'lazy'))
 
 watch(trimmedSrc, () => {
   hasLoadError.value = false
@@ -39,7 +42,8 @@ function onImageError(): void {
       class="animal-image-photo"
       :src="trimmedSrc"
       :alt="`Foto de ${name}`"
-      loading="lazy"
+      :loading="loadingMode"
+      :fetchpriority="priority ? 'high' : undefined"
       decoding="async"
       @error="onImageError"
     />

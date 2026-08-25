@@ -39,5 +39,8 @@ describe('document title after navigation', () => {
 
     await router.push('/panel/animals/11111111-1111-1111-1111-111111111111/edit')
     expect(document.title).toBe('Editar pet — POA')
+
+    await router.push('/animais/11111111-1111-1111-1111-111111111111')
+    expect(document.title).toBe('Detalhes do pet — POA')
   })
 })

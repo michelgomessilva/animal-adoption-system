@@ -20,8 +20,8 @@ import PageContainer from '@/views/public/components/PageContainer.vue'
         <li>
           <h2>2. Conheça o perfil</h2>
           <p>
-            Veja espécie, porte, idade e cidade para avaliar se aquele animal combina com a sua
-            casa.
+            Abra o card no catálogo para ler a história do pet, a ficha (espécie, sexo, porte e
+            idade), a localização e quando o perfil foi publicado.
           </p>
         </li>
         <li>

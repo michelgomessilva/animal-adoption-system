@@ -68,4 +68,15 @@ describe('router guards', () => {
     expect(router.currentRoute.value.name).toBe('login')
     expect(router.currentRoute.value.query.redirect).toBe(editPath)
   })
+
+  it('keeps anonymous users on the public animal details page', async () => {
+    const router = await createGuardedRouter()
+    const detailsPath = '/animais/11111111-1111-1111-1111-111111111111'
+
+    await router.push(detailsPath)
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('animal-details')
+    expect(router.currentRoute.value.path).toBe(detailsPath)
+  })
 })

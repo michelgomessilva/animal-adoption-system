@@ -31,6 +31,7 @@ npm run test:e2e:ui                     # Playwright UI
 - Sort Meus pets by name (A–Z or Z–A at random; UI order is checked against the API)
 - Public catalog shows an animal created via `POST /api/animals`
 - Public catalog filters (random species, sex, or size) and name sort
+- Public animal details (`/` card → `/animais/:id`) and unknown-id empty state
 
 Pets are generated with `@faker-js/faker` (`pt_BR`): Brazilian first names plus a 4-digit kennel suffix (`Lívia 4821`), random species/sex/size/age, a short Portuguese description, and a Brazilian street/city. Each run is annotated with `faker-seed` so a failure can be reproduced. There is no cleanup: leftover rows stay in the database. There is no required seed.
 

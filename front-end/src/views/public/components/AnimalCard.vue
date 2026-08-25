@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import AnimalImage from '@/shared/components/AnimalImage.vue'
 import type { Animal } from '@/shared/types/animal'
-import { animalSizeLabel, animalSpeciesLabel } from '@/shared/types/animal-labels'
+import {
+  animalAgeLabel,
+  animalLocationLabel,
+  animalSizeLabel,
+  animalSpeciesLabel,
+} from '@/shared/types/animal-labels'
 
 interface Props {
   animal: Animal
@@ -11,15 +17,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const speciesText = computed(() => animalSpeciesLabel[props.animal.species])
-const sizeText = computed(() => animalSizeLabel[props.animal.size])
 const metaText = computed(
-  () => `${speciesText.value} · ${sizeText.value} · ${props.animal.approximateAge} anos`,
+  () =>
+    `${animalSpeciesLabel[props.animal.species]} · ${animalSizeLabel[props.animal.size]} · ${animalAgeLabel(props.animal.approximateAge)}`,
 )
+const locationText = computed(() => animalLocationLabel(props.animal.district, props.animal.city))
 </script>
 
 <template>
-  <article class="animal-card">
+  <RouterLink :to="{ name: 'animal-details', params: { id: animal.id } }" class="animal-card">
     <AnimalImage
       :src="animal.image"
       :name="animal.name"
@@ -29,9 +35,9 @@ const metaText = computed(
     <div class="animal-card-body">
       <h2 class="animal-card-title">{{ animal.name }}</h2>
       <p class="animal-card-meta">{{ metaText }}</p>
-      <p class="animal-card-location">{{ animal.city }}</p>
+      <p class="animal-card-location">{{ locationText }}</p>
     </div>
-  </article>
+  </RouterLink>
 </template>
 
 <style scoped>
@@ -46,7 +52,15 @@ const metaText = computed(
 }
 
 .animal-card-media {
-  @apply aspect-4/3 w-full;
+  @apply aspect-4/3 w-full overflow-hidden;
+}
+
+.animal-card:hover :deep(.animal-image-photo) {
+  @apply scale-105;
+}
+
+.animal-card :deep(.animal-image-photo) {
+  @apply transition-transform duration-300;
 }
 
 .animal-card-body {

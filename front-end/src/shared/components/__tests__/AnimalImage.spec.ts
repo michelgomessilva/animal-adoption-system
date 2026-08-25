@@ -11,7 +11,22 @@ describe('AnimalImage', () => {
 
     expect(wrapper.get('img').attributes('src')).toBe('https://example.com/luna.jpg')
     expect(wrapper.get('img').attributes('alt')).toBe('Foto de Luna')
+    expect(wrapper.get('img').attributes('loading')).toBe('lazy')
     expect(wrapper.find('[data-icon="dog"]').exists()).toBe(false)
+  })
+
+  it('loads the photo eagerly when priority is set', () => {
+    const wrapper = mount(AnimalImage, {
+      props: {
+        src: 'https://example.com/luna.jpg',
+        name: 'Luna',
+        species: 'Dog',
+        priority: true,
+      },
+    })
+
+    expect(wrapper.get('img').attributes('loading')).toBe('eager')
+    expect(wrapper.get('img').attributes('fetchpriority')).toBe('high')
   })
 
   it('shows a species fallback when the URL is empty', () => {

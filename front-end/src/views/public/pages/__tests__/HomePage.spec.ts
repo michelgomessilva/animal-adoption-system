@@ -34,6 +34,17 @@ describe('HomePage', () => {
     expect(listAnimalsMock).toHaveBeenCalledWith({})
   })
 
+  it('navigates to the animal details page when a card is clicked', async () => {
+    listAnimalsMock.mockResolvedValue([luna])
+    const { wrapper, router } = await mountHomePage()
+
+    await wrapper.get(`a[href="/animais/${luna.id}"]`).trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('animal-details')
+    expect(router.currentRoute.value.params.id).toBe(luna.id)
+  })
+
   it('shows an empty state when the catalog is empty', async () => {
     listAnimalsMock.mockResolvedValue([])
     const { wrapper } = await mountHomePage()

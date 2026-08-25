@@ -3,9 +3,10 @@ import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { isApiError, type ApiErrorCode } from '@/shared/api/api-error'
-import { getAnimalById, updateAnimal } from '@/shared/api/animals'
+import { updateAnimal } from '@/shared/api/animals'
 import AppIcon from '@/shared/components/AppIcon.vue'
-import { isAnimalId, toAnimalWriteInput, type AnimalWriteInput } from '@/shared/types/animal'
+import { useAnimalById } from '@/shared/composables/useAnimalById'
+import { toAnimalWriteInput, type AnimalWriteInput } from '@/shared/types/animal'
 import { ANIMAL_WRITE_COMMON_ERRORS } from '@/views/panel/animal-form-errors'
 import AnimalFormWizard from '@/views/panel/components/AnimalFormWizard.vue'
 
@@ -19,74 +20,27 @@ const LOAD_FAILURE_MESSAGE = 'Não foi possível carregar o cadastro. Tente nova
 const route = useRoute()
 const router = useRouter()
 
-const initialDraft = ref<AnimalWriteInput | null>(null)
-const isLoading = ref(true)
 const isSubmitting = ref(false)
-const isNotFound = ref(false)
-const loadError = ref<string | null>(null)
 const formError = ref<string | null>(null)
-
-let loadGeneration = 0
+const submitNotFound = ref(false)
 
 const animalId = computed(() => {
   const raw = route.params.id
   return typeof raw === 'string' ? raw : ''
 })
 
-async function loadAnimal(): Promise<void> {
-  const generation = ++loadGeneration
+const { animal, isLoading, isNotFound, hasError, reload } = useAnimalById(animalId)
 
-  isLoading.value = true
-  isNotFound.value = false
-  loadError.value = null
-  initialDraft.value = null
+const initialDraft = computed(() =>
+  animal.value === null ? null : toAnimalWriteInput(animal.value),
+)
+
+const showNotFound = computed(() => isNotFound.value || submitNotFound.value)
+
+watch(animalId, () => {
+  submitNotFound.value = false
   formError.value = null
-
-  if (!isAnimalId(animalId.value)) {
-    if (generation !== loadGeneration) {
-      return
-    }
-    isNotFound.value = true
-    isLoading.value = false
-    return
-  }
-
-  try {
-    const animal = await getAnimalById(animalId.value)
-    if (generation !== loadGeneration) {
-      return
-    }
-    initialDraft.value = toAnimalWriteInput(animal)
-  } catch (error: unknown) {
-    if (generation !== loadGeneration) {
-      return
-    }
-
-    if (!isApiError(error)) {
-      throw error
-    }
-
-    if (error.code === 'unauthorized') {
-      return
-    }
-
-    if (error.code === 'not-found') {
-      isNotFound.value = true
-      return
-    }
-
-    if (error.code === 'network' || error.code === 'unknown') {
-      loadError.value = LOAD_FAILURE_MESSAGE
-      return
-    }
-
-    throw error
-  } finally {
-    if (generation === loadGeneration) {
-      isLoading.value = false
-    }
-  }
-}
+})
 
 async function onSubmit(payload: AnimalWriteInput): Promise<void> {
   if (isSubmitting.value) {
@@ -109,8 +63,7 @@ async function onSubmit(payload: AnimalWriteInput): Promise<void> {
     }
 
     if (error.code === 'not-found') {
-      initialDraft.value = null
-      isNotFound.value = true
+      submitNotFound.value = true
       return
     }
 
@@ -124,14 +77,6 @@ async function onSubmit(payload: AnimalWriteInput): Promise<void> {
     isSubmitting.value = false
   }
 }
-
-watch(
-  animalId,
-  () => {
-    void loadAnimal()
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
@@ -143,16 +88,16 @@ watch(
 
     <p v-if="isLoading" role="status">Carregando cadastro…</p>
 
-    <div v-else-if="isNotFound" role="alert" class="alert alert-error">
+    <div v-else-if="showNotFound" role="alert" class="alert alert-error">
       <span>Não encontramos esse cadastro.</span>
       <RouterLink :to="{ name: 'panel-animals' }" class="btn btn-sm"
         >Voltar para Meus pets</RouterLink
       >
     </div>
 
-    <div v-else-if="loadError !== null" role="alert" class="alert alert-error">
-      <span>{{ loadError }}</span>
-      <button type="button" class="btn btn-sm" @click="loadAnimal">
+    <div v-else-if="hasError" role="alert" class="alert alert-error">
+      <span>{{ LOAD_FAILURE_MESSAGE }}</span>
+      <button type="button" class="btn btn-sm" @click="reload">
         <AppIcon name="refresh-cw" />
         Tentar novamente
       </button>

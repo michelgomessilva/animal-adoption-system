@@ -8,6 +8,7 @@ describe('HowItWorksPage', () => {
     const wrapper = await mountWithPlugins(HowItWorksPage)
 
     expect(wrapper.get('h1').text()).toBe('Como funciona')
+    expect(wrapper.text()).toContain('Abra o card no catálogo')
     expect(wrapper.text()).toContain('não cadastra adotantes')
     expect(wrapper.get('a[href="/"]').text()).toContain('Ver o catálogo')
   })
