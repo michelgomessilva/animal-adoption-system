@@ -16,7 +16,7 @@
 | ID       | F0004                                   |
 | Slug     | client-credentials-auth                 |
 | Domain   | Authentication (application/client identity) |
-| Status   | in progress (F0004.1 delivered — implemented, `code-reviewer` APPROVED, 87/87 tests green, PR to `main` pending; F0004.2 not started) |
+| Status   | in progress (F0004.1 delivered — implemented, `code-reviewer` APPROVED, 87/87 tests green, PR to `main` pending; F0004.2 planned — branch cut, TDD plan written, not yet implemented) |
 | PROJECT  | `docs/product/PROJECT-api-security-hardening.md` (Sprint S01) |
 | Updated  | 2026-08-25                              |
 
@@ -214,7 +214,7 @@ with no environment to stage the pairing in first. See FR5 below.
 | Slice    | Slug                       | Short description                              | Status      |
 | -------- | -------------------------- | ---------------------------------------------- | ----------- |
 | F0004.1  | client-entity-and-token-issuance | Config-sourced `client_id`/`client_secret` (no DB entity, revised 2026-08-25) + `POST /oauth/token` issuance endpoint. | delivered — implemented, `code-reviewer` APPROVED, 87/87 tests green, PR to `main` pending |
-| F0004.2  | client-token-enforcement  | Global enforcement layer applied to every route (except the token endpoint), including malformed-header handling. Gated behind a default-disabled env flag per FR5 (2026-08-25 addendum) — no dev/staging environment exists to stage this against the front-end otherwise. Revocation semantics deferred with FR4 (2026-08-25 scope revision). | planned     |
+| F0004.2  | client-token-enforcement  | Global enforcement layer applied to every route (except the token endpoint), including malformed-header handling. Gated behind a default-disabled env flag per FR5 (2026-08-25 addendum) — no dev/staging environment exists to stage this against the front-end otherwise. Revocation semantics deferred with FR4 (2026-08-25 scope revision). | planned — designed + `feature/F0004.2-client-token-enforcement` branch (from `main`) + file-by-file TDD plan, not yet implemented |
 
 > Each slice should be independently shippable and reviewable. If a planned slice
 > looks like it will exceed ~400 lines of diff, split it into two.
