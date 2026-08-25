@@ -4,6 +4,7 @@ using ONG.Application.UseCases.Animals.CreateAnimal;
 using ONG.Application.UseCases.Animals.GetAnimalById;
 using ONG.Application.UseCases.Animals.ListAnimals;
 using ONG.Application.UseCases.Animals.UpdateAnimal;
+using ONG.Domain.Entitites;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ONG.API.Controllers
@@ -31,6 +32,9 @@ namespace ONG.API.Controllers
 
         [Authorize]
         [HttpPost]
+        [ProducesResponseType(typeof(Animal), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public IActionResult Create(CreateAnimalCommand command)
         {
 
@@ -40,6 +44,8 @@ namespace ONG.API.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(List<Animal>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public IActionResult List([FromQuery] ListAnimalsCommand command)
         {
             command.IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
@@ -71,6 +77,10 @@ namespace ONG.API.Controllers
         }
         [Authorize]
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(Animal), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public IActionResult Update(Guid id, UpdateAnimalCommand command)
         {
             command.Id = id;

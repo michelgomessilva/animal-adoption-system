@@ -15,6 +15,8 @@ namespace ONG.API.Controllers
         }
 
         [HttpPost("token")]
+        [ProducesResponseType(typeof(IssueClientTokenResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public IActionResult Token(IssueClientTokenCommand command)
         {
             var result = _handler.Handle(command);

@@ -139,6 +139,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Catches error-status responses left with no body (e.g. an unmatched route's default
+// 404, or an [Authorize] challenge's default 401/403) and fills them in via the
+// IProblemDetailsService/CustomizeProblemDetails registered above. Does not catch
+// exceptions — that's ExceptionHandlingMiddleware's job, already registered before this.
+app.UseStatusCodePages();
+
 app.UseHttpsRedirection();
 
 app.UseCors(OpenCorsPolicy);
