@@ -30,6 +30,8 @@ services:
       AdminSeed__Username: ${ADMIN_SEED_USERNAME:?Set ADMIN_SEED_USERNAME (copy .env.example to .env)}
       AdminSeed__Password: ${ADMIN_SEED_PASSWORD:?Set ADMIN_SEED_PASSWORD (copy .env.example to .env)}
       Jwt__Key: ${JWT_KEY:?Set JWT_KEY (copy .env.example to .env) - must be at least 32 characters}
+      ClientCredentials__ClientId: ${CLIENT_ID:?Set CLIENT_ID (copy .env.example to .env)}
+      ClientCredentials__ClientSecret: ${CLIENT_SECRET:?Set CLIENT_SECRET (copy .env.example to .env) - must be at least 16 characters}
     ports:
       - "5127:8080"
     depends_on:

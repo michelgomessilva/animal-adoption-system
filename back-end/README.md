@@ -86,9 +86,20 @@ Existem dois jeitos de rodar o projeto — escolha o que fizer mais sentido pro 
    ```
 
    Sem esse arquivo, `docker compose up` falha imediatamente com uma mensagem clara
-   apontando a variável faltante — nenhum valor placeholder é usado como fallback. Detalhe
-   completo de onde cada segredo mora (local/CI/Render) em `CLAUDE.md` → "Secrets &
-   Deployment Configuration".
+   apontando a variável faltante — nenhum valor placeholder é usado como fallback.
+
+   Existem quatro grupos de segredos (`POSTGRES_PASSWORD`, usuário/senha do `AdminSeed`,
+   `Jwt:Key`, `client_id`/`client_secret` do `ClientCredentials`) e três lugares onde cada
+   um mora, sem compartilhar armazenamento entre si — nenhum é commitado no git:
+
+   | Ambiente | Onde os segredos moram | Chaves de configuração |
+   |---|---|---|
+   | Local (dev) | `back-end/.env` (git-ignorado; copie de `back-end/.env.example`), lido pelo `docker-compose.yml`. O fluxo com a API rodando no host (`dotnet run --project ONG.API` contra o Postgres em Docker) usa, em vez disso, o ASP.NET Core User Secrets (`dotnet user-secrets set ...`, ver Opção A abaixo) — os dois armazenamentos são independentes, mantenha-os sincronizados manualmente. | `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD`, `JWT_KEY`, `CLIENT_ID`/`CLIENT_SECRET` (`.env`) — mapeiam para `AdminSeed:Username`/`AdminSeed:Password`/`Jwt:Key`/`ClientCredentials:ClientId`/`ClientCredentials:ClientSecret` (User Secrets / `IConfiguration`; forma de variável de ambiente com `__` duplo, ex. `AdminSeed__Password`) |
+   | CI (`.github/workflows/backend-docker.yml`) | Secrets do repositório no GitHub, referenciados como `${{ secrets.* }}` no job `docker-smoke-test`. Obrigatórios: `CI_POSTGRES_PASSWORD`, `CI_ADMIN_SEED_PASSWORD`, `CI_JWT_KEY`, `CI_CLIENT_SECRET` (Settings → Secrets and variables → Actions → Secrets). Mais duas **variáveis** não sensíveis (mesmo caminho → Variables, não Secrets): `CI_ADMIN_SEED_USERNAME`, `CI_CLIENT_ID`. Esses valores alimentam um banco de dados descartável e efêmero só do CI — nunca reaproveite como credenciais reais em outro lugar. Separadamente, o job `deploy-render` precisa do seu próprio secret `RENDER_DEPLOY_HOOK_URL`. | As mesmas chaves acima, injetadas como env vars do job, para que a interpolação do `docker compose` (`${POSTGRES_PASSWORD:?...}` no `docker-compose.yml`) e os passos de `dotnet ef`/`dotnet test` resolvam tudo de forma consistente. |
+   | Produção (Render, ainda não implantado) | Render dashboard → serviço → Environment. O Render builda direto do `ONG.API/Dockerfile` e nunca lê `docker-compose.yml` nem `.env` — só as env vars reais do serviço importam. Precisa do seu próprio add-on gerenciado de Postgres (connection string própria, sem relação com os valores `POSTGRES_*` locais/CI) e de valores de produção para `AdminSeed:Password`/`Jwt:Key`/`ClientCredentials:ClientSecret`, distintos de local e CI. Não precisa de passo manual de migration — a API aplica migrations pendentes sozinha na inicialização (ver passo 4 da Opção A). | `ConnectionStrings__DefaultConnection`, `AdminSeed__Username`, `AdminSeed__Password`, `Jwt__Key`, `ClientCredentials__ClientId`, `ClientCredentials__ClientSecret` (`Jwt__Issuer`/`Jwt__ExpiryMinutes`/`ClientCredentials__ExpiryMinutes` já têm defaults seguros em `appsettings.json` e não precisam ser sobrescritos). |
+
+   Detalhe adicional de contexto (CI/CD, deploy hook do Render etc.) em `CLAUDE.md` →
+   "Secrets & Deployment Configuration".
 
 Opção A — Desenvolvimento local
 
@@ -134,6 +145,21 @@ Opção A — Desenvolvimento local
    `Jwt:Issuer` e `Jwt:ExpiryMinutes` não são secretos — já vêm configurados em
    `appsettings.json` (`ong-api` / `60` minutos) e não precisam de user-secrets.
 
+   Da mesma forma, configure o par `client_id`/`client_secret` do único cliente OAuth
+   configurado (`front-web`), usado por `POST /oauth/token` (slice `F0004.1`, ver
+   `docs/features/F0004.1-client-entity-and-token-issuance.md`) — **obrigatório**: sem eles
+   a API também falha ao subir (`ClientCredentialsProvider.ValidateConfiguration`, mesmo
+   padrão fail-fast do `AdminSeeder`/`JwtTokenGenerator`). `ClientCredentials:ClientSecret`
+   precisa ter pelo menos 16 caracteres:
+
+   ```
+   dotnet user-secrets set "ClientCredentials:ClientId" "front-web" --project ONG.API
+   dotnet user-secrets set "ClientCredentials:ClientSecret" "<um segredo local qualquer com 16+ caracteres>" --project ONG.API
+   ```
+
+   `ClientCredentials:ExpiryMinutes` não é secreto — já vem configurado em
+   `appsettings.json` (`15` minutos) e não precisa de user-secrets.
+
    `PasswordHasher:IterationCount` (`100000`) e `PasswordHasher:CompatibilityMode`
    (`IdentityV3`) também não são secretos e já vêm em `appsettings.json` — tornam
    explícito o que antes era o default implícito do `PasswordHasher<Admin>` do
@@ -172,7 +198,7 @@ Opção B — Tudo via Docker
    docker compose up -d --build
    ```
 
-   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do Postgres, do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`) e a chave de assinatura JWT (`Jwt__Key`) vêm do `.env` criado no passo 0 acima — sem ele, `docker compose` recusa subir com uma mensagem indicando a variável faltante; nunca use os valores do seu `.env` local fora de ambiente local.
+   Isso sobe o grupo `ONG` inteiro (`postgres` + `backend`) no Docker Desktop. O `backend` só inicia depois que o Postgres responde como saudável (`healthcheck`). As credenciais do Postgres, do admin seedado (`AdminSeed__Username`/`AdminSeed__Password`), a chave de assinatura JWT (`Jwt__Key`) e o par cliente OAuth (`ClientCredentials__ClientId`/`ClientCredentials__ClientSecret`, desde `F0004.1`) vêm do `.env` criado no passo 0 acima — sem eles, `docker compose` recusa subir com uma mensagem indicando a variável faltante; nunca use os valores do seu `.env` local fora de ambiente local.
 
    Nenhum passo manual de migration é necessário aqui — mesmo a imagem final do
    `backend`, que usa o runtime `aspnet` (sem o SDK/`dotnet-ef`), aplica migrations
