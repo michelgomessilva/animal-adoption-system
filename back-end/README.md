@@ -44,7 +44,10 @@ Detalhamento completo — convenções, padrões, decisões de design — em
   emite um JWT.
 - Autenticação JWT bearer protegendo criação e atualização de animais.
 - Emissão de token de cliente OAuth2 (`client_credentials`) para autenticação
-  máquina-a-máquina — o token ainda não é aceito em nenhuma rota.
+  máquina-a-máquina, e enforcement global desse token em toda rota (exceto o próprio
+  endpoint de emissão) via `ClientTokenEnforcementMiddleware` — gated por
+  `ClientAuth:EnforcementEnabled` (default `false`; sem front-end anexando o token ainda,
+  fica desligado em produção até essa integração existir).
 - Validação de configuração fail-fast na inicialização: a API recusa subir (em vez de rodar
   num estado quebrado ou inseguro) se credenciais obrigatórias estiverem ausentes ou
   inválidas.
@@ -159,7 +162,10 @@ chave** (uma linha por segredo), para consulta direta:
 
 Chaves não-secretas com default seguro em `appsettings.json`, sem necessidade de configurar
 em lugar nenhum: `Jwt:Issuer`, `Jwt:ExpiryMinutes`, `ClientCredentials:ExpiryMinutes`,
-`PasswordHasher:IterationCount`, `PasswordHasher:CompatibilityMode`.
+`PasswordHasher:IterationCount`, `PasswordHasher:CompatibilityMode`,
+`ClientAuth:EnforcementEnabled` (default `false` — opcional, override via
+`CLIENT_AUTH_ENFORCEMENT_ENABLED`/`ClientAuth__EnforcementEnabled` se precisar ligar o
+enforcement localmente).
 
 O Render já está em produção — builda direto do `ONG.API/Dockerfile`, nunca lê
 `docker-compose.yml` nem `.env`; só as env vars reais do serviço importam. O pipeline de CI
@@ -179,7 +185,14 @@ rápida:
 | `GET` | `/api/animals/{id}` | Pública | Busca um animal por id — não escopado por status |
 | `PUT` | `/api/animals/{id}` | Bearer (admin) | Substitui um animal existente (corpo completo, sem atualização parcial) |
 | `POST` | `/auth/login` | — | Login administrativo, retorna `{ token }` |
-| `POST` | `/oauth/token` | — | Emite token de cliente OAuth2 (`client_credentials`) — ainda não aceito em nenhuma rota |
+| `POST` | `/oauth/token` | — | Emite token de cliente OAuth2 (`client_credentials`) — único endpoint isento do enforcement de token de cliente abaixo |
+
+Além da autenticação por rota acima, **toda rota (inclusive as públicas), exceto
+`POST /oauth/token`,** também passa por `ClientTokenEnforcementMiddleware`: exige um header
+`X-Client-Token: <token>` (obtido via `POST /oauth/token`) — independente do `Authorization`
+usado para o JWT administrativo. Esse enforcement só rejeita requisição **sem** o header
+quando `ClientAuth:EnforcementEnabled=true` (default `false`, ver ["Configuração"](#configuração));
+um `X-Client-Token` presente e inválido é sempre rejeitado, independente da flag.
 
 Comportamentos não óbvios a partir do schema:
 
@@ -191,6 +204,12 @@ Comportamentos não óbvios a partir do schema:
 - O token emitido por `POST /oauth/token` usa um issuer distinto (`ong-api-oauth-clients`)
   do usado pelo login administrativo — por design, isso impede que ele passe pela proteção
   `[Authorize]` existente antes de uma rota aceitá-lo explicitamente.
+- `X-Client-Token` e `Authorization` são independentes e ambos exigidos em rota admin quando
+  o enforcement está ligado: um token de cliente válido nunca substitui o JWT admin, e
+  vice-versa (`X-Client-Token` com um JWT admin dentro é rejeitado com `401` — issuer errado).
+- `X-Client-Token` ausente/vazio ou com valor que não é um JWT estruturalmente válido → `400`
+  (nunca `500`); presente e estruturalmente válido mas semanticamente inválido (expirado,
+  assinatura errada, issuer errado) → `401`.
 
 ### Fluxo de exemplo
 
@@ -212,6 +231,17 @@ curl -X POST http://localhost:5127/api/animals \
   }'
 
 curl "http://localhost:5127/api/animals?species=Dog&orderBy=name_desc"
+```
+
+Emitir e usar um token de cliente (só rejeita sem ele se `ClientAuth:EnforcementEnabled=true`):
+
+```sh
+curl -X POST http://localhost:5127/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{ "grant_type": "client_credentials", "client_id": "front-web", "client_secret": "<ClientCredentials:ClientSecret configurado>" }'
+
+curl "http://localhost:5127/api/animals" \
+  -H "X-Client-Token: <access_token retornado acima>"
 ```
 
 ## Testes
@@ -240,4 +270,8 @@ roda em PR/push que tocam `back-end/**`, em três jobs:
 ## Próximos passos
 
 - Exclusão de animais (`DELETE /api/animals/{id}`) ainda não implementada.
-- `POST /oauth/token` emite o token de cliente, mas nenhuma rota ainda o aceita.
+- `ClientAuth:EnforcementEnabled` segue `false` em produção até o front-end emitir e anexar
+  o `X-Client-Token` em suas chamadas — ligar a flag antes disso quebraria o catálogo público
+  ao vivo.
+- Revogação de client sem redeploy (rotacionar `ClientCredentials:ClientSecret` requer
+  restart) permanece fora de escopo — ver `docs/features/F0004-client-credentials-auth.md`.
