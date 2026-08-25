@@ -16,7 +16,7 @@
 | ID      | HF0002                                                                |
 | Slug    | swagger-client-token-security-scheme                                  |
 | Type    | Quick adjustment (not a defect)                                       |
-| Status  | draft                                                                 |
+| Status  | delivered — implemented, build/tests green, manually verified via Docker, PR to `main` pending |
 | Branch  | `hotfix/HF0002-swagger-client-token-security-scheme` from `main`       |
 | Updated | 2026-08-25                                                            |
 
