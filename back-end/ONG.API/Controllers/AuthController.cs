@@ -21,7 +21,10 @@ namespace ONG.API.Controllers
 
             if (result is null)
             {
-                return Unauthorized(new { message = "Invalid username or password." });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Invalid credentials.",
+                    detail: "Invalid username or password.");
             }
 
             return Ok(result);

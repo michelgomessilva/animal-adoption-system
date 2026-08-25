@@ -33,7 +33,7 @@ namespace ONG.Tests.Api
         }
 
         [Fact]
-        public async Task Login_WrongPassword_Returns401WithGenericMessage()
+        public async Task Login_WrongPassword_Returns401WithProblemDetails()
         {
             var response = await _client.PostAsJsonAsync("/auth/login", new
             {
@@ -42,10 +42,12 @@ namespace ONG.Tests.Api
             });
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
 
             var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-            var message = body.GetProperty("message").GetString();
-            Assert.Equal("Invalid username or password.", message);
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.Equal("Invalid username or password.", body.GetProperty("detail").GetString());
         }
 
         [Fact]
