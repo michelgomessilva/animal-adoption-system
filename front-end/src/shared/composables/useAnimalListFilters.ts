@@ -14,7 +14,7 @@ export function useAnimalListFilters() {
 
   const filters = computed(() => parseAnimalListQuery(route.query))
 
-  const hasActiveFilters = computed(() => animalListHasNarrowingFilters(filters.value))
+  const hasNarrowingFilters = computed(() => animalListHasNarrowingFilters(filters.value))
 
   function setFilter<K extends keyof AnimalListQuery>(
     key: K,
@@ -34,5 +34,5 @@ export function useAnimalListFilters() {
     void router.replace({ query: {} })
   }
 
-  return { filters, hasActiveFilters, setFilter, clearFilters }
+  return { filters, hasNarrowingFilters, setFilter, clearFilters }
 }

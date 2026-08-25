@@ -16,10 +16,10 @@ import {
   animalSizeBadgeClass,
   animalSpeciesBadgeClass,
 } from '@/shared/types/animal-visual'
+import { useAnimalListFilters } from '@/shared/composables/useAnimalListFilters'
 import AnimalListFilters from '@/views/panel/components/AnimalListFilters.vue'
-import { useAnimalListFilters } from '@/views/panel/composables/useAnimalListFilters'
 
-const { filters, hasActiveFilters, setFilter, clearFilters } = useAnimalListFilters()
+const { filters, hasNarrowingFilters, setFilter, clearFilters } = useAnimalListFilters()
 const { animals, isLoading, hasError, reload } = useAnimalsList(() => filters.value)
 
 const countLabel = computed(() => {
@@ -56,7 +56,7 @@ const countLabel = computed(() => {
         Tentar novamente
       </button>
     </div>
-    <p v-else-if="animals.length === 0 && hasActiveFilters">
+    <p v-else-if="animals.length === 0 && hasNarrowingFilters">
       Nenhum animal encontrado com esses filtros.
     </p>
     <p v-else-if="animals.length === 0">Nenhum animal cadastrado.</p>

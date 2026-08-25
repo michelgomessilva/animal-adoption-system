@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 
-import { useAnimalListFilters } from '@/views/panel/composables/useAnimalListFilters'
+import { useAnimalListFilters } from '@/shared/composables/useAnimalListFilters'
 import { createTestRouter } from '@/__tests__/helpers'
 
 describe('useAnimalListFilters', () => {
@@ -38,14 +38,21 @@ describe('useAnimalListFilters', () => {
       species: 'Dog',
       orderBy: 'name_desc',
     })
-    expect(wrapper.vm.hasActiveFilters).toBe(true)
+    expect(wrapper.vm.hasNarrowingFilters).toBe(true)
+  })
+
+  it('reads filters from the public home route', async () => {
+    const { wrapper } = await mountFilters('/?species=Dog')
+
+    expect(wrapper.vm.filters).toEqual({ species: 'Dog' })
+    expect(wrapper.vm.hasNarrowingFilters).toBe(true)
   })
 
   it('treats orderBy alone as inactive filters', async () => {
     const { wrapper } = await mountFilters('/panel/animals?orderBy=name')
 
     expect(wrapper.vm.filters).toEqual({ orderBy: 'name' })
-    expect(wrapper.vm.hasActiveFilters).toBe(false)
+    expect(wrapper.vm.hasNarrowingFilters).toBe(false)
   })
 
   it('ignores invalid query values without rewriting the URL', async () => {
@@ -54,7 +61,7 @@ describe('useAnimalListFilters', () => {
     )
 
     expect(wrapper.vm.filters).toEqual({})
-    expect(wrapper.vm.hasActiveFilters).toBe(false)
+    expect(wrapper.vm.hasNarrowingFilters).toBe(false)
     expect(replaceSpy).not.toHaveBeenCalled()
   })
 

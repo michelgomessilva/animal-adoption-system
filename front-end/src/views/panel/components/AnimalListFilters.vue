@@ -32,7 +32,7 @@ const emit = defineEmits<{
   clear: []
 }>()
 
-const hasActiveFilters = computed(() => !animalListQueryIsEmpty(props.filters))
+const hasClearableFilters = computed(() => !animalListQueryIsEmpty(props.filters))
 
 function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
   const raw = (event.target as HTMLSelectElement).value
@@ -149,7 +149,7 @@ function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
     </fieldset>
 
     <button
-      v-if="hasActiveFilters"
+      v-if="hasClearableFilters"
       type="button"
       class="btn btn-sm animal-list-filters-clear"
       @click="emit('clear')"
