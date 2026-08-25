@@ -310,23 +310,31 @@ namespace ONG.Tests.Api
         }
 
         [Fact]
-        public async Task List_InvalidSpeciesFilter_Returns400WithMessage()
+        public async Task List_InvalidSpeciesFilter_Returns400WithProblemDetails()
         {
             var response = await _client.GetAsync("/api/animals?species=Elephant");
-            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("message").GetString()));
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
         }
 
         [Fact]
-        public async Task List_InvalidOrderByFilter_Returns400WithMessage()
+        public async Task List_InvalidOrderByFilter_Returns400WithProblemDetails()
         {
             var response = await _client.GetAsync("/api/animals?orderBy=bogus");
-            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("message").GetString()));
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
         }
 
         [Fact]

@@ -43,6 +43,15 @@ builder.Services.AddControllers()
              new JsonStringEnumConverter());
      });
 
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = ctx =>
+    {
+        ctx.ProblemDetails.Instance = ctx.HttpContext.Request.Path;
+        ctx.ProblemDetails.Type ??= $"https://httpstatuses.io/{ctx.ProblemDetails.Status}";
+    };
+});
+
 builder.Services.AddDbContext<ONGDbContext>(options =>
 options.UseNpgsql(
     builder.Configuration.GetConnectionString("DefaultConnection")));
