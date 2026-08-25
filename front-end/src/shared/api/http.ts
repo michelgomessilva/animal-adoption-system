@@ -8,6 +8,7 @@ export interface ApiRequestInit {
   method?: string
   body?: unknown
   skipAuth?: boolean
+  searchParams?: Record<string, string>
 }
 
 let accessToken: string | null = null
@@ -79,11 +80,12 @@ const api = ky.create({
 })
 
 export async function apiRequest<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
-  const { skipAuth = false, body, method } = init
+  const { skipAuth = false, body, method, searchParams } = init
 
   return api(path, {
     method,
     ...(body === undefined ? {} : { json: body }),
+    ...(searchParams === undefined ? {} : { searchParams }),
     context: { skipAuth },
   }).json<T>()
 }

@@ -11,8 +11,11 @@ import {
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
+import AnimalListFilters from '@/views/panel/components/AnimalListFilters.vue'
+import { useAnimalListFilters } from '@/views/panel/composables/useAnimalListFilters'
 
-const { animals, isLoading, hasError, reload } = useAnimalsList()
+const { filters, hasActiveFilters, setFilter, clearFilters } = useAnimalListFilters()
+const { animals, isLoading, hasError, reload } = useAnimalsList(() => filters.value)
 
 const countLabel = computed(() => {
   const count = animals.value.length
@@ -37,6 +40,9 @@ const countLabel = computed(() => {
         Cadastrar pet
       </RouterLink>
     </header>
+
+    <AnimalListFilters :filters="filters" @set-filter="setFilter" @clear="clearFilters" />
+
     <p v-if="isLoading" role="status">Carregando cadastros…</p>
     <div v-else-if="hasError" role="alert" class="alert alert-error">
       <span>Não foi possível carregar os animais.</span>
@@ -45,6 +51,9 @@ const countLabel = computed(() => {
         Tentar novamente
       </button>
     </div>
+    <p v-else-if="animals.length === 0 && hasActiveFilters">
+      Nenhum animal encontrado com esses filtros.
+    </p>
     <p v-else-if="animals.length === 0">Nenhum animal cadastrado.</p>
     <div v-else class="animal-list-table">
       <table class="table">

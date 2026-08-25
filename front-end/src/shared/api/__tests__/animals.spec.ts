@@ -38,8 +38,44 @@ describe('listAnimals', () => {
     await expect(listAnimals()).resolves.toEqual([fixture])
 
     const request = firstFetchRequest(fetchMock)
-    expect(new URL(request.url).pathname).toBe('/api/animals')
+    const url = new URL(request.url)
+    expect(url.pathname).toBe('/api/animals')
+    expect(url.search).toBe('')
     expect(request.headers.get('Authorization')).toBe('Bearer jwt')
+  })
+
+  it('sends filter query params when provided', async () => {
+    setAccessToken('jwt')
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify([fixture]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(listAnimals({ species: 'Dog', status: 'Adopted' })).resolves.toEqual([fixture])
+
+    const url = new URL(firstFetchRequest(fetchMock).url)
+    expect(url.pathname).toBe('/api/animals')
+    expect(url.searchParams.get('species')).toBe('Dog')
+    expect(url.searchParams.get('status')).toBe('Adopted')
+    expect(firstFetchRequest(fetchMock).headers.get('Authorization')).toBe('Bearer jwt')
+  })
+
+  it('omits searchParams when the query is empty', async () => {
+    setAccessToken('jwt')
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await listAnimals({})
+
+    expect(new URL(firstFetchRequest(fetchMock).url).search).toBe('')
   })
 })
 

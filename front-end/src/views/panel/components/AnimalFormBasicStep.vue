@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { AnimalWriteInput } from '@/shared/types/animal'
-import type { AnimalSex, AnimalSize, AnimalSpecies } from '@/shared/types/animal'
+import {
+  ANIMAL_SEX_OPTIONS,
+  ANIMAL_SIZE_OPTIONS,
+  ANIMAL_SPECIES_OPTIONS,
+  type AnimalWriteInput,
+} from '@/shared/types/animal'
 import { animalSexLabel, animalSizeLabel, animalSpeciesLabel } from '@/shared/types/animal-labels'
 import { ANIMAL_AGE_MAX, ANIMAL_NAME_MAX } from '@/views/panel/composables/useAnimalFormWizard'
 
 const model = defineModel<AnimalWriteInput>({ required: true })
-
-const speciesOptions: AnimalSpecies[] = ['Dog', 'Cat']
-const sizeOptions: AnimalSize[] = ['Small', 'Medium', 'Large']
-const sexOptions: AnimalSex[] = ['Male', 'Female']
 </script>
 
 <template>
@@ -31,7 +31,7 @@ const sexOptions: AnimalSex[] = ['Male', 'Female']
       <legend class="fieldset-legend">Espécie</legend>
       <div class="join">
         <button
-          v-for="species in speciesOptions"
+          v-for="species in ANIMAL_SPECIES_OPTIONS"
           :key="species"
           type="button"
           class="btn join-item"
@@ -47,7 +47,7 @@ const sexOptions: AnimalSex[] = ['Male', 'Female']
       <legend class="fieldset-legend">Porte</legend>
       <div class="join">
         <button
-          v-for="size in sizeOptions"
+          v-for="size in ANIMAL_SIZE_OPTIONS"
           :key="size"
           type="button"
           class="btn join-item"
@@ -63,7 +63,7 @@ const sexOptions: AnimalSex[] = ['Male', 'Female']
       <legend class="fieldset-legend">Sexo</legend>
       <div class="join">
         <button
-          v-for="sex in sexOptions"
+          v-for="sex in ANIMAL_SEX_OPTIONS"
           :key="sex"
           type="button"
           class="btn join-item"

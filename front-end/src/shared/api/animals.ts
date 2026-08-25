@@ -1,8 +1,20 @@
 import { apiRequest } from '@/shared/api/http'
-import type { Animal, AnimalWriteInput } from '@/shared/types/animal'
+import {
+  animalListQueryIsEmpty,
+  toAnimalListSearchParams,
+  type Animal,
+  type AnimalListQuery,
+  type AnimalWriteInput,
+} from '@/shared/types/animal'
 
-export function listAnimals(): Promise<Animal[]> {
-  return apiRequest<Animal[]>('api/animals')
+export function listAnimals(query: AnimalListQuery = {}): Promise<Animal[]> {
+  if (animalListQueryIsEmpty(query)) {
+    return apiRequest<Animal[]>('api/animals')
+  }
+
+  return apiRequest<Animal[]>('api/animals', {
+    searchParams: toAnimalListSearchParams(query),
+  })
 }
 
 export function getAnimalById(id: string): Promise<Animal> {

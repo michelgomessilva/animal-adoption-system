@@ -90,6 +90,7 @@ export async function createAnimalViaApi(
   request: APIRequestContext,
   token: string,
   name: string,
+  overrides: Partial<AnimalWriteInput> = {},
 ): Promise<Animal> {
   const body: AnimalWriteInput = {
     name,
@@ -102,6 +103,7 @@ export async function createAnimalViaApi(
     status: 'Available',
     district: 'Centro',
     city: 'Porto Alegre',
+    ...overrides,
   }
 
   const response = await postJson(
