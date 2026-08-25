@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 
-import type { CreateAnimalInput } from '@/shared/api/animals'
+import type { AnimalWriteInput } from '@/shared/types/animal'
 
 export const WIZARD_STEPS = ['basic', 'description', 'location'] as const
 
@@ -17,7 +17,7 @@ export const ANIMAL_AGE_MAX = 30
 export const ANIMAL_DESCRIPTION_MAX = 200
 export const ANIMAL_LOCATION_MAX = 30
 
-export function createEmptyDraft(): CreateAnimalInput {
+export function createEmptyDraft(): AnimalWriteInput {
   return {
     name: '',
     species: 'Dog',
@@ -32,7 +32,7 @@ export function createEmptyDraft(): CreateAnimalInput {
   }
 }
 
-function isStepValid(step: WizardStep, draft: CreateAnimalInput): boolean {
+function isStepValid(step: WizardStep, draft: AnimalWriteInput): boolean {
   if (step === 'basic') {
     const name = draft.name.trim()
     return (
@@ -59,10 +59,12 @@ function isStepValid(step: WizardStep, draft: CreateAnimalInput): boolean {
   )
 }
 
-export function useAnimalCreateWizard() {
-  const draft = ref<CreateAnimalInput>(createEmptyDraft())
+export function useAnimalFormWizard(initialDraft?: AnimalWriteInput) {
+  const draft = ref<AnimalWriteInput>(
+    initialDraft === undefined ? createEmptyDraft() : { ...initialDraft },
+  )
   const currentStep = ref<WizardStep>('basic')
-  const visitedSteps = ref<WizardStep[]>(['basic'])
+  const visitedSteps = ref<WizardStep[]>(initialDraft === undefined ? ['basic'] : [...WIZARD_STEPS])
 
   const canGoNext = computed(() => isStepValid(currentStep.value, draft.value))
   const isFirstStep = computed(() => currentStep.value === 'basic')
@@ -103,7 +105,7 @@ export function useAnimalCreateWizard() {
     }
   }
 
-  function toPayload(): CreateAnimalInput {
+  function toPayload(): AnimalWriteInput {
     return {
       ...draft.value,
       name: draft.value.name.trim(),

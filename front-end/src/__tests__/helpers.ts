@@ -36,6 +36,11 @@ export function createAnimal(overrides: Partial<Animal> = {}): Animal {
 
 export const stubRoutes: RouteRecordRaw[] = [
   { path: '/', name: 'home', component: { template: '<div>home</div>' } },
+  {
+    path: '/animais/:id',
+    name: 'animal-details',
+    component: { template: '<div>detalhes</div>' },
+  },
   { path: '/ongs', name: 'organization', component: { template: '<div>ongs</div>' } },
   { path: '/como-funciona', name: 'how-it-works', component: { template: '<div>how</div>' } },
   { path: '/entrar', name: 'login', component: { template: '<div>login</div>' } },
@@ -44,6 +49,11 @@ export const stubRoutes: RouteRecordRaw[] = [
     path: '/panel/animals/new',
     name: 'panel-animals-new',
     component: { template: '<div>cadastro</div>' },
+  },
+  {
+    path: '/panel/animals/:id/edit',
+    name: 'panel-animals-edit',
+    component: { template: '<div>edicao</div>' },
   },
 ]
 

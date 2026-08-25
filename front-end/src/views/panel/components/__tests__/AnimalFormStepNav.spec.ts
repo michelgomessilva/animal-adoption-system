@@ -1,11 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import AnimalCreateStepNav from '@/views/panel/components/AnimalCreateStepNav.vue'
+import AnimalFormStepNav from '@/views/panel/components/AnimalFormStepNav.vue'
 
-describe('AnimalCreateStepNav', () => {
+describe('AnimalFormStepNav', () => {
   it('does not emit select for an unvisited later step', async () => {
-    const wrapper = mount(AnimalCreateStepNav, {
+    const wrapper = mount(AnimalFormStepNav, {
       props: { currentStep: 'basic', visitedSteps: ['basic'] },
     })
 
@@ -22,7 +22,7 @@ describe('AnimalCreateStepNav', () => {
   })
 
   it('emits select for a visited description step', async () => {
-    const wrapper = mount(AnimalCreateStepNav, {
+    const wrapper = mount(AnimalFormStepNav, {
       props: { currentStep: 'basic', visitedSteps: ['basic', 'description'] },
     })
 
@@ -39,7 +39,7 @@ describe('AnimalCreateStepNav', () => {
   })
 
   it('marks the current step', () => {
-    const wrapper = mount(AnimalCreateStepNav, {
+    const wrapper = mount(AnimalFormStepNav, {
       props: { currentStep: 'basic', visitedSteps: ['basic'] },
     })
 

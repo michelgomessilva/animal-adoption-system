@@ -3,12 +3,13 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { isApiError, type ApiErrorCode } from '@/shared/api/api-error'
-import { createAnimal, type CreateAnimalInput } from '@/shared/api/animals'
-import AnimalCreateWizard from '@/views/panel/components/AnimalCreateWizard.vue'
+import { createAnimal } from '@/shared/api/animals'
+import type { AnimalWriteInput } from '@/shared/types/animal'
+import { ANIMAL_WRITE_COMMON_ERRORS } from '@/views/panel/animal-form-errors'
+import AnimalFormWizard from '@/views/panel/components/AnimalFormWizard.vue'
 
 const CREATE_ERROR_MESSAGE: Partial<Record<ApiErrorCode, string>> = {
-  validation: 'Revise os dados do cadastro.',
-  network: 'Não foi possível conectar. Tente novamente.',
+  ...ANIMAL_WRITE_COMMON_ERRORS,
   unknown: 'Não foi possível cadastrar o animal. Tente novamente.',
 }
 
@@ -16,7 +17,7 @@ const router = useRouter()
 const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
 
-async function onSubmit(payload: CreateAnimalInput): Promise<void> {
+async function onSubmit(payload: AnimalWriteInput): Promise<void> {
   if (isSubmitting.value) {
     return
   }
@@ -58,7 +59,7 @@ async function onSubmit(payload: CreateAnimalInput): Promise<void> {
       </p>
     </header>
 
-    <AnimalCreateWizard @submit="onSubmit" />
+    <AnimalFormWizard :is-submitting="isSubmitting" @submit="onSubmit" />
 
     <div v-if="formError !== null" role="alert" class="alert alert-error">
       {{ formError }}

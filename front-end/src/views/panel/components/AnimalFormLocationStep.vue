@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import type { CreateAnimalInput } from '@/shared/api/animals'
-import type { AnimalStatus } from '@/shared/types/animal'
+import { ANIMAL_STATUS_OPTIONS, type AnimalWriteInput } from '@/shared/types/animal'
 import {
   animalSexLabel,
   animalSizeLabel,
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
-import { ANIMAL_LOCATION_MAX } from '@/views/panel/composables/useAnimalCreateWizard'
+import { ANIMAL_LOCATION_MAX } from '@/views/panel/composables/useAnimalFormWizard'
 
-const model = defineModel<CreateAnimalInput>({ required: true })
-
-const statusOptions: AnimalStatus[] = ['Available', 'Adopted']
+const model = defineModel<AnimalWriteInput>({ required: true })
 </script>
 
 <template>
@@ -44,7 +41,7 @@ const statusOptions: AnimalStatus[] = ['Available', 'Adopted']
       <legend class="fieldset-legend">Situação</legend>
       <div class="join">
         <button
-          v-for="status in statusOptions"
+          v-for="status in ANIMAL_STATUS_OPTIONS"
           :key="status"
           type="button"
           class="btn join-item"

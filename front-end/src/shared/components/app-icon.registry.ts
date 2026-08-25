@@ -11,6 +11,7 @@ import IconLandmark from '~icons/lucide/landmark'
 import IconLogOut from '~icons/lucide/log-out'
 import IconMenu from '~icons/lucide/menu'
 import IconPawPrint from '~icons/lucide/paw-print'
+import IconPencil from '~icons/lucide/pencil'
 import IconPlus from '~icons/lucide/plus'
 import IconRefreshCw from '~icons/lucide/refresh-cw'
 
@@ -28,6 +29,7 @@ export const APP_ICON_REGISTRY = {
   'log-out': IconLogOut,
   menu: IconMenu,
   'paw-print': IconPawPrint,
+  pencil: IconPencil,
   plus: IconPlus,
   'refresh-cw': IconRefreshCw,
 } satisfies Record<AppIconName, Component>

@@ -25,6 +25,6 @@ describe('App', () => {
     const wrapper = await mountWithPlugins(App, { router })
 
     expect(wrapper.text()).toContain('Adotar')
-    expect(wrapper.text()).toContain('Encontre o próximo membro da casa')
+    expect(wrapper.text()).toContain('Seu próximo companheiro está aqui')
   })
 })

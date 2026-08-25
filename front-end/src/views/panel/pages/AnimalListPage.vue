@@ -11,8 +11,16 @@ import {
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
+import {
+  animalSexBadgeClass,
+  animalSizeBadgeClass,
+  animalSpeciesBadgeClass,
+} from '@/shared/types/animal-visual'
+import { useAnimalListFilters } from '@/shared/composables/useAnimalListFilters'
+import AnimalListFilters from '@/views/panel/components/AnimalListFilters.vue'
 
-const { animals, isLoading, hasError, reload } = useAnimalsList()
+const { filters, hasNarrowingFilters, setFilter, clearFilters } = useAnimalListFilters()
+const { animals, isLoading, hasError, reload } = useAnimalsList(() => filters.value)
 
 const countLabel = computed(() => {
   const count = animals.value.length
@@ -37,6 +45,9 @@ const countLabel = computed(() => {
         Cadastrar pet
       </RouterLink>
     </header>
+
+    <AnimalListFilters :filters="filters" @set-filter="setFilter" @clear="clearFilters" />
+
     <p v-if="isLoading" role="status">Carregando cadastros…</p>
     <div v-else-if="hasError" role="alert" class="alert alert-error">
       <span>Não foi possível carregar os animais.</span>
@@ -45,6 +56,9 @@ const countLabel = computed(() => {
         Tentar novamente
       </button>
     </div>
+    <p v-else-if="animals.length === 0 && hasNarrowingFilters">
+      Nenhum animal encontrado com esses filtros.
+    </p>
     <p v-else-if="animals.length === 0">Nenhum animal cadastrado.</p>
     <div v-else class="animal-list-table">
       <table class="table">
@@ -56,6 +70,7 @@ const countLabel = computed(() => {
             <th>Porte</th>
             <th>Situação</th>
             <th>Cidade</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -72,10 +87,20 @@ const countLabel = computed(() => {
               </div>
             </td>
             <td>
-              <span class="badge badge-ghost">{{ animalSpeciesLabel[animal.species] }}</span>
+              <span class="badge" :class="animalSpeciesBadgeClass(animal.species)">
+                {{ animalSpeciesLabel[animal.species] }}
+              </span>
             </td>
-            <td>{{ animalSexLabel[animal.sex] }}</td>
-            <td>{{ animalSizeLabel[animal.size] }}</td>
+            <td>
+              <span class="badge" :class="animalSexBadgeClass(animal.sex)">
+                {{ animalSexLabel[animal.sex] }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" :class="animalSizeBadgeClass(animal.size)">
+                {{ animalSizeLabel[animal.size] }}
+              </span>
+            </td>
             <td>
               <span
                 class="badge"
@@ -85,6 +110,15 @@ const countLabel = computed(() => {
               </span>
             </td>
             <td>{{ animal.city }}</td>
+            <td>
+              <RouterLink
+                :to="{ name: 'panel-animals-edit', params: { id: animal.id } }"
+                class="btn btn-ghost btn-sm"
+              >
+                <AppIcon name="pencil" />
+                Editar
+              </RouterLink>
+            </td>
           </tr>
         </tbody>
       </table>

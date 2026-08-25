@@ -58,15 +58,15 @@ src/
 ├── assets/                 # ilustração local do login
 ├── router/                 # rotas públicas + /panel + auth-guard
 ├── views/
-│   ├── public/             # site público (layout, chrome, páginas, login)
-│   └── panel/              # área autenticada
+│   ├── public/             # site público (layout, chrome, AnimalCatalogFilters/Chips, páginas, login)
+│   └── panel/              # área autenticada (AnimalListFilters, wizard)
 ├── shared/
-│   ├── api/                # http, login, listAnimals, createAnimal
+│   ├── api/                # http, login, listAnimals(query?), getAnimalById, createAnimal, updateAnimal
 │   ├── components/         # BrandLogo, AppIcon, AnimalImage
-│   ├── composables/        # useAnimalsList
+│   ├── composables/        # useAnimalsList, useAnimalListFilters, useAnimalById
 │   ├── config/             # VITE_API_BASE_URL (fallback: page origin)
 │   ├── stores/             # auth
-│   └── types/              # Animal, app-icon
+│   └── types/              # Animal, AnimalListQuery, app-icon
 └── styles/
     ├── main.css
     ├── layout.css
@@ -81,9 +81,16 @@ O cliente HTTP ([ky](https://github.com/sindresorhus/ky)) usa `VITE_API_BASE_URL
 
 Auth: `POST /auth/login` com `username` e `password` devolve `{ token }`. A sessão fica em `localStorage` (Manter conectado) ou `sessionStorage`. O cliente envia `Authorization: Bearer`. JWT vale 60 minutos; não há refresh — um 401 autenticado faz logout e volta ao login.
 
-Cadastro de animais: `POST /api/animals` (Bearer, resposta **201**). O painel usa um wizard em `/panel/animals/new` com três etapas ativas: Dados básicos → Descrição e foto → Localização e revisão. `image` é URL opcional (string vazia se não houver foto); **não há upload**. Fotos usam `AnimalImage` (URL válida ou fallback por espécie). Pedidos de adoção e Perfil da ONG continuam faded com “Em breve”.
+Cadastro e edição de animais compartilham o body `AnimalWriteInput` e o mesmo wizard de três etapas (Dados básicos → Descrição e foto → Localização e revisão):
 
-Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/panel/animals` (Meus pets), `/panel/animals/new`. Aliases: `/adotar` → `/`, `/login` → `/entrar`. A área da ONG entra pelo login; não há auto-cadastro.
+- `POST /api/animals` (Bearer, **201**) em `/panel/animals/new`
+- `GET /api/animals/{id}` + `PUT /api/animals/{id}` (Bearer, **200**) em `/panel/animals/:id/edit`
+
+O perfil público (`/animais/:id`) usa o mesmo `GET /api/animals/{id}` (sem Bearer) via `useAnimalById`: retrato único, ficha (espécie, sexo, porte, idade), localização, data de publicação e descrição. Não há galeria, mapa, prontuário, favoritos nem botão de adoção nesta entrega.
+
+`image` é URL opcional (string vazia se não houver foto); **não há upload**. Fotos usam `AnimalImage` (URL válida ou fallback por espécie). A lista em Meus pets tem o link **Editar** por linha, filtros de `species` / `sex` / `size` / `status` (mesmos valores de enum do body de escrita) e ordenação via `orderBy` (`name`, `species`, `size`, `createdAt`, com sufixo `_desc` para descendente): a URL `/panel/animals?…` espelha a query enviada a `GET /api/animals`, e `listAnimals(query?)` monta esses params. O catálogo público (`/`) usa os mesmos params para `species` / `sex` / `size` / `orderBy` (a UI pública não expõe `status` — visitante anônimo só vê Available) e cada card abre `/animais/:id`. As URLs `/` e `/panel/animals` compartilham `useAnimalListFilters` em `shared/`. Pedidos de adoção e Perfil da ONG continuam faded com “Em breve”.
+
+Rotas: `/` (catálogo), `/animais/:id` (perfil público), `/ongs`, `/como-funciona`, `/entrar`, `/panel/animals` (Meus pets), `/panel/animals/new`, `/panel/animals/:id/edit`. Aliases: `/adotar` → `/`, `/login` → `/entrar`. A área da ONG entra pelo login; não há auto-cadastro.
 
 ## Tailwind CSS e daisyUI
 

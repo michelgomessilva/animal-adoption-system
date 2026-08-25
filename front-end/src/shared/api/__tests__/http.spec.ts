@@ -74,6 +74,23 @@ describe('apiRequest', () => {
     expect(firstFetchRequest(fetchMock).url).toBe(new URL('api/animals', getApiBaseUrl()).href)
   })
 
+  it('appends searchParams to the request URL', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiRequest('api/animals', { searchParams: { species: 'Dog', status: 'Adopted' } })
+
+    const url = new URL(firstFetchRequest(fetchMock).url)
+    expect(url.pathname).toBe('/api/animals')
+    expect(url.searchParams.get('species')).toBe('Dog')
+    expect(url.searchParams.get('status')).toBe('Adopted')
+  })
+
   it('throws unauthorized without calling the handler when skipAuth is true', async () => {
     const onUnauthorized = vi.fn<() => void>()
     setUnauthorizedHandler(onUnauthorized)
@@ -157,6 +174,20 @@ describe('apiRequest', () => {
       code: 'unknown',
       status: 400,
     })
+  })
+
+  it('throws not-found on 404', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 404 })),
+    )
+
+    await expect(
+      apiRequest('api/animals/11111111-1111-1111-1111-111111111111'),
+    ).rejects.toMatchObject({
+      code: 'not-found',
+      status: 404,
+    } satisfies Partial<ApiError>)
   })
 
   it('throws unknown on a non-401 error status', async () => {

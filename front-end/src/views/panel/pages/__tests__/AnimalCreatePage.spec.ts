@@ -14,6 +14,8 @@ import {
 vi.mock('@/shared/api/animals', () => ({
   listAnimals: vi.fn<() => Promise<never[]>>().mockResolvedValue([]),
   createAnimal: vi.fn<(input: unknown) => Promise<Animal>>(),
+  getAnimalById: vi.fn<() => Promise<Animal>>(),
+  updateAnimal: vi.fn<(id: string, input: unknown) => Promise<Animal>>(),
 }))
 
 import { createAnimal } from '@/shared/api/animals'

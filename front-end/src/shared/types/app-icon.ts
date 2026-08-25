@@ -10,6 +10,7 @@ export const APP_ICON_NAMES = [
   'log-out',
   'menu',
   'paw-print',
+  'pencil',
   'plus',
   'refresh-cw',
 ] as const
