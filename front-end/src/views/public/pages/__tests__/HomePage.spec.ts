@@ -38,7 +38,7 @@ describe('HomePage', () => {
     listAnimalsMock.mockResolvedValue([])
     const { wrapper } = await mountHomePage()
 
-    expect(wrapper.text()).toContain('Nenhum animal disponível no momento.')
+    expect(wrapper.text()).toContain('Em breve novos pets')
   })
 
   it('shows a species fallback when the animal has no photo URL', async () => {
@@ -65,7 +65,7 @@ describe('HomePage', () => {
     listAnimalsMock.mockRejectedValue(new ApiError('network', 0, 'Network request failed'))
     const { wrapper } = await mountHomePage()
 
-    expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar o catálogo')
+    expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar a lista')
   })
 
   it('loads with query filters from the URL', async () => {
@@ -108,16 +108,16 @@ describe('HomePage', () => {
     listAnimalsMock.mockResolvedValue([])
     const { wrapper } = await mountHomePage('/?species=Cat')
 
-    expect(wrapper.text()).toContain('Nenhum animal encontrado com esses filtros.')
-    expect(wrapper.text()).not.toContain('Nenhum animal disponível no momento.')
+    expect(wrapper.text()).toContain('ajuste a busca e continue')
+    expect(wrapper.text()).not.toContain('Em breve novos pets')
   })
 
   it('shows a catalog empty state when only orderBy is set', async () => {
     listAnimalsMock.mockResolvedValue([])
     const { wrapper } = await mountHomePage('/?orderBy=name')
 
-    expect(wrapper.text()).toContain('Nenhum animal disponível no momento.')
-    expect(wrapper.text()).not.toContain('Nenhum animal encontrado com esses filtros.')
+    expect(wrapper.text()).toContain('Em breve novos pets')
+    expect(wrapper.text()).not.toContain('ajuste a busca e continue')
   })
 
   it('shows filters while loading', async () => {

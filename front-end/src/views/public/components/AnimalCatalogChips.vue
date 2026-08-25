@@ -43,12 +43,12 @@ const chips = computed((): CatalogChip[] => {
     <li v-for="chip in chips" :key="chip.key">
       <button
         type="button"
-        class="badge badge-outline animal-catalog-chip"
+        class="badge badge-soft badge-secondary animal-catalog-chip"
         :aria-label="`Remover filtro ${chip.label}`"
         @click="emit('removeFilter', chip.key)"
       >
-        {{ chip.label }}
-        <span aria-hidden="true">×</span>
+        <span>{{ chip.label }}</span>
+        <span class="animal-catalog-chip-remove" aria-hidden="true">×</span>
       </button>
     </li>
   </ul>
@@ -62,6 +62,14 @@ const chips = computed((): CatalogChip[] => {
 }
 
 .animal-catalog-chip {
-  @apply h-auto cursor-pointer gap-1 px-3 py-1;
+  @apply h-8 cursor-pointer gap-1.5 rounded-full border-0 px-3.5 text-sm font-medium transition-[transform,opacity] duration-150;
+}
+
+.animal-catalog-chip:hover {
+  @apply -translate-y-px opacity-90;
+}
+
+.animal-catalog-chip-remove {
+  @apply text-base leading-none opacity-70;
 }
 </style>

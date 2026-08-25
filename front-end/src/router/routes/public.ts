@@ -10,7 +10,7 @@ export const publicRoutes: RouteRecordRaw = {
   path: '/',
   component: PublicLayout,
   children: [
-    { path: '', name: 'home', component: HomePage, meta: { title: 'Adoção em Porto Alegre' } },
+    { path: '', name: 'home', component: HomePage, meta: { title: 'Adote um pet' } },
     { path: 'adotar', redirect: { name: 'home' } },
     {
       path: 'ongs',

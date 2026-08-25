@@ -66,14 +66,14 @@ describe('AnimalCatalogFilters', () => {
     expect(active.emitted('clear')).toEqual([[]])
   })
 
-  it('marks the active size with btn-active and aria-pressed', () => {
+  it('marks the active size with btn-secondary and aria-pressed', () => {
     const wrapper = mount(AnimalCatalogFilters, {
       props: { filters: { size: 'Medium' } },
     })
 
     const medio = wrapper.findAll('button').find((button) => button.text() === 'Médio')
     expect(medio).toBeDefined()
-    expect(medio!.classes()).toContain('btn-active')
+    expect(medio!.classes()).toContain('btn-secondary')
     expect(medio!.attributes('aria-pressed')).toBe('true')
   })
 })

@@ -17,10 +17,10 @@ const { animals, isLoading, hasError, reload } = useAnimalsList(() => filters.va
 const countLabel = computed(() => {
   const count = animals.value.length
   if (count === 1) {
-    return '1 resultado'
+    return '1 animal'
   }
 
-  return `${count} resultados`
+  return `${count} animais`
 })
 
 function onOrderByChange(event: Event): void {
@@ -40,11 +40,10 @@ function onOrderByChange(event: Event): void {
   <PageContainer>
     <section class="home-page">
       <header class="home-page-intro">
-        <p class="home-page-kicker">Adoção em Porto Alegre</p>
-        <h1>Encontre o próximo membro da casa</h1>
+        <p class="home-page-kicker">Adoção responsável</p>
+        <h1 class="home-page-title">Seu próximo companheiro está aqui</h1>
         <p class="home-page-lead">
-          O catálogo da ONG mostra pets disponíveis agora. Cada perfil traz espécie, porte, idade e
-          cidade — a foto aparece quando a equipe cadastra uma URL.
+          Conheça quem espera por um lar e dê o primeiro passo na adoção.
         </p>
       </header>
 
@@ -56,10 +55,13 @@ function onOrderByChange(event: Event): void {
         <div class="home-page-main">
           <div class="home-page-toolbar">
             <p v-if="!isLoading && !hasError" class="home-page-count">{{ countLabel }}</p>
+            <p v-else class="home-page-count home-page-count--placeholder" aria-hidden="true">
+              &nbsp;
+            </p>
             <fieldset class="fieldset home-page-sort">
               <legend class="fieldset-legend">Ordenar</legend>
               <select
-                class="select"
+                class="select select-sm home-page-sort-select"
                 name="orderBy"
                 :value="filters.orderBy ?? ''"
                 @change="onOrderByChange"
@@ -77,24 +79,26 @@ function onOrderByChange(event: Event): void {
             @remove-filter="(key) => setFilter(key, undefined)"
           />
 
-          <p v-if="isLoading" role="status" class="home-page-status">
-            Carregando animais disponíveis…
-          </p>
+          <p v-if="isLoading" role="status" class="home-page-status">Carregando animais…</p>
           <div v-else-if="hasError" role="alert" class="alert alert-error">
-            <span>Não foi possível carregar o catálogo. Tente novamente mais tarde.</span>
+            <span>Não foi possível carregar a lista. Tente novamente.</span>
             <button type="button" class="btn btn-sm" @click="reload">
               <AppIcon name="refresh-cw" />
               Tentar novamente
             </button>
           </div>
           <p v-else-if="animals.length === 0 && hasNarrowingFilters" class="home-page-status">
-            Nenhum animal encontrado com esses filtros.
+            Nenhum pet por aqui — ajuste a busca e continue.
           </p>
           <p v-else-if="animals.length === 0" class="home-page-status">
-            Nenhum animal disponível no momento.
+            Em breve novos pets. Volte para conhecer quem chega.
           </p>
           <ul v-else class="home-page-grid">
-            <li v-for="animal in animals" :key="animal.id">
+            <li
+              v-for="(animal, index) in animals"
+              :key="animal.id"
+              :style="{ '--reveal-index': index }"
+            >
               <AnimalCard :animal="animal" />
             </li>
           </ul>
@@ -108,7 +112,7 @@ function onOrderByChange(event: Event): void {
 @reference "@/styles/main.css";
 
 .home-page {
-  @apply flex flex-col gap-8;
+  @apply flex flex-col gap-10;
 }
 
 .home-page-intro {
@@ -116,46 +120,75 @@ function onOrderByChange(event: Event): void {
 }
 
 .home-page-kicker {
-  @apply mb-2 text-xs font-semibold tracking-[0.18em] text-primary uppercase;
+  @apply mb-2.5 text-[0.7rem] font-semibold tracking-[0.2em] text-primary uppercase;
 }
 
-.home-page-intro h1 {
-  @apply font-serif text-4xl font-bold tracking-tight sm:text-5xl;
+.home-page-title {
+  @apply font-serif text-4xl leading-[1.12] font-bold tracking-tight text-base-content sm:text-5xl;
 }
 
 .home-page-lead {
-  @apply mt-3 text-base-content/75;
+  @apply mt-3.5 max-w-xl text-base leading-relaxed text-base-content/70;
 }
 
 .home-page-body {
-  @apply flex flex-col gap-8 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start;
+  @apply flex flex-col gap-8 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:gap-8;
 }
 
 .home-page-sidebar {
-  @apply rounded-box border border-base-300 bg-base-100 p-4;
+  @apply rounded-box border border-base-300/70 bg-base-100 p-5 shadow-sm lg:sticky lg:top-24;
 }
 
 .home-page-main {
-  @apply flex min-w-0 flex-col gap-4;
+  @apply flex min-w-0 flex-col gap-5;
 }
 
 .home-page-toolbar {
-  @apply flex flex-wrap items-end justify-between gap-3;
+  @apply flex flex-wrap items-end justify-between gap-x-4 gap-y-3;
 }
 
 .home-page-count {
-  @apply text-sm text-base-content/70;
+  @apply pb-2 text-sm font-medium text-base-content/55;
+}
+
+.home-page-count--placeholder {
+  @apply invisible;
 }
 
 .home-page-sort {
-  @apply min-w-44;
+  @apply min-w-48 gap-1.5 p-0;
+}
+
+.home-page-sort .fieldset-legend {
+  @apply mb-0 px-0 text-[0.7rem] font-semibold tracking-[0.14em] text-base-content/55 uppercase;
+}
+
+.home-page-sort-select {
+  @apply w-full min-w-48 rounded-field border-base-300 bg-base-100;
 }
 
 .home-page-status {
-  @apply text-base-content/70;
+  @apply py-8 text-base text-base-content/60;
 }
 
 .home-page-grid {
-  @apply grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3;
+  @apply grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3;
+}
+
+.home-page-grid > li {
+  animation: home-card-reveal 420ms ease-out both;
+  animation-delay: calc(min(var(--reveal-index, 0), 8) * 45ms);
+}
+
+@keyframes home-card-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
