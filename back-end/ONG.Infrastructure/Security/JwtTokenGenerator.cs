@@ -12,6 +12,8 @@ namespace ONG.Infrastructure.Security
 {
     public class JwtTokenGenerator : ITokenGenerator
     {
+        private const string ClientTokenIssuer = "ong-api-oauth-clients";
+
         private readonly IConfiguration _configuration;
 
         public JwtTokenGenerator(IConfiguration configuration)
@@ -21,18 +23,33 @@ namespace ONG.Infrastructure.Security
 
         public string GenerateToken(Admin admin)
         {
-            var key = _configuration["Jwt:Key"]!;
             var issuer = _configuration["Jwt:Issuer"]!;
             var expiryMinutes = int.Parse(_configuration["Jwt:ExpiryMinutes"]!);
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, admin.Username),
                 new Claim("adminId", admin.Id.ToString())
             };
+
+            return BuildToken(claims, issuer, expiryMinutes);
+        }
+
+        public string GenerateClientToken(string clientId, int expiryMinutes)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, clientId)
+            };
+
+            return BuildToken(claims, ClientTokenIssuer, expiryMinutes);
+        }
+
+        private string BuildToken(List<Claim> claims, string issuer, int expiryMinutes)
+        {
+            var key = _configuration["Jwt:Key"]!;
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: issuer,
