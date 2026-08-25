@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -382,6 +383,36 @@ namespace ONG.Tests.Api
             var body = await response.Content.ReadFromJsonAsync<JsonElement>();
             Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
             Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
+        }
+
+        [Fact]
+        public async Task Create_ValidTokenMissingSpecies_Returns400ProblemDetailsWithHandlerValidationMessage()
+        {
+            var token = await GetValidTokenAsync();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PostAsJsonAsync("/api/animals", new
+            {
+                Name = "Rex",
+                Sex = "Male",
+                Size = "Medium",
+                Description = "Friendly dog",
+                approximateAge = 2,
+                Image = "https://example.com/dog.jpg",
+                Status = "Available",
+                District = "Centro",
+                City = "Sao Paulo",
+                Parish = "Se"
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.Equal(StatusCodes.Status400BadRequest, body.GetProperty("status").GetInt32());
+            Assert.Equal("Species is required", body.GetProperty("detail").GetString());
         }
     }
 }
