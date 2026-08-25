@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 
 import AppIcon from '@/shared/components/AppIcon.vue'
 import type { AnimalSpecies } from '@/shared/types/animal'
+import { animalSpeciesImageClass } from '@/shared/types/animal-visual'
 
 interface Props {
   src: string
@@ -20,6 +21,7 @@ const hasLoadError = ref(false)
 const trimmedSrc = computed(() => props.src.trim())
 const canShowImage = computed(() => trimmedSrc.value.length > 0 && !hasLoadError.value)
 const speciesIcon = computed(() => (props.species === 'Cat' ? 'cat' : 'dog'))
+const speciesToneClass = computed(() => animalSpeciesImageClass(props.species))
 
 watch(trimmedSrc, () => {
   hasLoadError.value = false
@@ -31,7 +33,7 @@ function onImageError(): void {
 </script>
 
 <template>
-  <div class="animal-image" :class="{ 'animal-image--compact': compact }">
+  <div class="animal-image" :class="[speciesToneClass, { 'animal-image--compact': compact }]">
     <img
       v-if="canShowImage"
       class="animal-image-photo"
@@ -51,7 +53,15 @@ function onImageError(): void {
 @reference "@/styles/main.css";
 
 .animal-image {
-  @apply relative isolate overflow-hidden bg-secondary/12;
+  @apply relative isolate overflow-hidden;
+}
+
+.animal-image--dog {
+  @apply bg-secondary/22 text-secondary;
+}
+
+.animal-image--cat {
+  @apply bg-info/22 text-info;
 }
 
 .animal-image--compact {
@@ -63,6 +73,6 @@ function onImageError(): void {
 }
 
 .animal-image-fallback {
-  @apply flex size-full items-center justify-center text-secondary;
+  @apply flex size-full items-center justify-center;
 }
 </style>

@@ -21,6 +21,16 @@ describe('AnimalImage', () => {
 
     expect(wrapper.find('img').exists()).toBe(false)
     expect(wrapper.find('[data-icon="cat"]').exists()).toBe(true)
+    expect(wrapper.classes()).toContain('animal-image--cat')
+  })
+
+  it('applies the dog tone class for Dog fallbacks', () => {
+    const wrapper = mount(AnimalImage, {
+      props: { src: '', name: 'Rex', species: 'Dog' },
+    })
+
+    expect(wrapper.classes()).toContain('animal-image--dog')
+    expect(wrapper.find('[data-icon="dog"]').exists()).toBe(true)
   })
 
   it('shows a species fallback when the photo fails to load', async () => {

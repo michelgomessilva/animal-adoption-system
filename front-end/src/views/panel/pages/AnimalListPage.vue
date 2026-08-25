@@ -11,6 +11,11 @@ import {
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
+import {
+  animalSexBadgeClass,
+  animalSizeBadgeClass,
+  animalSpeciesBadgeClass,
+} from '@/shared/types/animal-visual'
 import AnimalListFilters from '@/views/panel/components/AnimalListFilters.vue'
 import { useAnimalListFilters } from '@/views/panel/composables/useAnimalListFilters'
 
@@ -82,10 +87,20 @@ const countLabel = computed(() => {
               </div>
             </td>
             <td>
-              <span class="badge badge-ghost">{{ animalSpeciesLabel[animal.species] }}</span>
+              <span class="badge" :class="animalSpeciesBadgeClass(animal.species)">
+                {{ animalSpeciesLabel[animal.species] }}
+              </span>
             </td>
-            <td>{{ animalSexLabel[animal.sex] }}</td>
-            <td>{{ animalSizeLabel[animal.size] }}</td>
+            <td>
+              <span class="badge" :class="animalSexBadgeClass(animal.sex)">
+                {{ animalSexLabel[animal.sex] }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" :class="animalSizeBadgeClass(animal.size)">
+                {{ animalSizeLabel[animal.size] }}
+              </span>
+            </td>
             <td>
               <span
                 class="badge"
