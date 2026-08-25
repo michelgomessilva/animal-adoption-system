@@ -22,6 +22,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+const string OpenCorsPolicy = "OpenCorsPolicy";
+
+// HF0001: open CORS (AllowAnyOrigin) — confirmed product decision (PRD, EP06);
+// the front-end doesn't yet have a fixed deploy domain to allow-list instead.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(OpenCorsPolicy, policy =>
+        policy.AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
      {
@@ -110,6 +122,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
+
+app.UseCors(OpenCorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();
