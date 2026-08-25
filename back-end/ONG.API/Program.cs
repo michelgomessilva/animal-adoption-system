@@ -69,9 +69,18 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT"
     });
 
+    options.AddSecurityDefinition("ClientToken", new OpenApiSecurityScheme
+    {
+        Description = "Client access token issued by POST /oauth/token, sent as the X-Client-Token header.",
+        Name = "X-Client-Token",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey
+    });
+
     options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
+        [new OpenApiSecuritySchemeReference("ClientToken", document)] = []
     });
 });
 
