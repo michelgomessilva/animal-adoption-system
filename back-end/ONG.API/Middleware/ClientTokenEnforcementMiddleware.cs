@@ -1,5 +1,4 @@
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -41,12 +40,6 @@ namespace ONG.API.Middleware
                 }
 
                 await _next(context);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(clientToken) || !new JwtSecurityTokenHandler().CanReadToken(clientToken))
-            {
-                await WriteStatus(context, StatusCodes.Status400BadRequest, "Malformed client access token.");
                 return;
             }
 
