@@ -17,6 +17,7 @@ using ONG.Infrastructure.Security;
 using ONG.API.Middleware;
 using ONG.Application.UseCases.Animals.GetAnimalById;
 using ONG.Application.UseCases.Animals.UpdateAnimal;
+using ONG.Application.UseCases.OAuth.IssueClientToken;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,12 +92,15 @@ builder.Services.Configure<PasswordHasherOptions>(
     builder.Configuration.GetSection("PasswordHasher"));
 builder.Services.AddScoped<IPasswordHasher<Admin>, PasswordHasher<Admin>>();
 builder.Services.AddScoped<LoginHandler>();
+builder.Services.AddScoped<IClientCredentialsProvider, ClientCredentialsProvider>();
+builder.Services.AddScoped<IssueClientTokenHandler>();
 
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     JwtTokenGenerator.ValidateConfiguration(builder.Configuration);
+    ClientCredentialsProvider.ValidateConfiguration(builder.Configuration);
 
     var dbContext = scope.ServiceProvider.GetRequiredService<ONGDbContext>();
     // Guarded: the EF Core InMemory provider (used by WebApplicationFactory-based E2E
