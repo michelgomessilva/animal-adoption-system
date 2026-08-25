@@ -1,0 +1,82 @@
+# Docker cycle (README Opção B, plus postgres-only for Opção A).
+# Host `dotnet run` / `dotnet test` stay out of this file until that cycle lands.
+
+# ---------------------------------------------------------------------------
+# Bootstrap
+# ---------------------------------------------------------------------------
+
+[tasks.setup]
+description = "Create .env from the example if it is missing"
+run = "[ -f .env ] || cp .env.example .env"
+
+# ---------------------------------------------------------------------------
+# Stack
+# ---------------------------------------------------------------------------
+
+[tasks.postgres]
+description = "Start only Postgres and wait until it is healthy"
+depends = [":setup"]
+run = "docker compose up -d --wait postgres"
+
+[tasks.build]
+description = "Build the backend API image"
+depends = [":setup"]
+run = "docker compose build backend"
+
+[tasks.up]
+description = "Build and start API + Postgres (detached, wait until healthy)"
+alias = "dev"
+depends = [":setup"]
+run = "docker compose up -d --build --wait"
+
+[tasks.down]
+description = "Stop and remove the compose stack (keeps the volume)"
+depends = [":setup"]
+run = "docker compose down"
+
+[tasks."down:volumes"]
+description = "Stop the stack and delete the Postgres volume"
+depends = [":setup"]
+run = "docker compose down -v"
+
+[tasks.restart]
+description = "Restart the backend container"
+depends = [":setup"]
+run = "docker compose restart backend"
+
+[tasks.ps]
+description = "Show compose service status"
+depends = [":setup"]
+run = "docker compose ps"
+
+[tasks.logs]
+description = "Follow compose logs"
+depends = [":setup"]
+run = "docker compose logs -f --tail=100"
+interactive = true
+
+# ---------------------------------------------------------------------------
+# Quality
+# ---------------------------------------------------------------------------
+
+[tasks.check]
+description = "Validate docker-compose.yml"
+alias = "verify"
+depends = [":setup"]
+run = "docker compose config --quiet"
+
+[tasks.smoke]
+description = "Start the stack and wait until Swagger responds"
+depends = [":up"]
+run = """
+for i in $(seq 1 30); do
+  if curl -sf http://localhost:5127/swagger/v1/swagger.json >/dev/null; then
+    echo "Backend is up: http://localhost:5127/swagger"
+    exit 0
+  fi
+  sleep 2
+done
+echo "Backend did not become ready in time."
+docker compose logs
+exit 1
+"""

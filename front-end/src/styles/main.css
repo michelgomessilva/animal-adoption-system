@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@plugin 'daisyui' {
+  themes: false;
+}
+@import './tokens.css';
+@import './layout.css';

@@ -1,0 +1,46 @@
+@plugin "daisyui/theme" {
+  name: 'poa';
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: oklch(97.6% 0.014 86);
+  --color-base-200: oklch(94.4% 0.02 82);
+  --color-base-300: oklch(89.8% 0.028 78);
+  --color-base-content: oklch(24% 0.032 155);
+  --color-primary: oklch(62% 0.172 32);
+  --color-primary-content: oklch(99% 0.008 80);
+  --color-secondary: oklch(40% 0.062 168);
+  --color-secondary-content: oklch(97% 0.012 85);
+  --color-accent: oklch(74% 0.132 72);
+  --color-accent-content: oklch(24% 0.04 70);
+  --color-neutral: oklch(26% 0.028 168);
+  --color-neutral-content: oklch(96% 0.012 85);
+  --color-info: oklch(62% 0.09 220);
+  --color-info-content: oklch(98% 0.01 220);
+  --color-success: oklch(56% 0.128 155);
+  --color-success-content: oklch(98% 0.01 155);
+  --color-warning: oklch(78% 0.14 80);
+  --color-warning-content: oklch(28% 0.05 70);
+  --color-error: oklch(58% 0.18 25);
+  --color-error-content: oklch(98% 0.01 25);
+
+  --radius-selector: 1rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1.15rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.28125rem;
+  --border: 1.5px;
+  --depth: 1;
+  --noise: 1;
+}
+
+:root {
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Manrope', 'Segoe UI', sans-serif;
+}
+
+@theme inline {
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+}

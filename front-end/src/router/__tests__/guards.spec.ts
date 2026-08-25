@@ -1,0 +1,82 @@
+import { createPinia, setActivePinia } from 'pinia'
+import { createMemoryHistory, createRouter } from 'vue-router'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { authNavigationGuard } from '@/router/auth-guard'
+import { routes } from '@/router/routes'
+import { AUTH_SESSION_KEY, useAuthStore } from '@/shared/stores/auth.store'
+
+vi.mock('@/shared/api/animals', () => ({
+  listAnimals: vi.fn<() => Promise<never[]>>().mockResolvedValue([]),
+  createAnimal: vi.fn<() => Promise<never>>(),
+  getAnimalById: vi.fn<() => Promise<never>>(),
+  updateAnimal: vi.fn<() => Promise<never>>(),
+}))
+
+async function createGuardedRouter() {
+  const router = createRouter({ history: createMemoryHistory(), routes })
+  router.beforeEach(authNavigationGuard)
+  return router
+}
+
+describe('router guards', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+
+  it('sends anonymous users from the painel to login with redirect', async () => {
+    const router = await createGuardedRouter()
+
+    await router.push('/panel/animals')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query.redirect).toBe('/panel/animals')
+  })
+
+  it('sends authenticated users away from login', async () => {
+    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ token: 'jwt', username: 'admin' }))
+    useAuthStore().hydrate()
+
+    const router = await createGuardedRouter()
+
+    await router.push('/entrar')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('panel-animals')
+  })
+
+  it('sends anonymous users from the create page to login with redirect', async () => {
+    const router = await createGuardedRouter()
+
+    await router.push('/panel/animals/new')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query.redirect).toBe('/panel/animals/new')
+  })
+
+  it('sends anonymous users from the edit page to login with redirect', async () => {
+    const router = await createGuardedRouter()
+    const editPath = '/panel/animals/11111111-1111-1111-1111-111111111111/edit'
+
+    await router.push(editPath)
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query.redirect).toBe(editPath)
+  })
+
+  it('keeps anonymous users on the public animal details page', async () => {
+    const router = await createGuardedRouter()
+    const detailsPath = '/animais/11111111-1111-1111-1111-111111111111'
+
+    await router.push(detailsPath)
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('animal-details')
+    expect(router.currentRoute.value.path).toBe(detailsPath)
+  })
+})

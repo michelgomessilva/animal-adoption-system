@@ -1,6 +1,4 @@
-﻿using ONG.Domain.Entitites;
-
-namespace ONG.Domain.Entitites
+﻿namespace ONG.Domain.Entitites
 {
     public class Animal
     {

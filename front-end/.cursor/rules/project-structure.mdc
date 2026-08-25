@@ -1,0 +1,72 @@
+---
+description: Vue frontend structure, @ alias, and Tailwind/daisyUI file locations
+globs: **/*.{vue,ts,css}
+alwaysApply: false
+---
+
+# Front-end structure
+
+Vue 3 + TypeScript + Vite SPA for the animal adoption system.
+
+## Alias
+
+Use `@/` for all `src/` imports (Vite `resolve.alias` + `tsconfig.app.json` `paths`).
+
+```ts
+import App from '@/App.vue'
+import '@/styles/main.css'
+```
+
+Do not use deep relative imports (`../../../`) across `src/`.
+
+## Where to put code
+
+| What | Where | Example |
+| --- | --- | --- |
+| Public page | `src/views/public/pages/` | `HomePage.vue` |
+| Panel page | `src/views/panel/pages/` | `AnimalListPage.vue` |
+| Module chrome | `src/views/<module>/components/` | `PublicHeader.vue` |
+| Shared UI | `src/shared/components/` | `BrandLogo.vue`, `AppIcon.vue`, `AnimalImage.vue` |
+| Pinia store | `src/shared/stores/` | `auth.store.ts` |
+| HTTP / API | `src/shared/api/` | `http.ts`, `auth.ts` |
+| Shared composable | `src/shared/composables/` | `useAnimalsList.ts` |
+| Routes | `src/router/` | `router/routes/public.ts` |
+| Styles | `src/styles/` | `styles/main.css` |
+| Unit tests | `src/**/__tests__/` | `src/shared/stores/__tests__/auth.store.spec.ts` |
+
+Create a folder when the first file needs it. Do not add empty directories.
+
+A file starts in its view module. Move it to `shared/` only when a second module (or the router) needs it.
+
+## Styles
+
+```
+src/styles/
+├── main.css      # Tailwind + daisyUI entry (import this once from main.ts)
+├── layout.css    # App shell (html / body / #app)
+└── tokens.css    # POA daisyUI theme and typography tokens
+```
+
+- Entry: `src/styles/main.css` — Tailwind + daisyUI (`themes: false`) + `tokens.css` + `layout.css`
+- Global import: `src/main.ts` → `import '@/styles/main.css'`
+- Theme: `poa` on `<html data-theme="poa">`. Fonts: Fraunces + Manrope via Google Fonts in `index.html`
+- Scoped `@apply`: first line of `<style scoped>` must be `@reference "@/styles/main.css";`
+- Put brand tokens only in `tokens.css`, not in components
+- Animal photos are optional URLs. Render them through `AnimalImage`. Icons only through `AppIcon`
+
+> See @vue-components-style.mdc for CSS conventions.
+
+## Naming
+
+| Kind | Convention | Example |
+| --- | --- | --- |
+| Vue components / pages | `PascalCase` | `AnimalCard.vue` |
+| Stores | `*.store.ts` | `auth.store.ts` |
+| Composables | `use*.ts` | `useAnimalFilters.ts` |
+| Directories | `kebab-case` | `views/panel/` |
+
+## Related rules
+
+- @vue-components.mdc — Composition API + TypeScript
+- @vue-components-style.mdc — Tailwind + daisyUI
+- @vue-components-qa.mdc — QA loop
