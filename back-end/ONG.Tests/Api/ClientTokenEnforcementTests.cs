@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
@@ -158,6 +159,25 @@ namespace ONG.Tests.Api
             var response = await _client.PostAsJsonAsync("/api/animals", ValidAnimalBody());
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task List_ClientTokenIssuedByRealOAuthEndpoint_Returns200()
+        {
+            var tokenResponse = await _client.PostAsJsonAsync("/oauth/token", new
+            {
+                grant_type = "client_credentials",
+                client_id = ClientTokenEnforcementApiFactory.ConfiguredClientId,
+                client_secret = ClientTokenEnforcementApiFactory.ConfiguredClientSecret
+            });
+            var tokenBody = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+            var issuedToken = tokenBody.GetProperty("access_token").GetString()!;
+
+            _client.DefaultRequestHeaders.Add(ClientTokenHeaderName, issuedToken);
+
+            var response = await _client.GetAsync("/api/animals");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
