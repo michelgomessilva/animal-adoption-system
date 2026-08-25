@@ -34,5 +34,10 @@ namespace ONG.Application.UseCases.Animals.UpdateAnimal
         [Required]
         [StringLength(30)]
         public string City { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
+        public string Parish { get; set; } = string.Empty;
+
     }
 }

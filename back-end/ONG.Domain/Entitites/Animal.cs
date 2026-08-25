@@ -1,6 +1,4 @@
-﻿using ONG.Domain.Entitites;
-
-namespace ONG.Domain.Entitites
+﻿namespace ONG.Domain.Entitites
 {
     public class Animal
     {
@@ -15,6 +13,7 @@ namespace ONG.Domain.Entitites
         public Status Status { get; private set; }
         public string District { get; private set; } = string.Empty;
         public string City { get; private set; } = string.Empty;
+        public string Parish { get; private set; } = string.Empty;
         public DateTime CreatedAt { get; private set; }
         public Animal(
             string name,
@@ -26,7 +25,8 @@ namespace ONG.Domain.Entitites
             string image,
             Status status,
             string district,
-            string city)
+            string city,
+            string parish)
         {
             Id = Guid.NewGuid();
             Name = name;
@@ -40,6 +40,7 @@ namespace ONG.Domain.Entitites
             Status = status;
             District = district;
             City = city;
+            Parish = parish;
         }
 
         public void Update(
@@ -52,7 +53,8 @@ namespace ONG.Domain.Entitites
         string image,
         Status status,
         string district,
-        string city)
+        string city,
+        string parish)
         {
             Name = name;
             Species = species;
@@ -64,6 +66,7 @@ namespace ONG.Domain.Entitites
             Status = status;
             District = district;
             City = city;
+            Parish = parish;
         }
     }
 }

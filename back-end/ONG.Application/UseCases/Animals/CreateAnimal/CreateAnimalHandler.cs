@@ -35,7 +35,8 @@ namespace ONG.Application.UseCases.Animals.CreateAnimal
                 command.Image,
                 command.Status,
                 command.District,
-                command.City
+                command.City,
+                command.Parish
                 );
 
             _repository.Add(animal);

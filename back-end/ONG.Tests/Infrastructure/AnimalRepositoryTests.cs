@@ -26,11 +26,11 @@ namespace ONG.Tests.Infrastructure
             context.Set<Animal>().Add(new Animal(
                 "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
                 "Friendly dog", "https://example.com/dog.jpg",
-                Status.Available, "Centro", "Sao Paulo"));
+                Status.Available, "Centro", "Sao Paulo", "Sé"));
             context.Set<Animal>().Add(new Animal(
                 "Mia", Species.Cat, Sex.Female, Size.Small, 1,
                 "Calm cat", "https://example.com/cat.jpg",
-                Status.Adopted, "Centro", "Sao Paulo"));
+                Status.Adopted, "Centro", "Sao Paulo", "Sé"));
             context.SaveChanges();
 
             var repository = new AnimalRepository(context);
@@ -47,15 +47,15 @@ namespace ONG.Tests.Infrastructure
             context.Set<Animal>().Add(new Animal(
                 "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
                 "Friendly dog", "https://example.com/dog.jpg",
-                Status.Available, "Centro", "Sao Paulo"));
+                Status.Available, "Centro", "Sao Paulo", "Sé"));
             context.Set<Animal>().Add(new Animal(
                 "Mia", Species.Cat, Sex.Female, Size.Small, 1,
                 "Calm cat", "https://example.com/cat.jpg",
-                Status.Adopted, "Centro", "Sao Paulo"));
+                Status.Adopted, "Centro", "Sao Paulo", "Sé"));
             context.Set<Animal>().Add(new Animal(
                 "Bob", Species.Dog, Sex.Male, Size.Medium, 5,
                 "Old dog", "https://example.com/bob.jpg",
-                Status.Available, "Norte", "Sao Paulo"));
+                Status.Available, "Norte", "Sao Paulo", "Sé"));
             context.SaveChanges();
 
             var repository = new AnimalRepository(context);
@@ -80,7 +80,7 @@ namespace ONG.Tests.Infrastructure
             context.Set<Animal>().Add(new Animal(
                 "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
                 "Friendly dog", "https://example.com/dog.jpg",
-                Status.Available, "Centro", "Sao Paulo"));
+                Status.Available, "Centro", "Sao Paulo", "Sé"));
             context.SaveChanges();
 
             var repository = new AnimalRepository(context);
@@ -100,10 +100,10 @@ namespace ONG.Tests.Infrastructure
             using var context = CreateContext(dbName);
             context.Set<Animal>().Add(new Animal(
                 "Zoe", Species.Dog, Sex.Female, Size.Small, 1,
-                "d", "https://example.com/z.jpg", Status.Available, "Centro", "Sao Paulo"));
+                "d", "https://example.com/z.jpg", Status.Available, "Centro", "Sao Paulo", "Sé"));
             context.Set<Animal>().Add(new Animal(
                 "Amy", Species.Cat, Sex.Female, Size.Large, 3,
-                "d", "https://example.com/a.jpg", Status.Available, "Centro", "Sao Paulo"));
+                "d", "https://example.com/a.jpg", Status.Available, "Centro", "Sao Paulo", "Sé"));
             context.SaveChanges();
 
             var repository = new AnimalRepository(context);
@@ -132,11 +132,11 @@ namespace ONG.Tests.Infrastructure
             context.Set<Animal>().Add(new Animal(
                 "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
                 "Friendly dog", "https://example.com/dog.jpg",
-                Status.Available, "Centro", "Sao Paulo"));
+                Status.Available, "Centro", "Sao Paulo", "Sé"));
             context.Set<Animal>().Add(new Animal(
                 "Mia", Species.Cat, Sex.Female, Size.Small, 1,
                 "Calm cat", "https://example.com/cat.jpg",
-                Status.Available, "Centro", "Sao Paulo"));
+                Status.Available, "Centro", "Sao Paulo", "Sé"));
             context.SaveChanges();
 
             var repository = new AnimalRepository(context);
