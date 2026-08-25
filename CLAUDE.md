@@ -195,21 +195,21 @@ Clean Architecture, 5 projects under `back-end/`, referenced in `ONG.slnx`:
 
 Dependency direction: `ONG.API` → `ONG.Application` + `ONG.Infrastructure` → `ONG.Application` → `ONG.Domain`. `ONG.Domain` has no outward dependencies.
 
-### Request flow (example: `POST /animals/{id}/adopt`)
+### Request flow (example: `PUT /api/animals/{id}`)
 
 ```
 AnimalController (ONG.API)
-  → AdoptAnimalCommand (ONG.Application/UseCases/Animals/AdoptAnimal)
-  → AdoptAnimalHandler.Handle(command)
+  → UpdateAnimalCommand (ONG.Application/UseCases/Animals/UpdateAnimal)
+  → UpdateAnimalHandler.Handle(command)
       → IAnimalRepository (ONG.Application/Repositories) — interface
       → AnimalRepository (ONG.Infrastructure/Repositories) — EF Core impl, injected via DI
-      → Animal.Adopt() (ONG.Domain/Entitites/Animal.cs) — domain behavior, mutates via private setters
+      → Animal.Update(...) (ONG.Domain/Entitites/Animal.cs) — domain behavior, mutates via private setters
   → repository.SaveChanges() → ONGDbContext → PostgreSQL
 ```
 
 Controllers stay thin: they build a Command, call one Handler, return the result.
-Handlers own orchestration; domain entities own behavior (see `Animal.Adopt()`,
-which sets `Status` and `AdoptedAt` — not left to the handler or a mapper).
+Handlers own orchestration; domain entities own behavior (see `Animal.Update(...)`,
+which mutates all mutable fields at once — not left to the handler or a mapper).
 
 ### Persistence
 
@@ -231,18 +231,20 @@ that JWT into actual route protection: `Program.cs` now calls
 `AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(...)` (reusing
 `JwtTokenGenerator`'s exact key/issuer/HMAC-SHA256 shape, `ValidateAudience = false`) and
 `app.UseAuthentication()` runs immediately before the existing `app.UseAuthorization()`.
-`[Authorize]` is applied to `AnimalController.Create` only — **`POST /animals` now
-requires a valid, unexpired bearer token; `POST /animals/{id}/adopt` (`Adopt`) remains
-unauthenticated**, deliberately deferred to `F0002.2` (not yet started) alongside a fix
-for `AdoptAnimalHandler`'s pre-existing missing DI registration (`F0002.1` fixed only the
-DI-gap symptom that blocked its own `Create` tests — via
-`builder.Services.AddScoped<AdoptAnimalHandler>();` — `Adopt`'s internal not-found
-handling and `[Authorize]` are still open). `Microsoft.AspNetCore.Authentication.JwtBearer`
-10.0.11 is now referenced in `ONG.API.csproj`. Single-organization system — there is no
-tenant isolation invariant to defend in this codebase today. Do not add tenant-scoping
-code speculatively; once `F0002.2` protects `Adopt` too, this section and the security
-standards in `docs/spec-driven-development.md` (still only satisfied for `POST /animals`)
-need another update.
+`[Authorize]` is applied to `AnimalController.Create` (`POST /api/animals`) and
+`Update` (`PUT /api/animals/{id}`, added later by `feat: add PUT /api/animals/{id}
+endpoint (#12)`) — both require a valid, unexpired bearer token. `GetById` and `List`
+remain unauthenticated by design (public catalog browsing). Note: `F0002.1`'s own commit
+message referenced a `POST /animals/{id}/adopt` endpoint and an `AdoptAnimalHandler`
+DI-registration fix as still-open follow-ups — that entire adoption slice
+(`Animal.Adopt()`/`AdoptedAt`, the `AdoptAnimal` command/handler, and the endpoint
+itself) was removed shortly after as out-of-scope (`Remove out-of-scope animal adoption
+flow, tighten creation validation (#7)`), so neither exists in the codebase today; treat
+any older reference to `Adopt`/`AdoptAnimalHandler` (including in past commit messages)
+as historical, not current. `Microsoft.AspNetCore.Authentication.JwtBearer` 10.0.11 is
+now referenced in `ONG.API.csproj`. Single-organization system — there is no tenant
+isolation invariant to defend in this codebase today. Do not add tenant-scoping code
+speculatively.
 
 ## Key Patterns
 
@@ -256,7 +258,7 @@ need another update.
   `AnimalRepository` (`ONG.Infrastructure/Repositories/`), wired via
   `AddScoped<IAnimalRepository, AnimalRepository>()` in `Program.cs`.
 - **Rich domain entities** — `Animal` (`ONG.Domain/Entitites/Animal.cs`) uses
-  private setters and exposes behavior methods (`Adopt()`) rather than being an
+  private setters and exposes behavior methods (`Update(...)`) rather than being an
   anemic bag mutated externally. Follow this for new domain behavior.
 - **Enum-heavy domain vocabulary** — `Sex`, `Size`, `Species`, `Status` are
   dedicated enums in `ONG.Domain/Entitites/`, serialized as strings via
@@ -292,17 +294,16 @@ need another update.
 - DRY — reuse existing patterns (Command/Handler shape, repository interfaces)
   instead of inventing a parallel convention per feature.
 - Separation of concerns — controllers stay thin; business rules live in the
-  domain (`Animal.Adopt()`), not scattered across handlers or controllers.
+  domain (`Animal.Update(...)`), not scattered across handlers or controllers.
 - Guard clauses — validate input and fail fast; avoid deep nesting.
 - Naming clarity — no abbreviations that need a comment to decode. Note:
   `CreateAnimalCommand.approximateAge` is lowercase-first, inconsistent with the
   rest of the codebase's PascalCase properties — don't copy that casing into new
   code; treat it as an existing defect, not a convention.
 - Explicit error handling — no swallowed exceptions, no silent failures.
-  `AnimalController` currently returns bare `Ok()`/`Ok(animal)` with no
-  validation or not-found handling (e.g. `Adopt` on a non-existent id) — new
-  endpoints should not repeat this gap; handle the not-found/invalid-input case
-  explicitly rather than let it 500.
+  `AnimalController.GetById`/`Update` return a `ProblemDetails` 404 body for a
+  non-existent id (`F0005.1`, `docs/features/F0005.1-problem-details-error-responses.md`)
+  — new not-found paths should follow the same pattern rather than a bare `NotFound()`.
 - Readability & maintainability — code the next person can read without the
   author present.
 - Testability — dependencies are injectable (already true via constructor
