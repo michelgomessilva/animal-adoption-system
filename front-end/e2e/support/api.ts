@@ -1,7 +1,9 @@
 import type { APIRequestContext, APIResponse } from '@playwright/test'
 
-import type { Animal, AnimalWriteInput } from '../../src/shared/types/animal'
+import type { Animal, AnimalListQuery, AnimalWriteInput } from '../../src/shared/types/animal'
+import { toAnimalListSearchParams } from '../../src/shared/types/animal'
 
+import { randomAnimalInput } from './animal'
 import { requireE2eCredentials } from './env'
 
 const API_UNAVAILABLE_MESSAGE =
@@ -26,15 +28,19 @@ function isConnectionFailure(error: unknown): boolean {
   )
 }
 
-async function postJson(
+async function sendJson(
   request: APIRequestContext,
+  method: 'GET' | 'POST',
   url: string,
-  options: { data?: unknown; headers?: Record<string, string> },
+  options: { data?: unknown; headers?: Record<string, string>; params?: Record<string, string> },
   onFailure: (status: number, body: string) => string,
 ): Promise<APIResponse> {
   let response
   try {
-    response = await request.post(url, options)
+    response =
+      method === 'GET'
+        ? await request.get(url, { headers: options.headers, params: options.params })
+        : await request.post(url, { data: options.data, headers: options.headers })
   } catch (error: unknown) {
     if (isConnectionFailure(error)) {
       throw new Error(API_UNAVAILABLE_MESSAGE, { cause: error })
@@ -63,8 +69,9 @@ async function postJson(
 
 export async function loginViaApi(request: APIRequestContext): Promise<ApiSession> {
   const { username, password } = requireE2eCredentials()
-  const response = await postJson(
+  const response = await sendJson(
     request,
+    'POST',
     '/auth/login',
     { data: { username, password } },
     (status, body) =>
@@ -89,25 +96,13 @@ export async function loginViaApi(request: APIRequestContext): Promise<ApiSessio
 export async function createAnimalViaApi(
   request: APIRequestContext,
   token: string,
-  name: string,
   overrides: Partial<AnimalWriteInput> = {},
 ): Promise<Animal> {
-  const body: AnimalWriteInput = {
-    name,
-    species: 'Dog',
-    sex: 'Male',
-    size: 'Medium',
-    description: 'Animal criado pelo E2E do catálogo.',
-    approximateAge: 2,
-    image: '',
-    status: 'Available',
-    district: 'Centro',
-    city: 'Porto Alegre',
-    ...overrides,
-  }
+  const body = randomAnimalInput(overrides)
 
-  const response = await postJson(
+  const response = await sendJson(
     request,
+    'POST',
     '/api/animals',
     { headers: { Authorization: `Bearer ${token}` }, data: body },
     (status, errorBody) =>
@@ -115,4 +110,25 @@ export async function createAnimalViaApi(
   )
 
   return (await response.json()) as Animal
+}
+
+export async function listAnimalsViaApi(
+  request: APIRequestContext,
+  query: AnimalListQuery = {},
+  token?: string,
+): Promise<Animal[]> {
+  const params = toAnimalListSearchParams(query)
+  const response = await sendJson(
+    request,
+    'GET',
+    '/api/animals',
+    {
+      params,
+      headers: token === undefined ? undefined : { Authorization: `Bearer ${token}` },
+    },
+    (status, errorBody) =>
+      `GET /api/animals failed with ${String(status)}${errorBody ? `: ${errorBody}` : '.'}`,
+  )
+
+  return (await response.json()) as Animal[]
 }

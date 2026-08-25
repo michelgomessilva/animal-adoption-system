@@ -1,14 +1,12 @@
-import { expect, test } from '@playwright/test'
-
 import { createAnimalViaApi, loginViaApi } from './support/api'
-import { uniqueAnimalName } from './support/unique'
+import { expect, test } from './support/test'
 
 test('the public catalog shows an available pet created via the API', async ({ page, request }) => {
   const session = await loginViaApi(request)
-  const name = uniqueAnimalName()
-  await createAnimalViaApi(request, session.token, name)
+  const animal = await createAnimalViaApi(request, session.token)
 
   await page.goto('/')
 
-  await expect(page.getByRole('heading', { name, level: 2 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: animal.name, level: 2 })).toBeVisible()
+  await expect(page.getByText(animal.city, { exact: true }).first()).toBeVisible()
 })

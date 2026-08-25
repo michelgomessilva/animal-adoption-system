@@ -1,27 +1,25 @@
-import { expect, test } from '@playwright/test'
-
 import { loginViaApi } from './support/api'
+import { filterLabel, randomAnimalInput } from './support/animal'
 import { injectSession } from './support/session'
-import { uniqueAnimalName } from './support/unique'
+import { expect, test } from './support/test'
+import { fillWizardSteps } from './support/wizard'
 
 test('staff can register a pet through the wizard', async ({ page, request }) => {
   const session = await loginViaApi(request)
   await injectSession(page, session)
 
-  const name = uniqueAnimalName()
+  const input = randomAnimalInput()
 
   await page.goto('/panel/animals/new')
-  await page.locator('input[name="name"]').fill(name)
-  await page.locator('input[name="approximateAge"]').fill('3')
-  await page.getByRole('button', { name: 'Continuar' }).click()
-
-  await page.locator('textarea[name="description"]').fill('Pet cadastrado pelo teste E2E.')
-  await page.getByRole('button', { name: 'Continuar' }).click()
-
-  await page.locator('input[name="district"]').fill('Centro')
-  await page.locator('input[name="city"]').fill('Porto Alegre')
+  await fillWizardSteps(page, input)
   await page.getByRole('button', { name: 'Cadastrar' }).click()
 
   await expect(page).toHaveURL(/\/panel\/animals/)
-  await expect(page.getByRole('cell', { name })).toBeVisible()
+
+  const row = page.getByRole('row', { name: input.name })
+  await expect(row.getByRole('cell', { name: input.name, exact: true })).toBeVisible()
+  await expect(row.getByRole('cell', { name: filterLabel('species', input.species) })).toBeVisible()
+  await expect(row.getByRole('cell', { name: filterLabel('sex', input.sex) })).toBeVisible()
+  await expect(row.getByRole('cell', { name: filterLabel('size', input.size) })).toBeVisible()
+  await expect(row.getByRole('cell', { name: input.city, exact: true })).toBeVisible()
 })
