@@ -43,7 +43,8 @@ namespace ONG.Tests.Api
             Image = "https://example.com/dog.jpg",
             Status = "Available",
             District = "Centro",
-            City = "Sao Paulo"
+            City = "Sao Paulo",
+            Parish = "Se"
         };
 
         private async Task<string> GetValidTokenAsync()
@@ -185,7 +186,8 @@ namespace ONG.Tests.Api
                 Image = "https://example.com/animal.jpg",
                 Status = status,
                 District = district,
-                City = "Sao Paulo"
+                City = "Sao Paulo",
+                Parish = "Se"
             };
             var response = await _client.PostAsJsonAsync("/api/animals", body);
             var created = await response.Content.ReadFromJsonAsync<JsonElement>();
