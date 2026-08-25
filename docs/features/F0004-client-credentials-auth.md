@@ -16,7 +16,7 @@
 | ID       | F0004                                   |
 | Slug     | client-credentials-auth                 |
 | Domain   | Authentication (application/client identity) |
-| Status   | in progress (F0004.1 delivered — implemented, `code-reviewer` APPROVED, 87/87 tests green, PR to `main` pending; F0004.2 implemented — 104/104 tests green, PR to `main` pending) |
+| Status   | in progress — both slices delivered (F0004.1 delivered — implemented, `code-reviewer` APPROVED, 87/87 tests green, PR to `main` pending; F0004.2 delivered — implemented, `code-reviewer` APPROVED (post-fix), `secret-scanner`/`injection-reviewer` clean, manual Docker smoke test passed, 105/105 tests green, PR to `main` pending — final slice); feature closes once both PRs merge |
 | PROJECT  | `docs/product/PROJECT-api-security-hardening.md` (Sprint S01) |
 | Updated  | 2026-08-25                              |
 
@@ -214,7 +214,7 @@ with no environment to stage the pairing in first. See FR5 below.
 | Slice    | Slug                       | Short description                              | Status      |
 | -------- | -------------------------- | ---------------------------------------------- | ----------- |
 | F0004.1  | client-entity-and-token-issuance | Config-sourced `client_id`/`client_secret` (no DB entity, revised 2026-08-25) + `POST /oauth/token` issuance endpoint. | delivered — implemented, `code-reviewer` APPROVED, 87/87 tests green, PR to `main` pending |
-| F0004.2  | client-token-enforcement  | Global enforcement layer applied to every route (except the token endpoint), including malformed-header handling. Gated behind a default-disabled env flag per FR5 (2026-08-25 addendum) — no dev/staging environment exists to stage this against the front-end otherwise. Revocation semantics deferred with FR4 (2026-08-25 scope revision). Client token transport revised mid-implementation (2026-08-25) to a dedicated `X-Client-Token` header instead of `Authorization`, to coexist with the admin JWT on the same request. | implemented — `dotnet build`/`dotnet test` green (104/104, `Category!=Integration`), production diff 153 lines (well under ~400 budget); PR to `main` pending |
+| F0004.2  | client-token-enforcement  | Global enforcement layer applied to every route (except the token endpoint), including malformed-header handling. Gated behind a default-disabled env flag per FR5 (2026-08-25 addendum) — no dev/staging environment exists to stage this against the front-end otherwise. Revocation semantics deferred with FR4 (2026-08-25 scope revision). Client token transport revised mid-implementation (2026-08-25) to a dedicated `X-Client-Token` header instead of `Authorization`, to coexist with the admin JWT on the same request. | delivered — implemented, `code-reviewer` APPROVED (one minor finding fixed in `4c312cd`, one enhancement added in `f69ba31`), `secret-scanner`/`injection-reviewer` clean, manual Docker smoke test passed both `ClientAuth:EnforcementEnabled` states (all 6 expected HTTP status codes confirmed), `dotnet build`/`dotnet test` green (105/105, `Category!=Integration`), production diff 160 lines (well under ~400 budget); PR to `main` pending |
 
 > Each slice should be independently shippable and reviewable. If a planned slice
 > looks like it will exceed ~400 lines of diff, split it into two.
