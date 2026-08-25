@@ -27,7 +27,10 @@ namespace ONG.Tests.Api
                     ["Jwt:Issuer"] = "ong-api-tests",
                     ["Jwt:ExpiryMinutes"] = "60",
                     ["PasswordHasher:IterationCount"] = "100000",
-                    ["PasswordHasher:CompatibilityMode"] = "IdentityV3"
+                    ["PasswordHasher:CompatibilityMode"] = "IdentityV3",
+                    ["ClientCredentials:ClientId"] = "front-web",
+                    ["ClientCredentials:ClientSecret"] = "test-only-client-secret-16chars",
+                    ["ClientCredentials:ExpiryMinutes"] = "15"
                 });
             });
 
