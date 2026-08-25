@@ -41,13 +41,13 @@ namespace ONG.Tests.Application
         {
             new Animal("Rex", Species.Dog, Sex.Male, Size.Medium, 2,
                 "Friendly dog", "https://example.com/dog.jpg",
-                Status.Available, "Centro", "Sao Paulo"),
+                Status.Available, "Centro", "Sao Paulo", "Sé"),
             new Animal("Mia", Species.Cat, Sex.Female, Size.Small, 1,
                 "Calm cat", "https://example.com/cat.jpg",
-                Status.Adopted, "Centro", "Sao Paulo"),
+                Status.Adopted, "Centro", "Sao Paulo", "Sé"),
             new Animal("Bob", Species.Dog, Sex.Male, Size.Large, 5,
                 "Old dog", "https://example.com/bob.jpg",
-                Status.None, "Centro", "Sao Paulo"),
+                Status.None, "Centro", "Sao Paulo", "Sé"),
         };
 
         [Fact]

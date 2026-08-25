@@ -20,7 +20,8 @@ namespace ONG.Tests.Application
             Image = "https://example.com/dog.jpg",
             Status = Status.Available,
             District = "Centro",
-            City = "Sao Paulo"
+            City = "Sao Paulo",
+            Parish = "Sé"
         };
 
         [Theory]

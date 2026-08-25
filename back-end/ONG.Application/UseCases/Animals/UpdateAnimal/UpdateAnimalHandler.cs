@@ -41,7 +41,8 @@ namespace ONG.Application.UseCases.Animals.UpdateAnimal
                 command.Image,
                 command.Status,
                 command.District,
-                command.City
+                command.City,
+                command.Parish
         );
 
             _repository.SaveChanges();
