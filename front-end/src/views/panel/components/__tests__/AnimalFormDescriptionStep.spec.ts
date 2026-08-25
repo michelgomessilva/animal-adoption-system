@@ -1,13 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import AnimalCreateDescriptionStep from '@/views/panel/components/AnimalCreateDescriptionStep.vue'
-import { createEmptyDraft } from '@/views/panel/composables/useAnimalCreateWizard'
+import AnimalFormDescriptionStep from '@/views/panel/components/AnimalFormDescriptionStep.vue'
+import { createEmptyDraft } from '@/views/panel/composables/useAnimalFormWizard'
 
-describe('AnimalCreateDescriptionStep', () => {
+describe('AnimalFormDescriptionStep', () => {
   it('updates description and image URL', async () => {
     const model = createEmptyDraft()
-    const wrapper = mount(AnimalCreateDescriptionStep, {
+    const wrapper = mount(AnimalFormDescriptionStep, {
       props: { modelValue: model },
     })
 
@@ -21,7 +21,7 @@ describe('AnimalCreateDescriptionStep', () => {
 
   it('has no file input and no preview without a URL', () => {
     const model = createEmptyDraft()
-    const wrapper = mount(AnimalCreateDescriptionStep, {
+    const wrapper = mount(AnimalFormDescriptionStep, {
       props: { modelValue: model },
     })
 

@@ -7,6 +7,8 @@ import { createTestRouter, mountWithPlugins } from '@/__tests__/helpers'
 vi.mock('@/shared/api/animals', () => ({
   listAnimals: vi.fn<() => Promise<never[]>>().mockResolvedValue([]),
   createAnimal: vi.fn<() => Promise<never>>(),
+  getAnimalById: vi.fn<() => Promise<never>>(),
+  updateAnimal: vi.fn<() => Promise<never>>(),
 }))
 
 describe('PanelLayout', () => {

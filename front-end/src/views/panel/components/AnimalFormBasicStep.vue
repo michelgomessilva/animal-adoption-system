@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { CreateAnimalInput } from '@/shared/api/animals'
+import type { AnimalWriteInput } from '@/shared/types/animal'
 import type { AnimalSex, AnimalSize, AnimalSpecies } from '@/shared/types/animal'
 import { animalSexLabel, animalSizeLabel, animalSpeciesLabel } from '@/shared/types/animal-labels'
-import { ANIMAL_AGE_MAX, ANIMAL_NAME_MAX } from '@/views/panel/composables/useAnimalCreateWizard'
+import { ANIMAL_AGE_MAX, ANIMAL_NAME_MAX } from '@/views/panel/composables/useAnimalFormWizard'
 
-const model = defineModel<CreateAnimalInput>({ required: true })
+const model = defineModel<AnimalWriteInput>({ required: true })
 
 const speciesOptions: AnimalSpecies[] = ['Dog', 'Cat']
 const sizeOptions: AnimalSize[] = ['Small', 'Medium', 'Large']

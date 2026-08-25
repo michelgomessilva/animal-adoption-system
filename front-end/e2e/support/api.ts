@@ -1,26 +1,8 @@
 import type { APIRequestContext, APIResponse } from '@playwright/test'
 
-import type {
-  AnimalSex,
-  AnimalSize,
-  AnimalSpecies,
-  AnimalStatus,
-} from '../../src/shared/types/animal'
+import type { Animal, AnimalWriteInput } from '../../src/shared/types/animal'
 
 import { requireE2eCredentials } from './env'
-
-interface CreateAnimalPayload {
-  name: string
-  species: AnimalSpecies
-  sex: AnimalSex
-  size: AnimalSize
-  description: string
-  approximateAge: number
-  image: string
-  status: AnimalStatus
-  district: string
-  city: string
-}
 
 const API_UNAVAILABLE_MESSAGE =
   'A API não está acessível. Suba o backend antes dos E2E (ver e2e/README.md).'
@@ -108,8 +90,8 @@ export async function createAnimalViaApi(
   request: APIRequestContext,
   token: string,
   name: string,
-): Promise<void> {
-  const body: CreateAnimalPayload = {
+): Promise<Animal> {
+  const body: AnimalWriteInput = {
     name,
     species: 'Dog',
     sex: 'Male',
@@ -122,11 +104,13 @@ export async function createAnimalViaApi(
     city: 'Porto Alegre',
   }
 
-  await postJson(
+  const response = await postJson(
     request,
     '/api/animals',
     { headers: { Authorization: `Bearer ${token}` }, data: body },
     (status, errorBody) =>
       `POST /api/animals failed with ${String(status)}${errorBody ? `: ${errorBody}` : '.'}`,
   )
+
+  return (await response.json()) as Animal
 }

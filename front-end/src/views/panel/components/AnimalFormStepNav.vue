@@ -3,7 +3,7 @@ import {
   WIZARD_STEP_META,
   WIZARD_STEPS,
   type WizardStep,
-} from '@/views/panel/composables/useAnimalCreateWizard'
+} from '@/views/panel/composables/useAnimalFormWizard'
 
 const props = defineProps<{
   currentStep: WizardStep

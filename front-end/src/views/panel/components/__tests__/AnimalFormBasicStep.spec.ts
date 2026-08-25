@@ -1,13 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import AnimalCreateBasicStep from '@/views/panel/components/AnimalCreateBasicStep.vue'
-import { createEmptyDraft } from '@/views/panel/composables/useAnimalCreateWizard'
+import AnimalFormBasicStep from '@/views/panel/components/AnimalFormBasicStep.vue'
+import { createEmptyDraft } from '@/views/panel/composables/useAnimalFormWizard'
 
-describe('AnimalCreateBasicStep', () => {
+describe('AnimalFormBasicStep', () => {
   it('sets species to Cat when Gato is selected', async () => {
     const model = createEmptyDraft()
-    const wrapper = mount(AnimalCreateBasicStep, {
+    const wrapper = mount(AnimalFormBasicStep, {
       props: { modelValue: model },
     })
 
@@ -23,7 +23,7 @@ describe('AnimalCreateBasicStep', () => {
   })
 
   it('limits age to 30 and name to 20', () => {
-    const wrapper = mount(AnimalCreateBasicStep, {
+    const wrapper = mount(AnimalFormBasicStep, {
       props: { modelValue: createEmptyDraft() },
     })
 

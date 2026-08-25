@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CreateAnimalInput } from '@/shared/api/animals'
+import type { AnimalWriteInput } from '@/shared/types/animal'
 import type { AnimalStatus } from '@/shared/types/animal'
 import {
   animalSexLabel,
@@ -7,9 +7,9 @@ import {
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
-import { ANIMAL_LOCATION_MAX } from '@/views/panel/composables/useAnimalCreateWizard'
+import { ANIMAL_LOCATION_MAX } from '@/views/panel/composables/useAnimalFormWizard'
 
-const model = defineModel<CreateAnimalInput>({ required: true })
+const model = defineModel<AnimalWriteInput>({ required: true })
 
 const statusOptions: AnimalStatus[] = ['Available', 'Adopted']
 </script>

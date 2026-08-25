@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type { CreateAnimalInput } from '@/shared/api/animals'
+import type { AnimalWriteInput } from '@/shared/types/animal'
 import AnimalImage from '@/shared/components/AnimalImage.vue'
-import { ANIMAL_DESCRIPTION_MAX } from '@/views/panel/composables/useAnimalCreateWizard'
+import { ANIMAL_DESCRIPTION_MAX } from '@/views/panel/composables/useAnimalFormWizard'
 
-const model = defineModel<CreateAnimalInput>({ required: true })
+const model = defineModel<AnimalWriteInput>({ required: true })
 
 const hasImageUrl = computed(() => model.value.image.trim().length > 0)
 </script>

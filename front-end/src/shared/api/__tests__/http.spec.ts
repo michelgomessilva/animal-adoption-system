@@ -159,6 +159,20 @@ describe('apiRequest', () => {
     })
   })
 
+  it('throws not-found on 404', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 404 })),
+    )
+
+    await expect(
+      apiRequest('api/animals/11111111-1111-1111-1111-111111111111'),
+    ).rejects.toMatchObject({
+      code: 'not-found',
+      status: 404,
+    } satisfies Partial<ApiError>)
+  })
+
   it('throws unknown on a non-401 error status', async () => {
     vi.stubGlobal(
       'fetch',

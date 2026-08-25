@@ -61,6 +61,10 @@ const api = ky.create({
             }
           }
 
+          if (error.response.status === 404) {
+            return new ApiError('not-found', 404, 'Not found')
+          }
+
           return new ApiError('unknown', error.response.status, 'Request failed')
         }
 

@@ -9,6 +9,8 @@ import { AUTH_SESSION_KEY, useAuthStore } from '@/shared/stores/auth.store'
 vi.mock('@/shared/api/animals', () => ({
   listAnimals: vi.fn<() => Promise<never[]>>().mockResolvedValue([]),
   createAnimal: vi.fn<() => Promise<never>>(),
+  getAnimalById: vi.fn<() => Promise<never>>(),
+  updateAnimal: vi.fn<() => Promise<never>>(),
 }))
 
 async function createGuardedRouter() {
@@ -54,5 +56,16 @@ describe('router guards', () => {
 
     expect(router.currentRoute.value.name).toBe('login')
     expect(router.currentRoute.value.query.redirect).toBe('/panel/animals/new')
+  })
+
+  it('sends anonymous users from the edit page to login with redirect', async () => {
+    const router = await createGuardedRouter()
+    const editPath = '/panel/animals/11111111-1111-1111-1111-111111111111/edit'
+
+    await router.push(editPath)
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query.redirect).toBe(editPath)
   })
 })

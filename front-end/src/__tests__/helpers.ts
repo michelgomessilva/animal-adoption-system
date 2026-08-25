@@ -45,6 +45,11 @@ export const stubRoutes: RouteRecordRaw[] = [
     name: 'panel-animals-new',
     component: { template: '<div>cadastro</div>' },
   },
+  {
+    path: '/panel/animals/:id/edit',
+    name: 'panel-animals-edit',
+    component: { template: '<div>edicao</div>' },
+  },
 ]
 
 export async function createTestRouter(routes: RouteRecordRaw[] = stubRoutes): Promise<Router> {

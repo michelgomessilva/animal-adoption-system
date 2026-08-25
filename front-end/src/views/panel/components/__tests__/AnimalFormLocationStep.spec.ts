@@ -1,13 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import AnimalCreateLocationStep from '@/views/panel/components/AnimalCreateLocationStep.vue'
-import { createEmptyDraft } from '@/views/panel/composables/useAnimalCreateWizard'
+import AnimalFormLocationStep from '@/views/panel/components/AnimalFormLocationStep.vue'
+import { createEmptyDraft } from '@/views/panel/composables/useAnimalFormWizard'
 
-describe('AnimalCreateLocationStep', () => {
+describe('AnimalFormLocationStep', () => {
   it('updates city, district, and status', async () => {
     const model = createEmptyDraft()
-    const wrapper = mount(AnimalCreateLocationStep, {
+    const wrapper = mount(AnimalFormLocationStep, {
       props: { modelValue: model },
     })
 
@@ -27,7 +27,7 @@ describe('AnimalCreateLocationStep', () => {
   it('shows the review name without a state field', () => {
     const model = createEmptyDraft()
     model.name = 'Luna'
-    const wrapper = mount(AnimalCreateLocationStep, {
+    const wrapper = mount(AnimalFormLocationStep, {
       props: { modelValue: model },
     })
 

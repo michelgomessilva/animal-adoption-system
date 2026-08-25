@@ -56,6 +56,7 @@ const countLabel = computed(() => {
             <th>Porte</th>
             <th>Situação</th>
             <th>Cidade</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -85,6 +86,15 @@ const countLabel = computed(() => {
               </span>
             </td>
             <td>{{ animal.city }}</td>
+            <td>
+              <RouterLink
+                :to="{ name: 'panel-animals-edit', params: { id: animal.id } }"
+                class="btn btn-ghost btn-sm"
+              >
+                <AppIcon name="pencil" />
+                Editar
+              </RouterLink>
+            </td>
           </tr>
         </tbody>
       </table>

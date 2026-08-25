@@ -28,6 +28,11 @@ describe('AnimalListPage', () => {
     expect(wrapper.get('a.btn-primary').text()).toContain('Cadastrar pet')
     expect(wrapper.get('a.btn-primary').attributes('href')).toBe('/panel/animals/new')
     expect(wrapper.find('[data-icon="plus"]').exists()).toBe(true)
+    expect(wrapper.get('a.btn-ghost').text()).toContain('Editar')
+    expect(wrapper.get('a.btn-ghost').attributes('href')).toBe(
+      '/panel/animals/11111111-1111-1111-1111-111111111111/edit',
+    )
+    expect(wrapper.find('[data-icon="pencil"]').exists()).toBe(true)
   })
 
   it('shows an empty state', async () => {

@@ -3,10 +3,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { documentTitleFor } from '@/router/document-title'
 import { routes } from '@/router/routes'
+import type { Animal } from '@/shared/types/animal'
 
 vi.mock('@/shared/api/animals', () => ({
   listAnimals: vi.fn<() => Promise<never[]>>().mockResolvedValue([]),
   createAnimal: vi.fn<() => Promise<never>>(),
+  getAnimalById: vi.fn<() => Promise<Animal>>(),
+  updateAnimal: vi.fn<() => Promise<never>>(),
 }))
 
 describe('documentTitleFor', () => {
@@ -33,5 +36,8 @@ describe('document title after navigation', () => {
 
     await router.push('/panel/animals')
     expect(document.title).toBe('Meus pets — POA')
+
+    await router.push('/panel/animals/11111111-1111-1111-1111-111111111111/edit')
+    expect(document.title).toBe('Editar pet — POA')
   })
 })

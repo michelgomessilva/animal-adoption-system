@@ -61,7 +61,7 @@ src/
 │   ├── public/             # site público (layout, chrome, páginas, login)
 │   └── panel/              # área autenticada
 ├── shared/
-│   ├── api/                # http, login, listAnimals, createAnimal
+│   ├── api/                # http, login, listAnimals, getAnimalById, createAnimal, updateAnimal
 │   ├── components/         # BrandLogo, AppIcon, AnimalImage
 │   ├── composables/        # useAnimalsList
 │   ├── config/             # VITE_API_BASE_URL (fallback: page origin)
@@ -81,9 +81,14 @@ O cliente HTTP ([ky](https://github.com/sindresorhus/ky)) usa `VITE_API_BASE_URL
 
 Auth: `POST /auth/login` com `username` e `password` devolve `{ token }`. A sessão fica em `localStorage` (Manter conectado) ou `sessionStorage`. O cliente envia `Authorization: Bearer`. JWT vale 60 minutos; não há refresh — um 401 autenticado faz logout e volta ao login.
 
-Cadastro de animais: `POST /api/animals` (Bearer, resposta **201**). O painel usa um wizard em `/panel/animals/new` com três etapas ativas: Dados básicos → Descrição e foto → Localização e revisão. `image` é URL opcional (string vazia se não houver foto); **não há upload**. Fotos usam `AnimalImage` (URL válida ou fallback por espécie). Pedidos de adoção e Perfil da ONG continuam faded com “Em breve”.
+Cadastro e edição de animais compartilham o body `AnimalWriteInput` e o mesmo wizard de três etapas (Dados básicos → Descrição e foto → Localização e revisão):
 
-Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/panel/animals` (Meus pets), `/panel/animals/new`. Aliases: `/adotar` → `/`, `/login` → `/entrar`. A área da ONG entra pelo login; não há auto-cadastro.
+- `POST /api/animals` (Bearer, **201**) em `/panel/animals/new`
+- `GET /api/animals/{id}` + `PUT /api/animals/{id}` (Bearer, **200**) em `/panel/animals/:id/edit`
+
+`image` é URL opcional (string vazia se não houver foto); **não há upload**. Fotos usam `AnimalImage` (URL válida ou fallback por espécie). A lista em Meus pets tem o link **Editar** por linha. Pedidos de adoção e Perfil da ONG continuam faded com “Em breve”.
+
+Rotas: `/` (catálogo), `/ongs`, `/como-funciona`, `/entrar`, `/panel/animals` (Meus pets), `/panel/animals/new`, `/panel/animals/:id/edit`. Aliases: `/adotar` → `/`, `/login` → `/entrar`. A área da ONG entra pelo login; não há auto-cadastro.
 
 ## Tailwind CSS e daisyUI
 

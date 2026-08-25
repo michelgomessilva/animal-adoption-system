@@ -1,32 +1,24 @@
 import { apiRequest } from '@/shared/api/http'
-import type {
-  Animal,
-  AnimalSex,
-  AnimalSize,
-  AnimalSpecies,
-  AnimalStatus,
-} from '@/shared/types/animal'
-
-export interface CreateAnimalInput {
-  name: string
-  species: AnimalSpecies
-  sex: AnimalSex
-  size: AnimalSize
-  description: string
-  approximateAge: number
-  image: string
-  status: AnimalStatus
-  district: string
-  city: string
-}
+import type { Animal, AnimalWriteInput } from '@/shared/types/animal'
 
 export function listAnimals(): Promise<Animal[]> {
   return apiRequest<Animal[]>('api/animals')
 }
 
-export function createAnimal(input: CreateAnimalInput): Promise<Animal> {
+export function getAnimalById(id: string): Promise<Animal> {
+  return apiRequest<Animal>(`api/animals/${id}`)
+}
+
+export function createAnimal(input: AnimalWriteInput): Promise<Animal> {
   return apiRequest<Animal>('api/animals', {
     method: 'POST',
+    body: input,
+  })
+}
+
+export function updateAnimal(id: string, input: AnimalWriteInput): Promise<Animal> {
+  return apiRequest<Animal>(`api/animals/${id}`, {
+    method: 'PUT',
     body: input,
   })
 }
