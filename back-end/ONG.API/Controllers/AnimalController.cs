@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ONG.Application.UseCases.Animals.CreateAnimal;
-using ONG.Application.UseCases.Animals.ListAnimals;
 using ONG.Application.UseCases.Animals.GetAnimalById;
+using ONG.Application.UseCases.Animals.ListAnimals;
+using ONG.Application.UseCases.Animals.UpdateAnimal;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ONG.API.Controllers
 {
@@ -13,15 +15,18 @@ namespace ONG.API.Controllers
         private readonly GetAnimalByIdHandler _getByIdHandler;
         private readonly CreateAnimalHandler _handler;
         private readonly ListAnimalsHandler _listHandler;
+        private readonly UpdateAnimalHandler _updateHandler;
 
         public AnimalController(
-            CreateAnimalHandler handler, 
+            CreateAnimalHandler handler,
             ListAnimalsHandler listHandler,
-            GetAnimalByIdHandler getByIdHandler)
+            GetAnimalByIdHandler getByIdHandler,
+            UpdateAnimalHandler updateHandler)
         {
             _handler = handler;
             _listHandler = listHandler;
             _getByIdHandler = getByIdHandler;
+            _updateHandler = updateHandler;
         }
 
         [Authorize]
@@ -29,9 +34,9 @@ namespace ONG.API.Controllers
         public IActionResult Create(CreateAnimalCommand command)
         {
 
-                var animal = _handler.Handle(command);
+            var animal = _handler.Handle(command);
 
-                return StatusCode(201, animal);
+            return StatusCode(201, animal);
         }
 
         [HttpGet]
@@ -55,6 +60,19 @@ namespace ONG.API.Controllers
             };
 
             var animal = _getByIdHandler.Handle(query);
+
+            if (animal is null)
+                return NotFound();
+
+            return Ok(animal);
+        }
+        [Authorize]
+        [HttpPut("{id}")]
+        public IActionResult Update(Guid id, UpdateAnimalCommand command)
+        {
+            command.Id = id;
+
+            var animal = _updateHandler.Handle(command);
 
             if (animal is null)
                 return NotFound();
