@@ -89,17 +89,45 @@ Existem dois jeitos de rodar o projeto — escolha o que fizer mais sentido pro 
    apontando a variável faltante — nenhum valor placeholder é usado como fallback.
 
    Existem quatro grupos de segredos (`POSTGRES_PASSWORD`, usuário/senha do `AdminSeed`,
-   `Jwt:Key`, `client_id`/`client_secret` do `ClientCredentials`) e três lugares onde cada
-   um mora, sem compartilhar armazenamento entre si — nenhum é commitado no git:
+   `Jwt:Key`, `client_id`/`client_secret` do `ClientCredentials`), cada um podendo viver em
+   até três lugares diferentes, sem compartilhar armazenamento entre si — nenhum é
+   commitado no git. A tabela abaixo é organizada **por chave** (uma linha por segredo),
+   pra deixar óbvio o nome exato a usar em cada lugar — em especial no Render, onde dá pra
+   simplesmente consultar a linha certa:
 
-   | Ambiente | Onde os segredos moram | Chaves de configuração |
-   |---|---|---|
-   | Local (dev) | `back-end/.env` (git-ignorado; copie de `back-end/.env.example`), lido pelo `docker-compose.yml`. O fluxo com a API rodando no host (`dotnet run --project ONG.API` contra o Postgres em Docker) usa, em vez disso, o ASP.NET Core User Secrets (`dotnet user-secrets set ...`, ver Opção A abaixo) — os dois armazenamentos são independentes, mantenha-os sincronizados manualmente. | `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD`, `JWT_KEY`, `CLIENT_ID`/`CLIENT_SECRET` (`.env`) — mapeiam para `AdminSeed:Username`/`AdminSeed:Password`/`Jwt:Key`/`ClientCredentials:ClientId`/`ClientCredentials:ClientSecret` (User Secrets / `IConfiguration`; forma de variável de ambiente com `__` duplo, ex. `AdminSeed__Password`) |
-   | CI (`.github/workflows/backend-docker.yml`) | Secrets do repositório no GitHub, referenciados como `${{ secrets.* }}` no job `docker-smoke-test`. Obrigatórios: `CI_POSTGRES_PASSWORD`, `CI_ADMIN_SEED_PASSWORD`, `CI_JWT_KEY`, `CI_CLIENT_SECRET` (Settings → Secrets and variables → Actions → Secrets). Mais duas **variáveis** não sensíveis (mesmo caminho → Variables, não Secrets): `CI_ADMIN_SEED_USERNAME`, `CI_CLIENT_ID`. Esses valores alimentam um banco de dados descartável e efêmero só do CI — nunca reaproveite como credenciais reais em outro lugar. Separadamente, o job `deploy-render` precisa do seu próprio secret `RENDER_DEPLOY_HOOK_URL`. | As mesmas chaves acima, injetadas como env vars do job, para que a interpolação do `docker compose` (`${POSTGRES_PASSWORD:?...}` no `docker-compose.yml`) e os passos de `dotnet ef`/`dotnet test` resolvam tudo de forma consistente. |
-   | Produção (Render, ainda não implantado) | Render dashboard → serviço → Environment. O Render builda direto do `ONG.API/Dockerfile` e nunca lê `docker-compose.yml` nem `.env` — só as env vars reais do serviço importam. Precisa do seu próprio add-on gerenciado de Postgres (connection string própria, sem relação com os valores `POSTGRES_*` locais/CI) e de valores de produção para `AdminSeed:Password`/`Jwt:Key`/`ClientCredentials:ClientSecret`, distintos de local e CI. Não precisa de passo manual de migration — a API aplica migrations pendentes sozinha na inicialização (ver passo 4 da Opção A). | `ConnectionStrings__DefaultConnection`, `AdminSeed__Username`, `AdminSeed__Password`, `Jwt__Key`, `ClientCredentials__ClientId`, `ClientCredentials__ClientSecret` (`Jwt__Issuer`/`Jwt__ExpiryMinutes`/`ClientCredentials__ExpiryMinutes` já têm defaults seguros em `appsettings.json` e não precisam ser sobrescritos). |
+   | Chave (`IConfiguration`) | Local — User Secrets (`dotnet run`) | Docker — `.env` (`docker-compose`) | Render (variável no dashboard) |
+   |---|---|---|---|
+   | `ConnectionStrings:DefaultConnection` | montada à mão com os 3 valores de Postgres abaixo + `localhost` (ver passo 3 da Opção A) | montada automaticamente pelo `docker-compose.yml` a partir das 3 variáveis abaixo | `ConnectionStrings__DefaultConnection` — copiada do add-on gerenciado de Postgres do Render, sem relação com os valores `POSTGRES_*` locais |
+   | Usuário do Postgres | *(n/a — faz parte da connection string acima)* | `POSTGRES_USER` | *(gerenciado pelo add-on Postgres do Render)* |
+   | Senha do Postgres | *(n/a — faz parte da connection string acima)* | `POSTGRES_PASSWORD` | *(gerenciado pelo add-on Postgres do Render)* |
+   | Nome do banco | *(n/a — faz parte da connection string acima)* | `POSTGRES_DB` | *(gerenciado pelo add-on Postgres do Render)* |
+   | Usuário admin seedado | `AdminSeed:Username` | `ADMIN_SEED_USERNAME` | `AdminSeed__Username` |
+   | Senha do admin seedado | `AdminSeed:Password` | `ADMIN_SEED_PASSWORD` | `AdminSeed__Password` |
+   | Chave de assinatura JWT | `Jwt:Key` | `JWT_KEY` | `Jwt__Key` |
+   | Client ID OAuth (`F0004.1`) | `ClientCredentials:ClientId` | `CLIENT_ID` | `ClientCredentials__ClientId` |
+   | Client Secret OAuth (`F0004.1`) | `ClientCredentials:ClientSecret` | `CLIENT_SECRET` | `ClientCredentials__ClientSecret` |
 
-   Detalhe adicional de contexto (CI/CD, deploy hook do Render etc.) em `CLAUDE.md` →
-   "Secrets & Deployment Configuration".
+   Algumas chaves não são secretas e já vêm com um default seguro em `appsettings.json` —
+   não precisam ser configuradas em lugar nenhum: `Jwt:Issuer` (`ong-api`),
+   `Jwt:ExpiryMinutes` (`60`), `ClientCredentials:ExpiryMinutes` (`15`),
+   `PasswordHasher:IterationCount` (`100000`) e `PasswordHasher:CompatibilityMode`
+   (`IdentityV3`).
+
+   O Render **já está em produção, rodando há bastante tempo** — ele builda direto do
+   `ONG.API/Dockerfile` e nunca lê `docker-compose.yml` nem `.env`; só as env vars reais
+   configuradas no serviço (dashboard → serviço → Environment) importam. Nenhum passo
+   manual de migration é necessário lá — a API aplica migrations pendentes sozinha na
+   inicialização, mesmo mecanismo do passo 4 da Opção A.
+
+   O pipeline de CI (GitHub Actions, `.github/workflows/backend-docker.yml`) usa seu
+   próprio conjunto de segredos, prefixados com `CI_` (`CI_POSTGRES_PASSWORD`,
+   `CI_ADMIN_SEED_PASSWORD`, `CI_JWT_KEY`, `CI_CLIENT_SECRET`) e variáveis não sensíveis
+   (`CI_ADMIN_SEED_USERNAME`, `CI_CLIENT_ID`), configurados em Settings → Secrets and
+   variables → Actions do repositório — alimentam um banco de dados descartável, só do CI,
+   nunca reaproveitados como credenciais reais em outro lugar. Separadamente, o job
+   `deploy-render` usa o secret `RENDER_DEPLOY_HOOK_URL` (URL do Deploy Hook do próprio
+   Render) pra disparar o deploy depois que o smoke test do CI passa — não é configuração
+   da aplicação, é só o gatilho do deploy.
 
 Opção A — Desenvolvimento local
 

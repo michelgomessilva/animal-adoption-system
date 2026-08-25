@@ -90,15 +90,49 @@ needs the schema applied before the app's own startup path runs.
 
 ## Secrets & Deployment Configuration
 
-Three separate places hold the same four secret groups (`POSTGRES_PASSWORD`, `AdminSeed`
+Four separate places can hold a given secret (`POSTGRES_PASSWORD`, `AdminSeed`
 username/password, `Jwt:Key`, `ClientCredentials` client id/secret) — none of them share
-storage, and none of them are committed to git:
+storage, and none of them are committed to git. Table below is organized **by config
+key**, one row per secret, so the exact name to use in each place is a single lookup —
+no source is more current than this table; there is no "see CLAUDE.md" pointer anywhere
+else that could drift from it.
 
-| Environment | Where secrets live | Config keys |
-|---|---|---|
-| Local dev | `back-end/.env` (git-ignored; copy from `back-end/.env.example`), read by `docker-compose.yml`. The host-run path (`dotnet run --project ONG.API` against dockerized Postgres) instead uses ASP.NET Core User Secrets (`dotnet user-secrets set ...`, see Commands above) — the two stores are independent, keep them in sync by hand. | `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, `ADMIN_SEED_USERNAME`/`ADMIN_SEED_PASSWORD`, `JWT_KEY`, `CLIENT_ID`/`CLIENT_SECRET` (`.env`) — map to `AdminSeed:Username`/`AdminSeed:Password`/`Jwt:Key`/`ClientCredentials:ClientId`/`ClientCredentials:ClientSecret` (User Secrets / `IConfiguration`, double-underscore env-var form `AdminSeed__Password` etc.) |
-| CI (`.github/workflows/backend-docker.yml`) | GitHub repo secrets, referenced as `${{ secrets.* }}` in the `docker-smoke-test` job. Required: `CI_POSTGRES_PASSWORD`, `CI_ADMIN_SEED_PASSWORD`, `CI_JWT_KEY`, `CI_CLIENT_SECRET` (Settings → Secrets and variables → Actions → Secrets). Plus two non-sensitive repo **variables** (same path → Variables, not Secrets, since they're not sensitive): `CI_ADMIN_SEED_USERNAME`, `CI_CLIENT_ID`, referenced as `${{ vars.CI_ADMIN_SEED_USERNAME }}`/`${{ vars.CI_CLIENT_ID }}`. These back an ephemeral, throwaway CI database — never reuse them as real credentials anywhere else. Separately, the `deploy-render` job needs its own repo secret `RENDER_DEPLOY_HOOK_URL` — unrelated to the five above, see CI section below. | Same config keys as above, injected as job-level env vars so `docker compose`'s interpolation (`${POSTGRES_PASSWORD:?...}` in `docker-compose.yml`) and the `dotnet ef`/`dotnet test` steps' explicit `ConnectionStrings__DefaultConnection` all resolve consistently. |
-| Production (Render, not yet deployed) | Render dashboard → service → Environment. Render builds directly from `ONG.API/Dockerfile` and never reads `docker-compose.yml` or `.env` — only real env vars on the service matter. Needs its own managed Postgres add-on (own connection string, unrelated to the local/CI `POSTGRES_*` values) plus production-grade `AdminSeed:Password`/`Jwt:Key`/`ClientCredentials:ClientSecret`, distinct from both local and CI. No separate migration step needed — see "Migrations apply automatically at startup" above. | `ConnectionStrings__DefaultConnection`, `AdminSeed__Username`, `AdminSeed__Password`, `Jwt__Key`, `ClientCredentials__ClientId`, `ClientCredentials__ClientSecret` (`Jwt__Issuer`/`Jwt__ExpiryMinutes`/`ClientCredentials__ExpiryMinutes` already have safe defaults baked into `appsettings.json` and don't need overriding). |
+| Config key (`IConfiguration`) | Local — `.env` (Docker/`docker-compose`) | Local — User Secrets (host `dotnet run`) | CI (GitHub Actions, `docker-smoke-test` job) | Render (dashboard → service → Environment) |
+|---|---|---|---|---|
+| `ConnectionStrings:DefaultConnection` | *(`docker-compose.yml` builds it from the three Postgres vars below)* | built by hand from the same Postgres values, host `localhost` (see Commands above) | built inline per-step from the Postgres vars below | `ConnectionStrings__DefaultConnection` — copied from Render's own managed Postgres add-on; unrelated to the local/CI `POSTGRES_*` values below |
+| Postgres user | `POSTGRES_USER` | *(n/a — part of the connection string above)* | `POSTGRES_USER` — hardcoded `ong_user`, not secret | *(managed by Render's Postgres add-on)* |
+| Postgres password | `POSTGRES_PASSWORD` | *(n/a — part of the connection string above)* | `POSTGRES_PASSWORD` ← secret `CI_POSTGRES_PASSWORD` | *(managed by Render's Postgres add-on)* |
+| Postgres db name | `POSTGRES_DB` | *(n/a — part of the connection string above)* | `POSTGRES_DB` — hardcoded `ongdb`, not secret | *(managed by Render's Postgres add-on)* |
+| `AdminSeed:Username` | `ADMIN_SEED_USERNAME` | `AdminSeed:Username` | `ADMIN_SEED_USERNAME` ← variable `CI_ADMIN_SEED_USERNAME` | `AdminSeed__Username` |
+| `AdminSeed:Password` | `ADMIN_SEED_PASSWORD` | `AdminSeed:Password` | `ADMIN_SEED_PASSWORD` ← secret `CI_ADMIN_SEED_PASSWORD` | `AdminSeed__Password` |
+| `Jwt:Key` | `JWT_KEY` | `Jwt:Key` | `JWT_KEY` ← secret `CI_JWT_KEY` | `Jwt__Key` |
+| `ClientCredentials:ClientId` | `CLIENT_ID` | `ClientCredentials:ClientId` | `CLIENT_ID` ← variable `CI_CLIENT_ID` | `ClientCredentials__ClientId` |
+| `ClientCredentials:ClientSecret` | `CLIENT_SECRET` | `ClientCredentials:ClientSecret` | `CLIENT_SECRET` ← secret `CI_CLIENT_SECRET` | `ClientCredentials__ClientSecret` |
+
+Notes:
+- Local `.env` is git-ignored; copy it from `back-end/.env.example`, which documents each
+  key inline. It feeds both the Postgres-only `docker compose up -d postgres` (used
+  alongside host-run User Secrets) and the fully-containerized `docker compose up -d
+  --build` — the two Local columns above are independent stores, keep them in sync by
+  hand when a value changes.
+- CI values are injected as job-level env vars in `.github/workflows/backend-docker.yml`
+  so `docker compose`'s `${VAR:?message}` interpolation and the `dotnet ef`/`dotnet test`
+  steps resolve consistently; they back an ephemeral, throwaway CI database — never reuse
+  them as real credentials anywhere else. Repo secrets: `CI_POSTGRES_PASSWORD`,
+  `CI_ADMIN_SEED_PASSWORD`, `CI_JWT_KEY`, `CI_CLIENT_SECRET`. Repo variables (non-sensitive):
+  `CI_ADMIN_SEED_USERNAME`, `CI_CLIENT_ID`. Both live under Settings → Secrets and
+  variables → Actions. Separately, the `deploy-render` job needs its own repo secret
+  `RENDER_DEPLOY_HOOK_URL` — unrelated to the config keys above (it's a deploy trigger,
+  not app config), see CI section below.
+- Render is **already deployed and has been running in production for a while** — it
+  builds directly from `ONG.API/Dockerfile` and never reads `docker-compose.yml` or
+  `.env`; only real env vars set on the service matter. No separate migration step is
+  needed there — see "Migrations apply automatically at startup" above.
+- Non-secret keys with safe defaults already in `appsettings.json`, not listed above
+  because they never need overriding anywhere: `Jwt:Issuer` (`ong-api`),
+  `Jwt:ExpiryMinutes` (`60`), `ClientCredentials:ExpiryMinutes` (`15`),
+  `PasswordHasher:IterationCount` (`100000`), `PasswordHasher:CompatibilityMode`
+  (`IdentityV3`).
 
 All three consumers (`AdminSeeder`, `JwtTokenGenerator.ValidateConfiguration`,
 `ClientCredentialsProvider.ValidateConfiguration`) already
