@@ -237,7 +237,7 @@ Non-negotiable on every slice (also enforced by the slice security checklist):
 
 | ID      | Slug         | Status | Branch                     | Path                             |
 | ------- | ------------ | ------ | -------------------------- | -------------------------------- |
-| _(none yet)_ |         |        |                            |                                  |
+| HF0001  | enable-open-cors *(not a defect — quick config adjustment, fast-tracked)* | draft | `hotfix/HF0001-enable-open-cors` | `docs/hotfixes/HF0001-enable-open-cors.md` |
 
 ---
 
