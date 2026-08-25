@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using ONG.Domain.Entitites;
@@ -90,10 +91,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.Configure<PasswordHasherOptions>(
     builder.Configuration.GetSection("PasswordHasher"));
+builder.Services.Configure<ClientAuthOptions>(
+    builder.Configuration.GetSection("ClientAuth"));
 builder.Services.AddScoped<IPasswordHasher<Admin>, PasswordHasher<Admin>>();
 builder.Services.AddScoped<LoginHandler>();
 builder.Services.AddScoped<IClientCredentialsProvider, ClientCredentialsProvider>();
 builder.Services.AddScoped<IssueClientTokenHandler>();
+builder.Services.AddScoped<IClientTokenValidator, ClientTokenValidator>();
 
 var app = builder.Build();
 
@@ -101,6 +105,7 @@ using (var scope = app.Services.CreateScope())
 {
     JwtTokenGenerator.ValidateConfiguration(builder.Configuration);
     ClientCredentialsProvider.ValidateConfiguration(builder.Configuration);
+    _ = scope.ServiceProvider.GetRequiredService<IOptions<ClientAuthOptions>>().Value;
 
     var dbContext = scope.ServiceProvider.GetRequiredService<ONGDbContext>();
     // Guarded: the EF Core InMemory provider (used by WebApplicationFactory-based E2E
@@ -128,6 +133,8 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseCors(OpenCorsPolicy);
+
+app.UseMiddleware<ClientTokenEnforcementMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
