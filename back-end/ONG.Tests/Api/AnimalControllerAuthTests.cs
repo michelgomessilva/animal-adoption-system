@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -310,23 +311,31 @@ namespace ONG.Tests.Api
         }
 
         [Fact]
-        public async Task List_InvalidSpeciesFilter_Returns400WithMessage()
+        public async Task List_InvalidSpeciesFilter_Returns400WithProblemDetails()
         {
             var response = await _client.GetAsync("/api/animals?species=Elephant");
-            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("message").GetString()));
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
         }
 
         [Fact]
-        public async Task List_InvalidOrderByFilter_Returns400WithMessage()
+        public async Task List_InvalidOrderByFilter_Returns400WithProblemDetails()
         {
             var response = await _client.GetAsync("/api/animals?orderBy=bogus");
-            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("message").GetString()));
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
         }
 
         [Fact]
@@ -343,6 +352,110 @@ namespace ONG.Tests.Api
             var animals = body.EnumerateArray().ToList();
             Assert.NotEmpty(animals);
             Assert.All(animals, a => Assert.Equal("Available", a.GetProperty("status").GetString()));
+        }
+
+        [Fact]
+        public async Task GetById_NonExistentId_Returns404ProblemDetails()
+        {
+            var response = await _client.GetAsync($"/api/animals/{Guid.NewGuid()}");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
+        }
+
+        [Fact]
+        public async Task Update_NonExistentId_Returns404ProblemDetails()
+        {
+            var token = await GetValidTokenAsync();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PutAsJsonAsync($"/api/animals/{Guid.NewGuid()}", ValidAnimalBody());
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
+        }
+
+        [Fact]
+        public async Task Create_ValidTokenMissingSpecies_Returns400ProblemDetailsWithHandlerValidationMessage()
+        {
+            var token = await GetValidTokenAsync();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PostAsJsonAsync("/api/animals", new
+            {
+                Name = "Rex",
+                Sex = "Male",
+                Size = "Medium",
+                Description = "Friendly dog",
+                approximateAge = 2,
+                Image = "https://example.com/dog.jpg",
+                Status = "Available",
+                District = "Centro",
+                City = "Sao Paulo",
+                Parish = "Se"
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.Equal(StatusCodes.Status400BadRequest, body.GetProperty("status").GetInt32());
+            Assert.Equal("Species is required", body.GetProperty("detail").GetString());
+        }
+
+        [Fact]
+        public async Task Create_ValidTokenMissingName_ReturnsProblemDetailsWithInstanceAndType()
+        {
+            var token = await GetValidTokenAsync();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PostAsJsonAsync("/api/animals", new
+            {
+                Species = "Dog",
+                Sex = "Male",
+                Size = "Medium",
+                Description = "Friendly dog",
+                approximateAge = 2,
+                Image = "https://example.com/dog.jpg",
+                Status = "Available",
+                District = "Centro",
+                City = "Sao Paulo"
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("/api/animals", body.GetProperty("instance").GetString());
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("type").GetString()));
+        }
+
+        [Fact]
+        public async Task UnmatchedRoute_Returns404ProblemDetails()
+        {
+            var response = await _client.GetAsync("/this-route-does-not-exist");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.Equal(StatusCodes.Status404NotFound, body.GetProperty("status").GetInt32());
+            Assert.Equal("/this-route-does-not-exist", body.GetProperty("instance").GetString());
         }
     }
 }

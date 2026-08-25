@@ -1,4 +1,6 @@
-﻿namespace ONG.API.Middleware
+using Microsoft.AspNetCore.Mvc;
+
+namespace ONG.API.Middleware
 {
     public class ExceptionHandlingMiddleware
     {
@@ -9,7 +11,7 @@
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, IProblemDetailsService problemDetailsService)
         {
             try
             {
@@ -19,19 +21,30 @@
             {
                 context.Response.StatusCode = StatusCodes.Status400BadRequest;
 
-                await context.Response.WriteAsJsonAsync(new
+                await problemDetailsService.WriteAsync(new ProblemDetailsContext
                 {
-                    message = ex.Message
+                    HttpContext = context,
+                    ProblemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "Invalid request.",
+                        Detail = ex.Message
+                    }
                 });
             }
             catch (Exception)
             {
-                context.Response.StatusCode =
-                    StatusCodes.Status500InternalServerError;
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-                await context.Response.WriteAsJsonAsync(new
+                await problemDetailsService.WriteAsync(new ProblemDetailsContext
                 {
-                    message = "An unexpected error occurred."
+                    HttpContext = context,
+                    ProblemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "An unexpected error occurred.",
+                        Detail = "An unexpected error occurred."
+                    }
                 });
             }
         }

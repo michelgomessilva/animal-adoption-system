@@ -15,13 +15,18 @@ namespace ONG.API.Controllers
         }
 
         [HttpPost("login")]
+        [ProducesResponseType(typeof(LoginResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public IActionResult Login(LoginCommand command)
         {
             var result = _handler.Handle(command);
 
             if (result is null)
             {
-                return Unauthorized(new { message = "Invalid username or password." });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Invalid credentials.",
+                    detail: "Invalid username or password.");
             }
 
             return Ok(result);

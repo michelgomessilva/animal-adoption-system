@@ -15,13 +15,18 @@ namespace ONG.API.Controllers
         }
 
         [HttpPost("token")]
+        [ProducesResponseType(typeof(IssueClientTokenResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public IActionResult Token(IssueClientTokenCommand command)
         {
             var result = _handler.Handle(command);
 
             if (result is null)
             {
-                return Unauthorized(new { message = "Invalid client_id or client_secret." });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Invalid credentials.",
+                    detail: "Invalid client_id or client_secret.");
             }
 
             return Ok(result);

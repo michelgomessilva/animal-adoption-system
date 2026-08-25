@@ -108,6 +108,12 @@ namespace ONG.Tests.Api
             var response = await _client.GetAsync("/api/animals");
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
         }
 
         [Fact]
@@ -129,6 +135,12 @@ namespace ONG.Tests.Api
             var response = await _client.GetAsync("/api/animals");
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("detail").GetString()));
         }
 
         [Fact]

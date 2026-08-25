@@ -4,6 +4,7 @@ using ONG.Application.UseCases.Animals.CreateAnimal;
 using ONG.Application.UseCases.Animals.GetAnimalById;
 using ONG.Application.UseCases.Animals.ListAnimals;
 using ONG.Application.UseCases.Animals.UpdateAnimal;
+using ONG.Domain.Entitites;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ONG.API.Controllers
@@ -31,6 +32,9 @@ namespace ONG.API.Controllers
 
         [Authorize]
         [HttpPost]
+        [ProducesResponseType(typeof(Animal), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public IActionResult Create(CreateAnimalCommand command)
         {
 
@@ -40,6 +44,8 @@ namespace ONG.API.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(List<Animal>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public IActionResult List([FromQuery] ListAnimalsCommand command)
         {
             command.IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
@@ -50,8 +56,8 @@ namespace ONG.API.Controllers
         }
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public IActionResult GetById(Guid id)
         {
             var query = new GetAnimalByIdQuery
@@ -62,12 +68,19 @@ namespace ONG.API.Controllers
             var animal = _getByIdHandler.Handle(query);
 
             if (animal is null)
-                return NotFound();
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Animal not found.",
+                    detail: $"No animal found with id '{id}'.");
 
             return Ok(animal);
         }
         [Authorize]
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(Animal), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public IActionResult Update(Guid id, UpdateAnimalCommand command)
         {
             command.Id = id;
@@ -75,7 +88,10 @@ namespace ONG.API.Controllers
             var animal = _updateHandler.Handle(command);
 
             if (animal is null)
-                return NotFound();
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Animal not found.",
+                    detail: $"No animal found with id '{id}'.");
 
             return Ok(animal);
         }
