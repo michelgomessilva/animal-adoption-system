@@ -21,7 +21,10 @@ namespace ONG.API.Controllers
 
             if (result is null)
             {
-                return Unauthorized(new { message = "Invalid client_id or client_secret." });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Invalid credentials.",
+                    detail: "Invalid client_id or client_secret.");
             }
 
             return Ok(result);

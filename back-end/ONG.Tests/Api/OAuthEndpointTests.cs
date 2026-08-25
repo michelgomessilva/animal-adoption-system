@@ -35,7 +35,7 @@ namespace ONG.Tests.Api
         }
 
         [Fact]
-        public async Task Token_WrongClientSecret_Returns401WithGenericMessage()
+        public async Task Token_WrongClientSecret_Returns401WithProblemDetails()
         {
             var response = await _client.PostAsJsonAsync("/oauth/token", new
             {
@@ -45,9 +45,12 @@ namespace ONG.Tests.Api
             });
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
 
             var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-            Assert.Equal("Invalid client_id or client_secret.", body.GetProperty("message").GetString());
+            Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
+            Assert.Equal("Invalid client_id or client_secret.", body.GetProperty("detail").GetString());
         }
 
         [Fact]
