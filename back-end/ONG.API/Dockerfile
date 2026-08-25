@@ -17,4 +17,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
+# Disable config hot-reload: it registers a FileSystemWatcher (inotify) for
+# appsettings.json at startup, which crashes on Render's shared hosts once
+# the host-wide inotify instance limit is exhausted. Not needed anyway —
+# Render redeploys the whole container on any config/env change.
+ENV DOTNET_hostBuilder__reloadConfigOnChange=false
 ENTRYPOINT ["dotnet", "ONG.API.dll"]
