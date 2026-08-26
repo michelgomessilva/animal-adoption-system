@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text.Encodings.Web;
+using System.Text.Json;
 using ONG.API.Serialization;
 using ONG.Domain.Entitites;
 using Xunit;
@@ -10,10 +11,15 @@ namespace ONG.Tests.Api
         [Fact]
         public void StatusConverter_SerializesAndDeserializesPortuguese()
         {
-            var options = new JsonSerializerOptions();
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
             options.Converters.Add(new StatusJsonConverter());
 
             var json = JsonSerializer.Serialize(Status.InAdoptionProcess, options);
+
             Assert.Equal("\"Em processo de adoção\"", json);
 
             var value = JsonSerializer.Deserialize<Status>(
@@ -25,10 +31,15 @@ namespace ONG.Tests.Api
         [Fact]
         public void SpeciesConverter_SerializesAndDeserializesPortuguese()
         {
-            var options = new JsonSerializerOptions();
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
             options.Converters.Add(new SpeciesJsonConverter());
 
             var json = JsonSerializer.Serialize(Species.Dog, options);
+
             Assert.Equal("\"Cão\"", json);
 
             var value = JsonSerializer.Deserialize<Species>(
@@ -40,10 +51,15 @@ namespace ONG.Tests.Api
         [Fact]
         public void SexConverter_SerializesAndDeserializesPortuguese()
         {
-            var options = new JsonSerializerOptions();
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
             options.Converters.Add(new SexJsonConverter());
 
             var json = JsonSerializer.Serialize(Sex.Male, options);
+
             Assert.Equal("\"Macho\"", json);
 
             var value = JsonSerializer.Deserialize<Sex>(
@@ -55,10 +71,15 @@ namespace ONG.Tests.Api
         [Fact]
         public void SizeConverter_SerializesAndDeserializesPortuguese()
         {
-            var options = new JsonSerializerOptions();
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
             options.Converters.Add(new SizeJsonConverter());
 
             var json = JsonSerializer.Serialize(Size.Medium, options);
+
             Assert.Equal("\"Médio\"", json);
 
             var value = JsonSerializer.Deserialize<Size>(
