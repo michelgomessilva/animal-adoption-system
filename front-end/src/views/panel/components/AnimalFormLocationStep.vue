@@ -48,7 +48,7 @@ const model = defineModel<AnimalWriteInput>({ required: true })
           :class="{ 'btn-active': model.status === status }"
           @click="model.status = status"
         >
-          {{ animalStatusLabel[status] }}
+          {{ animalStatusLabel(status) }}
         </button>
       </div>
     </fieldset>
@@ -62,15 +62,15 @@ const model = defineModel<AnimalWriteInput>({ required: true })
         </div>
         <div>
           <dt>Espécie</dt>
-          <dd>{{ animalSpeciesLabel[model.species] }}</dd>
+          <dd>{{ animalSpeciesLabel(model.species) }}</dd>
         </div>
         <div>
           <dt>Porte</dt>
-          <dd>{{ animalSizeLabel[model.size] }}</dd>
+          <dd>{{ animalSizeLabel(model.size) }}</dd>
         </div>
         <div>
           <dt>Sexo</dt>
-          <dd>{{ animalSexLabel[model.sex] }}</dd>
+          <dd>{{ animalSexLabel(model.sex) }}</dd>
         </div>
         <div>
           <dt>Idade</dt>

@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   animalListHasNarrowingFilters,
   animalListQueryIsEmpty,
+  canonicalAnimalSex,
+  canonicalAnimalSize,
+  canonicalAnimalSpecies,
+  canonicalAnimalStatus,
   isAnimalId,
   isAnimalOrderBy,
   isAnimalSex,
@@ -43,6 +47,28 @@ describe('enum type guards', () => {
     expect(isAnimalStatus('Pending')).toBe(false)
     expect(isAnimalOrderBy('bogus')).toBe(false)
     expect(isAnimalOrderBy('createdat_desc')).toBe(false)
+  })
+})
+
+describe('canonical enum parsers', () => {
+  it('normalizes case-insensitive product values', () => {
+    expect(canonicalAnimalSpecies('Dog')).toBe('Dog')
+    expect(canonicalAnimalSpecies('dog')).toBe('Dog')
+    expect(canonicalAnimalSex('female')).toBe('Female')
+    expect(canonicalAnimalSize('MEDIUM')).toBe('Medium')
+    expect(canonicalAnimalStatus('available')).toBe('Available')
+  })
+
+  it('rejects None, empty, numbers, and unknown strings', () => {
+    expect(canonicalAnimalSpecies('None')).toBeNull()
+    expect(canonicalAnimalSpecies('')).toBeNull()
+    expect(canonicalAnimalSpecies(3)).toBeNull()
+    expect(canonicalAnimalSex(3)).toBeNull()
+    expect(canonicalAnimalSize(4)).toBeNull()
+    expect(canonicalAnimalStatus(3)).toBeNull()
+    expect(canonicalAnimalStatus('None')).toBeNull()
+    expect(canonicalAnimalSpecies(null)).toBeNull()
+    expect(canonicalAnimalSpecies(undefined)).toBeNull()
   })
 })
 

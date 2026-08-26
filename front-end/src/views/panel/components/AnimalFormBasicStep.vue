@@ -38,7 +38,7 @@ const model = defineModel<AnimalWriteInput>({ required: true })
           :class="{ 'btn-active': model.species === species }"
           @click="model.species = species"
         >
-          {{ animalSpeciesLabel[species] }}
+          {{ animalSpeciesLabel(species) }}
         </button>
       </div>
     </fieldset>
@@ -54,7 +54,7 @@ const model = defineModel<AnimalWriteInput>({ required: true })
           :class="{ 'btn-active': model.size === size }"
           @click="model.size = size"
         >
-          {{ animalSizeLabel[size] }}
+          {{ animalSizeLabel(size) }}
         </button>
       </div>
     </fieldset>
@@ -70,7 +70,7 @@ const model = defineModel<AnimalWriteInput>({ required: true })
           :class="{ 'btn-active': model.sex === sex }"
           @click="model.sex = sex"
         >
-          {{ animalSexLabel[sex] }}
+          {{ animalSexLabel(sex) }}
         </button>
       </div>
     </fieldset>

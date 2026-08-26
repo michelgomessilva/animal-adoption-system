@@ -2,13 +2,12 @@
 import { computed, ref, watch } from 'vue'
 
 import AppIcon from '@/shared/components/AppIcon.vue'
-import type { AnimalSpecies } from '@/shared/types/animal'
-import { animalSpeciesImageClass } from '@/shared/types/animal-visual'
+import { animalSpeciesIcon, animalSpeciesImageClass } from '@/shared/types/animal-visual'
 
 interface Props {
   src: string
   name: string
-  species: AnimalSpecies
+  species: unknown
   compact?: boolean
   priority?: boolean
 }
@@ -22,7 +21,7 @@ const hasLoadError = ref(false)
 
 const trimmedSrc = computed(() => props.src.trim())
 const canShowImage = computed(() => trimmedSrc.value.length > 0 && !hasLoadError.value)
-const speciesIcon = computed(() => (props.species === 'Cat' ? 'cat' : 'dog'))
+const speciesIcon = computed(() => animalSpeciesIcon(props.species))
 const speciesToneClass = computed(() => animalSpeciesImageClass(props.species))
 const loadingMode = computed(() => (props.priority ? 'eager' : 'lazy'))
 
@@ -66,6 +65,10 @@ function onImageError(): void {
 
 .animal-image--cat {
   @apply bg-info/22 text-info;
+}
+
+.animal-image--unknown {
+  @apply bg-base-200 text-base-content/50;
 }
 
 .animal-image--compact {

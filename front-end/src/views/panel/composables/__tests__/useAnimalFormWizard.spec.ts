@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import type { AnimalWriteInput } from '@/shared/types/animal'
 import { useAnimalFormWizard } from '@/views/panel/composables/useAnimalFormWizard'
 
 describe('useAnimalFormWizard', () => {
@@ -45,15 +46,17 @@ describe('useAnimalFormWizard', () => {
     expect(wizard.currentStep.value).toBe('location')
   })
 
-  it('returns a payload with an empty image string and no nulls', () => {
+  it('returns a payload with an empty image string and canonical enums', () => {
     const wizard = useAnimalFormWizard()
     wizard.draft.value.name = ' Luna '
     wizard.draft.value.description = ' Calma '
+    wizard.draft.value.species = 'dog' as AnimalWriteInput['species']
 
     expect(wizard.toPayload()).toMatchObject({
       name: 'Luna',
       description: 'Calma',
       image: '',
+      species: 'Dog',
       status: 'Available',
     })
   })
@@ -86,5 +89,42 @@ describe('useAnimalFormWizard', () => {
     expect(wizard.draft.value.status).toBe('Adopted')
     wizard.selectStep('location')
     expect(wizard.currentStep.value).toBe('location')
+    expect(wizard.canGoNext.value).toBe(true)
+  })
+
+  it('blocks submit on the review step when enums from the API are invalid', () => {
+    const wizard = useAnimalFormWizard({
+      name: 'Pipoca',
+      species: 3,
+      sex: 'Female',
+      size: 'Small',
+      description: 'dócil',
+      approximateAge: 1,
+      image: '',
+      status: 4,
+      district: 'porto',
+      city: 'porto',
+    } as unknown as AnimalWriteInput)
+
+    wizard.selectStep('location')
+
+    expect(wizard.canGoNext.value).toBe(false)
+
+    wizard.draft.value.species = 'Dog'
+    wizard.draft.value.status = 'Available'
+
+    expect(wizard.canGoNext.value).toBe(true)
+    expect(wizard.toPayload()).toMatchObject({
+      species: 'Dog',
+      status: 'Available',
+    })
+  })
+
+  it('blocks the basic step when species is not a product enum', () => {
+    const wizard = useAnimalFormWizard()
+    wizard.draft.value.name = 'Pipoca'
+    wizard.draft.value.species = 'None' as AnimalWriteInput['species']
+
+    expect(wizard.canGoNext.value).toBe(false)
   })
 })

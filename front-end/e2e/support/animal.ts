@@ -123,12 +123,12 @@ export function randomFilterContrast<K extends FilterKey>(keys: readonly K[]): F
 export function filterLabel(key: FilterKey, value: AnimalWriteInput[FilterKey]): string {
   switch (key) {
     case 'species':
-      return animalSpeciesLabel[value as AnimalWriteInput['species']]
+      return animalSpeciesLabel(value)
     case 'sex':
-      return animalSexLabel[value as AnimalWriteInput['sex']]
+      return animalSexLabel(value)
     case 'size':
-      return animalSizeLabel[value as AnimalWriteInput['size']]
+      return animalSizeLabel(value)
     case 'status':
-      return animalStatusLabel[value as AnimalWriteInput['status']]
+      return animalStatusLabel(value)
   }
 }

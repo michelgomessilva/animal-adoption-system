@@ -23,15 +23,15 @@ const chips = computed((): CatalogChip[] => {
   const result: CatalogChip[] = []
 
   if (props.filters.species !== undefined) {
-    result.push({ key: 'species', label: animalSpeciesLabel[props.filters.species] })
+    result.push({ key: 'species', label: animalSpeciesLabel(props.filters.species) })
   }
 
   if (props.filters.sex !== undefined) {
-    result.push({ key: 'sex', label: animalSexLabel[props.filters.sex] })
+    result.push({ key: 'sex', label: animalSexLabel(props.filters.sex) })
   }
 
   if (props.filters.size !== undefined) {
-    result.push({ key: 'size', label: animalSizeLabel[props.filters.size] })
+    result.push({ key: 'size', label: animalSizeLabel(props.filters.size) })
   }
 
   return result

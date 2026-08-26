@@ -91,6 +91,35 @@ describe('AnimalDetailsPage', () => {
     expect(wrapper.find('.animal-details--adopted').exists()).toBe(true)
   })
 
+  it('treats case-insensitive Adopted status as adopted chrome', async () => {
+    getAnimalByIdMock.mockResolvedValue({
+      ...createAnimalFixture(),
+      status: 'adopted',
+    } as unknown as Animal)
+    const router = await createDetailsRouter(luna.id)
+    const wrapper = await mountWithPlugins(AnimalDetailsPage, { router })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Adotado')
+    expect(wrapper.find('.animal-details--adopted').exists()).toBe(true)
+  })
+
+  it('shows Sem nome and Não informado without marking unknown status as adopted', async () => {
+    getAnimalByIdMock.mockResolvedValue({
+      ...createAnimalFixture({ image: '', name: '' }),
+      species: 'None',
+      status: 3,
+    } as unknown as Animal)
+    const router = await createDetailsRouter(luna.id)
+    const wrapper = await mountWithPlugins(AnimalDetailsPage, { router })
+    await flushPromises()
+
+    expect(wrapper.get('h1').text()).toBe('Sem nome')
+    expect(wrapper.text()).toContain('Não informado')
+    expect(wrapper.find('.animal-details--adopted').exists()).toBe(false)
+    expect(wrapper.find('[data-icon="paw-print"]').exists()).toBe(true)
+  })
+
   it('shows loading status while the profile loads', async () => {
     let resolveAnimal!: (value: Animal) => void
     getAnimalByIdMock.mockReturnValue(

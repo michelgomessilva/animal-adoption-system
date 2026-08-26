@@ -62,7 +62,7 @@ function optionClass(active: boolean): string {
           :aria-pressed="filters.species === species"
           @click="toggle('species', species)"
         >
-          {{ animalSpeciesLabel[species] }}
+          {{ animalSpeciesLabel(species) }}
         </button>
       </div>
     </fieldset>
@@ -79,7 +79,7 @@ function optionClass(active: boolean): string {
           :aria-pressed="filters.sex === sex"
           @click="toggle('sex', sex)"
         >
-          {{ animalSexLabel[sex] }}
+          {{ animalSexLabel(sex) }}
         </button>
       </div>
     </fieldset>
@@ -96,7 +96,7 @@ function optionClass(active: boolean): string {
           :aria-pressed="filters.size === size"
           @click="toggle('size', size)"
         >
-          {{ animalSizeLabel[size] }}
+          {{ animalSizeLabel(size) }}
         </button>
       </div>
     </fieldset>

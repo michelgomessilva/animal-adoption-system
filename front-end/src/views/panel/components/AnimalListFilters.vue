@@ -83,7 +83,7 @@ function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
       >
         <option value="">Todas</option>
         <option v-for="species in ANIMAL_SPECIES_OPTIONS" :key="species" :value="species">
-          {{ animalSpeciesLabel[species] }}
+          {{ animalSpeciesLabel(species) }}
         </option>
       </select>
     </fieldset>
@@ -98,7 +98,7 @@ function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
       >
         <option value="">Todos</option>
         <option v-for="sex in ANIMAL_SEX_OPTIONS" :key="sex" :value="sex">
-          {{ animalSexLabel[sex] }}
+          {{ animalSexLabel(sex) }}
         </option>
       </select>
     </fieldset>
@@ -113,7 +113,7 @@ function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
       >
         <option value="">Todos</option>
         <option v-for="size in ANIMAL_SIZE_OPTIONS" :key="size" :value="size">
-          {{ animalSizeLabel[size] }}
+          {{ animalSizeLabel(size) }}
         </option>
       </select>
     </fieldset>
@@ -128,7 +128,7 @@ function onFilterChange(key: keyof AnimalListQuery, event: Event): void {
       >
         <option value="">Todas</option>
         <option v-for="status in ANIMAL_STATUS_OPTIONS" :key="status" :value="status">
-          {{ animalStatusLabel[status] }}
+          {{ animalStatusLabel(status) }}
         </option>
       </select>
     </fieldset>

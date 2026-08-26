@@ -17,7 +17,7 @@ test('the public catalog opens the animal details page', async ({ page, request 
   await expect(page.getByRole('heading', { name: animal.name, level: 1 })).toBeVisible()
   await expect(page.getByText(animal.description)).toBeVisible()
   await expect(page.getByText(animal.city, { exact: false }).first()).toBeVisible()
-  await expect(page.getByText(animalSpeciesLabel[animal.species])).toBeVisible()
+  await expect(page.getByText(animalSpeciesLabel(animal.species))).toBeVisible()
   await expect(page.getByText('Disponível').first()).toBeVisible()
 })
 

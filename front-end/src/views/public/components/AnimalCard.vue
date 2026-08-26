@@ -7,6 +7,7 @@ import type { Animal } from '@/shared/types/animal'
 import {
   animalAgeLabel,
   animalLocationLabel,
+  animalNameLabel,
   animalSizeLabel,
   animalSpeciesLabel,
 } from '@/shared/types/animal-labels'
@@ -17,9 +18,10 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const displayName = computed(() => animalNameLabel(props.animal.name))
 const metaText = computed(
   () =>
-    `${animalSpeciesLabel[props.animal.species]} · ${animalSizeLabel[props.animal.size]} · ${animalAgeLabel(props.animal.approximateAge)}`,
+    `${animalSpeciesLabel(props.animal.species)} · ${animalSizeLabel(props.animal.size)} · ${animalAgeLabel(props.animal.approximateAge)}`,
 )
 const locationText = computed(() => animalLocationLabel(props.animal.district, props.animal.city))
 </script>
@@ -28,12 +30,12 @@ const locationText = computed(() => animalLocationLabel(props.animal.district, p
   <RouterLink :to="{ name: 'animal-details', params: { id: animal.id } }" class="animal-card">
     <AnimalImage
       :src="animal.image"
-      :name="animal.name"
+      :name="displayName"
       :species="animal.species"
       class="animal-card-media"
     />
     <div class="animal-card-body">
-      <h2 class="animal-card-title">{{ animal.name }}</h2>
+      <h2 class="animal-card-title">{{ displayName }}</h2>
       <p class="animal-card-meta">{{ metaText }}</p>
       <p class="animal-card-location">{{ locationText }}</p>
     </div>
