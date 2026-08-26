@@ -81,7 +81,7 @@ O cliente HTTP ([ky](https://github.com/sindresorhus/ky)) usa `VITE_API_BASE_URL
 
 Auth: `POST /auth/login` com `username` e `password` devolve `{ token }`. A sessão fica em `localStorage` (Manter conectado) ou `sessionStorage`. O cliente envia `Authorization: Bearer`. JWT vale 60 minutos; não há refresh — um 401 autenticado faz logout e volta ao login.
 
-Cadastro e edição de animais compartilham o body `AnimalWriteInput` e o mesmo wizard de três etapas (Dados básicos → Descrição e foto → Localização e revisão):
+Cadastro e edição de animais compartilham o body `AnimalWriteInput` e o mesmo wizard de três etapas (Dados básicos → Descrição e foto → Localização e revisão). Localização no body: `district` (max 30), `parish` (max 50) e `city` (max 30), todos obrigatórios — iguais a `POST`/`PUT /api/animals`:
 
 - `POST /api/animals` (Bearer, **201**) em `/panel/animals/new`
 - `GET /api/animals/{id}` + `PUT /api/animals/{id}` (Bearer, **200**) em `/panel/animals/:id/edit`

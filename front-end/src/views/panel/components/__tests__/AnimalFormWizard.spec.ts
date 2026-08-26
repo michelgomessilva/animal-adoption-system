@@ -35,6 +35,7 @@ describe('AnimalFormWizard', () => {
           image: '',
           status: 'Available',
           district: 'Centro',
+          parish: 'Sé',
           city: 'Porto Alegre',
         },
       },

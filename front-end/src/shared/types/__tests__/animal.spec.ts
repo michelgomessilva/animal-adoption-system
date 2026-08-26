@@ -146,6 +146,7 @@ describe('toAnimalWriteInput', () => {
       image: fixture.image,
       status: fixture.status,
       district: fixture.district,
+      parish: fixture.parish,
       city: fixture.city,
     })
     expect(toAnimalWriteInput(fixture)).not.toHaveProperty('id')

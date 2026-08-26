@@ -75,6 +75,9 @@ describe('AnimalEditPage', () => {
     expect((wrapper.get('input[name="name"]').element as HTMLInputElement).value).toBe('Luna')
 
     await goToLastStep(wrapper)
+    expect((wrapper.get('input[name="parish"]').element as HTMLInputElement).value).toBe(
+      luna.parish,
+    )
     const submit = wrapper.findAll('button').find((button) => button.text().includes('Salvar'))
     if (submit === undefined) {
       throw new Error('Expected Salvar')
@@ -88,6 +91,7 @@ describe('AnimalEditPage', () => {
         name: 'Luna',
         description: 'Calma',
         district: 'Centro',
+        parish: luna.parish,
         city: 'Porto Alegre',
         status: 'Available',
       }),

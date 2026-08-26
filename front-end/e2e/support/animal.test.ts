@@ -32,6 +32,8 @@ describe('randomAnimalInput', () => {
       expect(input.description.length).toBeLessThanOrEqual(200)
       expect(input.district.length).toBeGreaterThan(0)
       expect(input.district.length).toBeLessThanOrEqual(30)
+      expect(input.parish.length).toBeGreaterThan(0)
+      expect(input.parish.length).toBeLessThanOrEqual(50)
       expect(input.city.length).toBeGreaterThan(0)
       expect(input.city.length).toBeLessThanOrEqual(30)
       expect(input.approximateAge).toBeGreaterThanOrEqual(0)

@@ -19,13 +19,14 @@ export type WizardStep = (typeof WIZARD_STEPS)[number]
 export const WIZARD_STEP_META: Record<WizardStep, { title: string; subtitle: string }> = {
   basic: { title: 'Dados básicos', subtitle: 'Nome, espécie, porte, idade' },
   description: { title: 'Descrição e foto', subtitle: 'Texto e URL opcional' },
-  location: { title: 'Localização e revisão', subtitle: 'Bairro, cidade, situação' },
+  location: { title: 'Localização e revisão', subtitle: 'Bairro, freguesia, cidade, situação' },
 }
 
 export const ANIMAL_NAME_MAX = 20
 export const ANIMAL_AGE_MAX = 30
 export const ANIMAL_DESCRIPTION_MAX = 200
 export const ANIMAL_LOCATION_MAX = 30
+export const ANIMAL_PARISH_MAX = 50
 
 export function createEmptyDraft(): AnimalWriteInput {
   return {
@@ -38,6 +39,7 @@ export function createEmptyDraft(): AnimalWriteInput {
     image: '',
     status: 'Available',
     district: '',
+    parish: '',
     city: '',
   }
 }
@@ -82,10 +84,13 @@ function isStepValid(step: WizardStep, draft: AnimalWriteInput): boolean {
   }
 
   const district = draft.district.trim()
+  const parish = draft.parish.trim()
   const city = draft.city.trim()
   return (
     district.length > 0 &&
     district.length <= ANIMAL_LOCATION_MAX &&
+    parish.length > 0 &&
+    parish.length <= ANIMAL_PARISH_MAX &&
     city.length > 0 &&
     city.length <= ANIMAL_LOCATION_MAX &&
     enums.status !== null
@@ -169,6 +174,7 @@ export function useAnimalFormWizard(initialDraft?: AnimalWriteInput) {
       image: draft.value.image.trim(),
       status: enums.status,
       district: draft.value.district.trim(),
+      parish: draft.value.parish.trim(),
       city: draft.value.city.trim(),
     }
   }

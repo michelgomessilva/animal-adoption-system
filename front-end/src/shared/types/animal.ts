@@ -200,6 +200,7 @@ export interface AnimalWriteInput {
   image: string
   status: AnimalStatus
   district: string
+  parish: string
   city: string
 }
 
@@ -214,6 +215,7 @@ export interface Animal {
   image: string
   status: AnimalStatus
   district: string
+  parish: string
   city: string
   createdAt: string
 }
@@ -229,6 +231,7 @@ export function toAnimalWriteInput(animal: Animal): AnimalWriteInput {
     image: animal.image,
     status: animal.status,
     district: animal.district,
+    parish: animal.parish,
     city: animal.city,
   }
 }

@@ -6,7 +6,10 @@ import {
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
-import { ANIMAL_LOCATION_MAX } from '@/views/panel/composables/useAnimalFormWizard'
+import {
+  ANIMAL_LOCATION_MAX,
+  ANIMAL_PARISH_MAX,
+} from '@/views/panel/composables/useAnimalFormWizard'
 
 const model = defineModel<AnimalWriteInput>({ required: true })
 </script>
@@ -21,6 +24,18 @@ const model = defineModel<AnimalWriteInput>({ required: true })
         type="text"
         name="district"
         :maxlength="ANIMAL_LOCATION_MAX"
+        required
+      />
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Freguesia</legend>
+      <input
+        v-model="model.parish"
+        class="input w-full"
+        type="text"
+        name="parish"
+        :maxlength="ANIMAL_PARISH_MAX"
         required
       />
     </fieldset>
