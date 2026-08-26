@@ -15,9 +15,9 @@ namespace ONG.API.Serialization
 
             return value switch
             {
-                "Disponível" => Status.Available,
-                "Em processo de adoção" => Status.InAdoptionProcess,
-                "Adotado" => Status.Adopted,
+                "Disponível" or "Available" => Status.Available,
+                "Em processo de adoção" or "InAdoptionProcess" => Status.InAdoptionProcess,
+                "Adotado" or "Adopted" => Status.Adopted,
                 _ => Status.None
             };
         }

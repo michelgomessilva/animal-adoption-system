@@ -15,8 +15,8 @@ namespace ONG.API.Serialization
 
             return value switch
             {
-                "Macho" => Sex.Male,
-                "Fêmea" => Sex.Female,
+                "Macho" or "Male" => Sex.Male,
+                "Fêmea" or "Female" => Sex.Female,
                 _ => Sex.None
             };
         }

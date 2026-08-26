@@ -15,8 +15,8 @@ namespace ONG.API.Serialization
 
             return value switch
             {
-                "Cão" => Species.Dog,
-                "Gato" => Species.Cat,
+                "Cão" or "Dog" => Species.Dog,
+                "Gato" or "Cat" => Species.Cat,
                 _ => Species.None
             };
         }

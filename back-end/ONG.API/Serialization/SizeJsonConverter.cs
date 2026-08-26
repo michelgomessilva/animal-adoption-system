@@ -15,9 +15,9 @@ namespace ONG.API.Serialization
 
             return value switch
             {
-                "Pequeno" => Size.Small,
-                "Médio" => Size.Medium,
-                "Grande" => Size.Large,
+                "Pequeno" or "Small" => Size.Small,
+                "Médio" or "Medium" => Size.Medium,
+                "Grande" or "Large" => Size.Large,
                 _ => Size.None
             };
         }
