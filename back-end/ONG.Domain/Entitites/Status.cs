@@ -2,8 +2,9 @@
 {
     public enum Status
     {
-        None, 
-        Available,
-        Adopted
+        None = 0, 
+        Available = 1,
+        InAdoptionProcess = 2,
+        Adopted = 3,
     }
 }
