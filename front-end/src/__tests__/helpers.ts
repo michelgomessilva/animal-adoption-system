@@ -28,6 +28,7 @@ export function createAnimal(overrides: Partial<Animal> = {}): Animal {
     image: 'https://picsum.photos/400/300',
     status: 'Available',
     district: 'Centro',
+    parish: 'Sé',
     city: 'Porto Alegre',
     createdAt: '2026-01-15T10:00:00Z',
     ...overrides,

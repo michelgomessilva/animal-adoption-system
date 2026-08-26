@@ -3,8 +3,32 @@ import { describe, expect, it } from 'vitest'
 import {
   animalAgeLabel,
   animalLocationLabel,
+  animalNameLabel,
+  animalSexLabel,
+  animalSizeLabel,
+  animalSpeciesLabel,
+  animalStatusLabel,
   formatAnimalPublishedAt,
 } from '@/shared/types/animal-labels'
+
+describe('animal enum labels', () => {
+  it('maps canonical product values', () => {
+    expect(animalSpeciesLabel('Dog')).toBe('Cachorro')
+    expect(animalSpeciesLabel('cat')).toBe('Gato')
+    expect(animalSexLabel('Female')).toBe('Fêmea')
+    expect(animalSizeLabel('Medium')).toBe('Médio')
+    expect(animalStatusLabel('Available')).toBe('Disponível')
+  })
+
+  it('returns Não informado for None, numbers, and unknown values', () => {
+    expect(animalSpeciesLabel('None')).toBe('Não informado')
+    expect(animalSpeciesLabel(3)).toBe('Não informado')
+    expect(animalSexLabel(3)).toBe('Não informado')
+    expect(animalSizeLabel(4)).toBe('Não informado')
+    expect(animalStatusLabel('None')).toBe('Não informado')
+    expect(animalStatusLabel(3)).toBe('Não informado')
+  })
+})
 
 describe('animalAgeLabel', () => {
   it.each([
@@ -14,6 +38,23 @@ describe('animalAgeLabel', () => {
     [3, '3 anos'],
   ] as const)('formats %i as %s', (age, expected) => {
     expect(animalAgeLabel(age)).toBe(expected)
+  })
+
+  it('returns Não informado for non-integer ages', () => {
+    expect(animalAgeLabel('None')).toBe('Não informado')
+    expect(animalAgeLabel(1.5)).toBe('Não informado')
+    expect(animalAgeLabel(null)).toBe('Não informado')
+  })
+})
+
+describe('animalNameLabel', () => {
+  it('returns the trimmed name', () => {
+    expect(animalNameLabel(' Luna ')).toBe('Luna')
+  })
+
+  it('returns Sem nome for blank names', () => {
+    expect(animalNameLabel('')).toBe('Sem nome')
+    expect(animalNameLabel('   ')).toBe('Sem nome')
   })
 })
 

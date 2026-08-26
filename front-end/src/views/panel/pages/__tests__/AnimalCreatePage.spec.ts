@@ -40,6 +40,7 @@ async function completeWizard(
   await continueSecond.trigger('click')
 
   await wrapper.get('input[name="district"]').setValue('Centro')
+  await wrapper.get('input[name="parish"]').setValue('Sé')
   await wrapper.get('input[name="city"]').setValue('Porto Alegre')
 }
 
@@ -70,6 +71,7 @@ describe('AnimalCreatePage', () => {
         name: 'Luna',
         description: 'Calma',
         district: 'Centro',
+        parish: 'Sé',
         city: 'Porto Alegre',
         image: '',
         status: 'Available',

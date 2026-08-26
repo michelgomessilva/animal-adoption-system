@@ -6,7 +6,10 @@ import {
   animalSpeciesLabel,
   animalStatusLabel,
 } from '@/shared/types/animal-labels'
-import { ANIMAL_LOCATION_MAX } from '@/views/panel/composables/useAnimalFormWizard'
+import {
+  ANIMAL_LOCATION_MAX,
+  ANIMAL_PARISH_MAX,
+} from '@/views/panel/composables/useAnimalFormWizard'
 
 const model = defineModel<AnimalWriteInput>({ required: true })
 </script>
@@ -21,6 +24,18 @@ const model = defineModel<AnimalWriteInput>({ required: true })
         type="text"
         name="district"
         :maxlength="ANIMAL_LOCATION_MAX"
+        required
+      />
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Freguesia</legend>
+      <input
+        v-model="model.parish"
+        class="input w-full"
+        type="text"
+        name="parish"
+        :maxlength="ANIMAL_PARISH_MAX"
         required
       />
     </fieldset>
@@ -48,7 +63,7 @@ const model = defineModel<AnimalWriteInput>({ required: true })
           :class="{ 'btn-active': model.status === status }"
           @click="model.status = status"
         >
-          {{ animalStatusLabel[status] }}
+          {{ animalStatusLabel(status) }}
         </button>
       </div>
     </fieldset>
@@ -62,15 +77,15 @@ const model = defineModel<AnimalWriteInput>({ required: true })
         </div>
         <div>
           <dt>Espécie</dt>
-          <dd>{{ animalSpeciesLabel[model.species] }}</dd>
+          <dd>{{ animalSpeciesLabel(model.species) }}</dd>
         </div>
         <div>
           <dt>Porte</dt>
-          <dd>{{ animalSizeLabel[model.size] }}</dd>
+          <dd>{{ animalSizeLabel(model.size) }}</dd>
         </div>
         <div>
           <dt>Sexo</dt>
-          <dd>{{ animalSexLabel[model.sex] }}</dd>
+          <dd>{{ animalSexLabel(model.sex) }}</dd>
         </div>
         <div>
           <dt>Idade</dt>

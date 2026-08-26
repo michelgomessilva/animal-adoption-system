@@ -37,6 +37,10 @@ const {
 } = useAnimalFormWizard(props.initialDraft)
 
 function onNext(): void {
+  if (!canGoNext.value) {
+    return
+  }
+
   if (isLastStep.value) {
     emit('submit', toPayload())
     return

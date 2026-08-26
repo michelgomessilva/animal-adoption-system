@@ -69,6 +69,32 @@ export function isAnimalOrderBy(value: string): value is AnimalOrderBy {
   return (ANIMAL_ORDER_BY_OPTIONS as readonly string[]).includes(value)
 }
 
+// isAnimal*: exact, case-sensitive guards for filter/query strings.
+// canonicalAnimal*: case-insensitive normalize for API/display/write; None/numbers → null.
+function canonicalEnumValue<T extends string>(value: unknown, options: readonly T[]): T | null {
+  if (typeof value !== 'string' || value.length === 0) {
+    return null
+  }
+
+  return matchesOptionIgnoreCase(value, options) ?? null
+}
+
+export function canonicalAnimalSpecies(value: unknown): AnimalSpecies | null {
+  return canonicalEnumValue(value, ANIMAL_SPECIES_OPTIONS)
+}
+
+export function canonicalAnimalSex(value: unknown): AnimalSex | null {
+  return canonicalEnumValue(value, ANIMAL_SEX_OPTIONS)
+}
+
+export function canonicalAnimalSize(value: unknown): AnimalSize | null {
+  return canonicalEnumValue(value, ANIMAL_SIZE_OPTIONS)
+}
+
+export function canonicalAnimalStatus(value: unknown): AnimalStatus | null {
+  return canonicalEnumValue(value, ANIMAL_STATUS_OPTIONS)
+}
+
 export interface AnimalListQuery {
   species?: AnimalSpecies
   sex?: AnimalSex
@@ -174,6 +200,7 @@ export interface AnimalWriteInput {
   image: string
   status: AnimalStatus
   district: string
+  parish: string
   city: string
 }
 
@@ -188,6 +215,7 @@ export interface Animal {
   image: string
   status: AnimalStatus
   district: string
+  parish: string
   city: string
   createdAt: string
 }
@@ -203,6 +231,7 @@ export function toAnimalWriteInput(animal: Animal): AnimalWriteInput {
     image: animal.image,
     status: animal.status,
     district: animal.district,
+    parish: animal.parish,
     city: animal.city,
   }
 }

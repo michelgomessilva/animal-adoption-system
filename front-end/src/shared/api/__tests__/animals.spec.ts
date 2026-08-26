@@ -16,6 +16,7 @@ const writeInput = {
   image: '',
   status: 'Available' as const,
   district: 'Centro',
+  parish: 'Sé',
   city: 'Sao Paulo',
 }
 

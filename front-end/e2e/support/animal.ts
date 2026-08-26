@@ -14,10 +14,11 @@ import {
 
 import { faker } from './faker'
 
-/** Mirrors the wizard limits in `useAnimalFormWizard` without importing Vue into E2E. */
+/** Mirrors the wizard limits in `useAnimalFormWizard` without importing Vue into E2E (parish max 50). */
 const NAME_MAX = 20
 const AGE_MAX = 30
 const LOCATION_MAX = 30
+const PARISH_MAX = 50
 const NAME_SUFFIX_LENGTH = 4
 
 const TRAITS = [
@@ -102,6 +103,7 @@ export function randomAnimalInput(overrides: Partial<AnimalWriteInput> = {}): An
     image: '',
     status: 'Available',
     district: fit(faker.location.street(), LOCATION_MAX, 'Centro'),
+    parish: fit(faker.location.county(), PARISH_MAX, 'Sé'),
     city: fit(faker.location.city(), LOCATION_MAX, 'Porto Alegre'),
     ...overrides,
   }
@@ -123,12 +125,12 @@ export function randomFilterContrast<K extends FilterKey>(keys: readonly K[]): F
 export function filterLabel(key: FilterKey, value: AnimalWriteInput[FilterKey]): string {
   switch (key) {
     case 'species':
-      return animalSpeciesLabel[value as AnimalWriteInput['species']]
+      return animalSpeciesLabel(value)
     case 'sex':
-      return animalSexLabel[value as AnimalWriteInput['sex']]
+      return animalSexLabel(value)
     case 'size':
-      return animalSizeLabel[value as AnimalWriteInput['size']]
+      return animalSizeLabel(value)
     case 'status':
-      return animalStatusLabel[value as AnimalWriteInput['status']]
+      return animalStatusLabel(value)
   }
 }

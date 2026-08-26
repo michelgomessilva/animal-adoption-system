@@ -48,6 +48,25 @@ describe('AnimalImage', () => {
     expect(wrapper.find('[data-icon="dog"]').exists()).toBe(true)
   })
 
+  it('uses a paw-print fallback for unknown species', () => {
+    const wrapper = mount(AnimalImage, {
+      props: { src: '', name: 'Pipoca', species: 'None' },
+    })
+
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.find('[data-icon="paw-print"]').exists()).toBe(true)
+    expect(wrapper.classes()).toContain('animal-image--unknown')
+  })
+
+  it('uses a paw-print fallback for numeric species', () => {
+    const wrapper = mount(AnimalImage, {
+      props: { src: '', name: 'Pipoca', species: 3 },
+    })
+
+    expect(wrapper.find('[data-icon="paw-print"]').exists()).toBe(true)
+    expect(wrapper.classes()).toContain('animal-image--unknown')
+  })
+
   it('shows a species fallback when the photo fails to load', async () => {
     const wrapper = mount(AnimalImage, {
       props: { src: 'https://example.com/missing.jpg', name: 'Luna', species: 'Dog' },

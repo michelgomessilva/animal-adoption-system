@@ -113,3 +113,17 @@ run = [
 [tasks.ci]
 description = "Full CI pipeline: check and build"
 depends = [":check", ":build"]
+
+# ---------------------------------------------------------------------------
+# Release
+# ---------------------------------------------------------------------------
+
+[tasks."surge:release"]
+description = "Build with .env.prod, copy SPA fallbacks from dist/index.html, publish to Surge"
+depends = [":setup"]
+run = [
+  "npx vite build --mode prod",
+  "cp dist/index.html dist/200.html",
+  "cp dist/index.html dist/404.html",
+  "surge ./dist publish",
+]

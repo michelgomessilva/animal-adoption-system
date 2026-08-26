@@ -6,6 +6,7 @@ import AnimalImage from '@/shared/components/AnimalImage.vue'
 import AppIcon from '@/shared/components/AppIcon.vue'
 import { useAnimalsList } from '@/shared/composables/useAnimalsList'
 import {
+  animalNameLabel,
   animalSexLabel,
   animalSizeLabel,
   animalSpeciesLabel,
@@ -15,6 +16,7 @@ import {
   animalSexBadgeClass,
   animalSizeBadgeClass,
   animalSpeciesBadgeClass,
+  animalStatusBadgeClass,
 } from '@/shared/types/animal-visual'
 import { useAnimalListFilters } from '@/shared/composables/useAnimalListFilters'
 import AnimalListFilters from '@/views/panel/components/AnimalListFilters.vue'
@@ -30,6 +32,13 @@ const countLabel = computed(() => {
 
   return `${count} cadastros`
 })
+
+const tableRows = computed(() =>
+  animals.value.map((animal) => ({
+    animal,
+    displayName: animalNameLabel(animal.name),
+  })),
+)
 </script>
 
 <template>
@@ -74,39 +83,36 @@ const countLabel = computed(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="animal in animals" :key="animal.id">
+          <tr v-for="{ animal, displayName } in tableRows" :key="animal.id">
             <td>
               <div class="animal-list-name">
                 <AnimalImage
                   :src="animal.image"
-                  :name="animal.name"
+                  :name="displayName"
                   :species="animal.species"
                   compact
                 />
-                <span>{{ animal.name }}</span>
+                <span>{{ displayName }}</span>
               </div>
             </td>
             <td>
               <span class="badge" :class="animalSpeciesBadgeClass(animal.species)">
-                {{ animalSpeciesLabel[animal.species] }}
+                {{ animalSpeciesLabel(animal.species) }}
               </span>
             </td>
             <td>
               <span class="badge" :class="animalSexBadgeClass(animal.sex)">
-                {{ animalSexLabel[animal.sex] }}
+                {{ animalSexLabel(animal.sex) }}
               </span>
             </td>
             <td>
               <span class="badge" :class="animalSizeBadgeClass(animal.size)">
-                {{ animalSizeLabel[animal.size] }}
+                {{ animalSizeLabel(animal.size) }}
               </span>
             </td>
             <td>
-              <span
-                class="badge"
-                :class="animal.status === 'Available' ? 'badge-success' : 'badge-neutral'"
-              >
-                {{ animalStatusLabel[animal.status] }}
+              <span class="badge" :class="animalStatusBadgeClass(animal.status)">
+                {{ animalStatusLabel(animal.status) }}
               </span>
             </td>
             <td>{{ animal.city }}</td>

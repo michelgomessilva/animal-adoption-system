@@ -45,6 +45,26 @@ describe('AnimalListPage', () => {
     expect(listAnimalsMock).toHaveBeenCalledWith({})
   })
 
+  it('keeps dirty API rows in the table with Não informado badges', async () => {
+    const dirty = {
+      ...createAnimal({
+        id: '22222222-2222-2222-2222-222222222222',
+        name: '',
+      }),
+      species: 'None',
+      status: 3,
+    } as unknown as Animal
+    listAnimalsMock.mockResolvedValue([luna, dirty])
+    const { wrapper } = await mountListPage()
+
+    expect(wrapper.get('.animal-list-count').text()).toBe('2 cadastros')
+    expect(wrapper.get('table').text()).toContain('Luna')
+    expect(wrapper.get('table').text()).toContain('Sem nome')
+    expect(wrapper.get('table').text()).toContain('Não informado')
+    expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+    expect(wrapper.find('.badge-ghost').exists()).toBe(true)
+  })
+
   it('loads with query filters from the URL', async () => {
     listAnimalsMock.mockResolvedValue([])
     await mountListPage('/panel/animals?status=Adopted&orderBy=name')

@@ -20,6 +20,7 @@ export async function fillWizardSteps(page: Page, input: AnimalWriteInput): Prom
   await page.getByRole('button', { name: 'Continuar' }).click()
 
   await page.locator('input[name="district"]').fill(input.district)
+  await page.locator('input[name="parish"]').fill(input.parish)
   await page.locator('input[name="city"]').fill(input.city)
   await clickOption(page, filterLabel('status', input.status))
 }

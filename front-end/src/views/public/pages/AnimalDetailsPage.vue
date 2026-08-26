@@ -5,9 +5,11 @@ import { RouterLink, useRoute } from 'vue-router'
 import AppIcon from '@/shared/components/AppIcon.vue'
 import AnimalImage from '@/shared/components/AnimalImage.vue'
 import { useAnimalById } from '@/shared/composables/useAnimalById'
+import { canonicalAnimalStatus } from '@/shared/types/animal'
 import {
   animalAgeLabel,
   animalLocationLabel,
+  animalNameLabel,
   animalSexLabel,
   animalSizeLabel,
   animalSpeciesLabel,
@@ -26,6 +28,9 @@ const animalId = computed(() => {
 const { animal, isLoading, isNotFound, hasError, reload } = useAnimalById(animalId)
 
 const aboutText = computed(() => animal.value?.description.trim() ?? '')
+const displayName = computed(() =>
+  animal.value === null ? '' : animalNameLabel(animal.value.name),
+)
 const metaText = computed(() => {
   if (animal.value === null) {
     return ''
@@ -38,9 +43,11 @@ const metaText = computed(() => {
 
   return parts.join(' · ')
 })
-const isAdopted = computed(() => animal.value?.status === 'Adopted')
+const isAdopted = computed(
+  () => animal.value !== null && canonicalAnimalStatus(animal.value.status) === 'Adopted',
+)
 const statusText = computed(() =>
-  animal.value === null ? '' : animalStatusLabel[animal.value.status],
+  animal.value === null ? '' : animalStatusLabel(animal.value.status),
 )
 </script>
 
@@ -87,7 +94,7 @@ const statusText = computed(() =>
         <div class="animal-details-portrait animal-details-reveal" style="--reveal-index: 0">
           <AnimalImage
             :src="animal.image"
-            :name="animal.name"
+            :name="displayName"
             :species="animal.species"
             priority
             class="animal-details-photo"
@@ -102,7 +109,7 @@ const statusText = computed(() =>
             >
               {{ statusText }}
             </p>
-            <h1>{{ animal.name }}</h1>
+            <h1>{{ displayName }}</h1>
             <p
               v-if="metaText.length > 0"
               class="animal-details-meta animal-details-reveal"
@@ -115,15 +122,15 @@ const statusText = computed(() =>
           <dl class="animal-details-sheet animal-details-reveal" style="--reveal-index: 3">
             <div class="animal-details-sheet-cell">
               <dt>Espécie</dt>
-              <dd>{{ animalSpeciesLabel[animal.species] }}</dd>
+              <dd>{{ animalSpeciesLabel(animal.species) }}</dd>
             </div>
             <div class="animal-details-sheet-cell">
               <dt>Sexo</dt>
-              <dd>{{ animalSexLabel[animal.sex] }}</dd>
+              <dd>{{ animalSexLabel(animal.sex) }}</dd>
             </div>
             <div class="animal-details-sheet-cell">
               <dt>Porte</dt>
-              <dd>{{ animalSizeLabel[animal.size] }}</dd>
+              <dd>{{ animalSizeLabel(animal.size) }}</dd>
             </div>
             <div class="animal-details-sheet-cell">
               <dt>Idade</dt>

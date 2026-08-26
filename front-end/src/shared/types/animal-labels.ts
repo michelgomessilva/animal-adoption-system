@@ -1,30 +1,61 @@
-import type {
-  AnimalOrderBy,
-  AnimalSex,
-  AnimalSize,
-  AnimalSpecies,
-  AnimalStatus,
+import {
+  canonicalAnimalSex,
+  canonicalAnimalSize,
+  canonicalAnimalSpecies,
+  canonicalAnimalStatus,
+  type AnimalOrderBy,
+  type AnimalSex,
+  type AnimalSize,
+  type AnimalSpecies,
+  type AnimalStatus,
 } from '@/shared/types/animal'
 
-export const animalSpeciesLabel: Record<AnimalSpecies, string> = {
+const UNKNOWN_LABEL = 'Não informado'
+
+const SPECIES_LABELS = {
   Dog: 'Cachorro',
   Cat: 'Gato',
-}
+} as const satisfies Record<AnimalSpecies, string>
 
-export const animalSizeLabel: Record<AnimalSize, string> = {
+const SIZE_LABELS = {
   Small: 'Pequeno',
   Medium: 'Médio',
   Large: 'Grande',
-}
+} as const satisfies Record<AnimalSize, string>
 
-export const animalSexLabel: Record<AnimalSex, string> = {
+const SEX_LABELS = {
   Male: 'Macho',
   Female: 'Fêmea',
-}
+} as const satisfies Record<AnimalSex, string>
 
-export const animalStatusLabel: Record<AnimalStatus, string> = {
+const STATUS_LABELS = {
   Available: 'Disponível',
   Adopted: 'Adotado',
+} as const satisfies Record<AnimalStatus, string>
+
+function labelFromCanonical<T extends string>(
+  value: unknown,
+  canonicalize: (value: unknown) => T | null,
+  labels: Record<T, string>,
+): string {
+  const canonical = canonicalize(value)
+  return canonical === null ? UNKNOWN_LABEL : labels[canonical]
+}
+
+export function animalSpeciesLabel(value: unknown): string {
+  return labelFromCanonical(value, canonicalAnimalSpecies, SPECIES_LABELS)
+}
+
+export function animalSizeLabel(value: unknown): string {
+  return labelFromCanonical(value, canonicalAnimalSize, SIZE_LABELS)
+}
+
+export function animalSexLabel(value: unknown): string {
+  return labelFromCanonical(value, canonicalAnimalSex, SEX_LABELS)
+}
+
+export function animalStatusLabel(value: unknown): string {
+  return labelFromCanonical(value, canonicalAnimalStatus, STATUS_LABELS)
 }
 
 export const animalOrderByLabel: Record<AnimalOrderBy, string> = {
@@ -38,8 +69,17 @@ export const animalOrderByLabel: Record<AnimalOrderBy, string> = {
   createdAt_desc: 'Mais recentes',
 }
 
-export function animalAgeLabel(age: number): string {
+export function animalAgeLabel(age: unknown): string {
+  if (typeof age !== 'number' || !Number.isInteger(age)) {
+    return UNKNOWN_LABEL
+  }
+
   return age === 1 ? '1 ano' : `${String(age)} anos`
+}
+
+export function animalNameLabel(name: string): string {
+  const trimmed = name.trim()
+  return trimmed.length === 0 ? 'Sem nome' : trimmed
 }
 
 export function animalLocationLabel(district: string, city: string): string {
