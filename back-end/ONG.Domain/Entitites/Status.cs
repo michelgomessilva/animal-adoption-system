@@ -4,6 +4,7 @@
     {
         None, 
         Available,
+        InAdoptionProcess,
         Adopted
     }
 }

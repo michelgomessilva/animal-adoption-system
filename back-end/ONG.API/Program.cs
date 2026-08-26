@@ -19,6 +19,7 @@ using ONG.API.Middleware;
 using ONG.Application.UseCases.Animals.GetAnimalById;
 using ONG.Application.UseCases.Animals.UpdateAnimal;
 using ONG.Application.UseCases.OAuth.IssueClientToken;
+using ONG.API.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,18 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
      {
+         options.JsonSerializerOptions.Converters.Add(
+             new StatusJsonConverter());
+
+         options.JsonSerializerOptions.Converters.Add(
+             new SpeciesJsonConverter());
+
+         options.JsonSerializerOptions.Converters.Add(
+             new SexJsonConverter());
+
+         options.JsonSerializerOptions.Converters.Add(
+             new SizeJsonConverter());
+
          options.JsonSerializerOptions.Converters.Add(
              new JsonStringEnumConverter());
      });
