@@ -42,4 +42,19 @@ export default defineConfig({
   preview: {
     proxy: apiProxy,
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Vue and its runtime peers change less often than app code.
+        codeSplitting: {
+          groups: [
+            {
+              name: 'vue',
+              test: /[\\/]node_modules[\\/](?:vue|@vue|vue-router|pinia)(?:[\\/]|$)/,
+            },
+          ],
+        },
+      },
+    },
+  },
 })

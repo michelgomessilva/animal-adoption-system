@@ -1,32 +1,33 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-import PanelLayout from '@/views/panel/PanelLayout.vue'
-import AnimalCreatePage from '@/views/panel/pages/AnimalCreatePage.vue'
-import AnimalEditPage from '@/views/panel/pages/AnimalEditPage.vue'
-import AnimalListPage from '@/views/panel/pages/AnimalListPage.vue'
+type PanelViewName = keyof typeof import('@/views/panel/panel-views')
+
+function loadPanelView(name: PanelViewName) {
+  return () => import('@/views/panel/panel-views').then((views) => views[name])
+}
 
 export const panelRoutes: RouteRecordRaw = {
   path: '/panel',
-  component: PanelLayout,
+  component: loadPanelView('PanelLayout'),
   meta: { requiresAuth: true },
   children: [
     { path: '', redirect: { name: 'panel-animals' } },
     {
       path: 'animals',
       name: 'panel-animals',
-      component: AnimalListPage,
+      component: loadPanelView('AnimalListPage'),
       meta: { title: 'Meus pets' },
     },
     {
       path: 'animals/new',
       name: 'panel-animals-new',
-      component: AnimalCreatePage,
+      component: loadPanelView('AnimalCreatePage'),
       meta: { title: 'Cadastro do pet' },
     },
     {
       path: 'animals/:id/edit',
       name: 'panel-animals-edit',
-      component: AnimalEditPage,
+      component: loadPanelView('AnimalEditPage'),
       meta: { title: 'Editar pet' },
     },
   ],
