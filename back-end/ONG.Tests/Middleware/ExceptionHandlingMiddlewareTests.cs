@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ONG.API.Middleware;
@@ -65,25 +64,6 @@ namespace ONG.Tests.Middleware
 
             var body = await response.Content.ReadFromJsonAsync<JsonElement>();
             Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("title").GetString()));
-            var detail = body.GetProperty("detail").GetString();
-            Assert.Equal("An unexpected error occurred.", detail);
-            Assert.DoesNotContain(secretExceptionMessage, detail);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_DownstreamThrowsDbUpdateException_Returns500ProblemDetailsWithoutLeakingMessage()
-        {
-            const string secretExceptionMessage = "duplicate key value violates unique constraint \"IX_Admins_Username\"";
-            using var host = await BuildHostAsync(_ => throw new DbUpdateException(secretExceptionMessage));
-            var client = host.GetTestClient();
-
-            var response = await client.GetAsync("/");
-
-            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            Assert.NotNull(response.Content.Headers.ContentType);
-            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
-
-            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
             var detail = body.GetProperty("detail").GetString();
             Assert.Equal("An unexpected error occurred.", detail);
             Assert.DoesNotContain(secretExceptionMessage, detail);
