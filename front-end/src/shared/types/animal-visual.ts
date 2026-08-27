@@ -1,12 +1,12 @@
 import {
+  AnimalSex,
+  AnimalSize,
+  AnimalSpecies,
+  AnimalStatus,
   canonicalAnimalSex,
   canonicalAnimalSize,
   canonicalAnimalSpecies,
   canonicalAnimalStatus,
-  type AnimalSex,
-  type AnimalSize,
-  type AnimalSpecies,
-  type AnimalStatus,
 } from '@/shared/types/animal'
 import type { AppIconName } from '@/shared/types/app-icon'
 
@@ -14,18 +14,18 @@ const GHOST_BADGE = 'badge-ghost'
 
 /** Dog = secondary (forest); Cat = info (cool) — shared by icon fallback and badges. */
 const SPECIES_IMAGE_CLASS = {
-  Dog: 'animal-image--dog',
-  Cat: 'animal-image--cat',
+  [AnimalSpecies.Dog]: 'animal-image--dog',
+  [AnimalSpecies.Cat]: 'animal-image--cat',
 } as const satisfies Record<AnimalSpecies, string>
 
 const SPECIES_BADGE_CLASS = {
-  Dog: 'badge-secondary',
-  Cat: 'badge-info',
+  [AnimalSpecies.Dog]: 'badge-secondary',
+  [AnimalSpecies.Cat]: 'badge-info',
 } as const satisfies Record<AnimalSpecies, string>
 
 const SPECIES_ICON = {
-  Dog: 'dog',
-  Cat: 'cat',
+  [AnimalSpecies.Dog]: 'dog',
+  [AnimalSpecies.Cat]: 'cat',
 } as const satisfies Record<AnimalSpecies, AppIconName>
 
 /**
@@ -33,19 +33,20 @@ const SPECIES_ICON = {
  * outline → warm solid → dense neutral.
  */
 const SIZE_BADGE_CLASS = {
-  Small: 'badge-outline',
-  Medium: 'badge-warning',
-  Large: 'badge-neutral',
+  [AnimalSize.Small]: 'badge-outline',
+  [AnimalSize.Medium]: 'badge-warning',
+  [AnimalSize.Large]: 'badge-neutral',
 } as const satisfies Record<AnimalSize, string>
 
 const SEX_BADGE_CLASS = {
-  Male: 'badge-accent',
-  Female: 'badge-primary',
+  [AnimalSex.Male]: 'badge-accent',
+  [AnimalSex.Female]: 'badge-primary',
 } as const satisfies Record<AnimalSex, string>
 
 const STATUS_BADGE_CLASS = {
-  Available: 'badge-success',
-  Adopted: 'badge-neutral',
+  [AnimalStatus.Available]: 'badge-success',
+  [AnimalStatus.InAdoptionProcess]: 'badge-warning',
+  [AnimalStatus.Adopted]: 'badge-neutral',
 } as const satisfies Record<AnimalStatus, string>
 
 function classFromCanonical<T extends string>(

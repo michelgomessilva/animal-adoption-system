@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-router'
 
 import { ApiError } from '@/shared/api/api-error'
-import type { Animal } from '@/shared/types/animal'
+import { AnimalStatus, type Animal } from '@/shared/types/animal'
 import AnimalEditPage from '@/views/panel/pages/AnimalEditPage.vue'
 import {
   createAnimal as createAnimalFixture,
@@ -93,7 +93,7 @@ describe('AnimalEditPage', () => {
         district: 'Centro',
         parish: luna.parish,
         city: 'Porto Alegre',
-        status: 'Available',
+        status: AnimalStatus.Available,
       }),
     )
     expect(replace).toHaveBeenCalledWith({ name: 'panel-animals' })

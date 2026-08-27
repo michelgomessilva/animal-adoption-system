@@ -2,19 +2,26 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createAnimal, getAnimalById, listAnimals, updateAnimal } from '@/shared/api/animals'
 import { resetHttpClient, setAccessToken } from '@/shared/api/http'
+import {
+  AnimalOrderBy,
+  AnimalSex,
+  AnimalSize,
+  AnimalSpecies,
+  AnimalStatus,
+} from '@/shared/types/animal'
 import { createAnimal as createAnimalFixture, firstFetchRequest } from '@/__tests__/helpers'
 
 const fixture = createAnimalFixture({ description: 'Calma e brincalhona' })
 
 const writeInput = {
   name: 'Rex',
-  species: 'Dog' as const,
-  sex: 'Male' as const,
-  size: 'Medium' as const,
+  species: AnimalSpecies.Dog,
+  sex: AnimalSex.Male,
+  size: AnimalSize.Medium,
   description: 'Friendly dog',
   approximateAge: 2,
   image: '',
-  status: 'Available' as const,
+  status: AnimalStatus.Available,
   district: 'Centro',
   parish: 'Sé',
   city: 'Sao Paulo',
@@ -56,14 +63,18 @@ describe('listAnimals', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      listAnimals({ species: 'Dog', status: 'Adopted', orderBy: 'name' }),
+      listAnimals({
+        species: AnimalSpecies.Dog,
+        status: AnimalStatus.Adopted,
+        orderBy: AnimalOrderBy.Name,
+      }),
     ).resolves.toEqual([fixture])
 
     const url = new URL(firstFetchRequest(fetchMock).url)
     expect(url.pathname).toBe('/api/animals')
-    expect(url.searchParams.get('species')).toBe('Dog')
-    expect(url.searchParams.get('status')).toBe('Adopted')
-    expect(url.searchParams.get('orderBy')).toBe('name')
+    expect(url.searchParams.get('species')).toBe(AnimalSpecies.Dog)
+    expect(url.searchParams.get('status')).toBe(AnimalStatus.Adopted)
+    expect(url.searchParams.get('orderBy')).toBe(AnimalOrderBy.Name)
     expect(firstFetchRequest(fetchMock).headers.get('Authorization')).toBe('Bearer jwt')
   })
 

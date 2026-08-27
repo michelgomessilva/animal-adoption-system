@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { AnimalSpecies } from '@/shared/types/animal'
 import AnimalFormBasicStep from '@/views/panel/components/AnimalFormBasicStep.vue'
 import { createEmptyDraft } from '@/views/panel/composables/useAnimalFormWizard'
 
@@ -19,7 +20,7 @@ describe('AnimalFormBasicStep', () => {
 
     await cat.trigger('click')
 
-    expect(model.species).toBe('Cat')
+    expect(model.species).toBe(AnimalSpecies.Cat)
   })
 
   it('limits age to 30 and name to 20', () => {

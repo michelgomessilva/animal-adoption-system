@@ -1,36 +1,37 @@
 import {
+  AnimalOrderBy,
+  AnimalSex,
+  AnimalSize,
+  AnimalSpecies,
+  AnimalStatus,
   canonicalAnimalSex,
   canonicalAnimalSize,
   canonicalAnimalSpecies,
   canonicalAnimalStatus,
-  type AnimalOrderBy,
-  type AnimalSex,
-  type AnimalSize,
-  type AnimalSpecies,
-  type AnimalStatus,
 } from '@/shared/types/animal'
 
 const UNKNOWN_LABEL = 'Não informado'
 
 const SPECIES_LABELS = {
-  Dog: 'Cachorro',
-  Cat: 'Gato',
+  [AnimalSpecies.Dog]: 'Cachorro',
+  [AnimalSpecies.Cat]: 'Gato',
 } as const satisfies Record<AnimalSpecies, string>
 
 const SIZE_LABELS = {
-  Small: 'Pequeno',
-  Medium: 'Médio',
-  Large: 'Grande',
+  [AnimalSize.Small]: 'Pequeno',
+  [AnimalSize.Medium]: 'Médio',
+  [AnimalSize.Large]: 'Grande',
 } as const satisfies Record<AnimalSize, string>
 
 const SEX_LABELS = {
-  Male: 'Macho',
-  Female: 'Fêmea',
+  [AnimalSex.Male]: 'Macho',
+  [AnimalSex.Female]: 'Fêmea',
 } as const satisfies Record<AnimalSex, string>
 
 const STATUS_LABELS = {
-  Available: 'Disponível',
-  Adopted: 'Adotado',
+  [AnimalStatus.Available]: 'Disponível',
+  [AnimalStatus.InAdoptionProcess]: 'Em processo de adoção',
+  [AnimalStatus.Adopted]: 'Adotado',
 } as const satisfies Record<AnimalStatus, string>
 
 function labelFromCanonical<T extends string>(
@@ -59,14 +60,14 @@ export function animalStatusLabel(value: unknown): string {
 }
 
 export const animalOrderByLabel: Record<AnimalOrderBy, string> = {
-  name: 'Nome (A–Z)',
-  name_desc: 'Nome (Z–A)',
-  species: 'Espécie (A–Z)',
-  species_desc: 'Espécie (Z–A)',
-  size: 'Porte (crescente)',
-  size_desc: 'Porte (decrescente)',
-  createdAt: 'Mais antigos',
-  createdAt_desc: 'Mais recentes',
+  [AnimalOrderBy.Name]: 'Nome (A–Z)',
+  [AnimalOrderBy.NameDesc]: 'Nome (Z–A)',
+  [AnimalOrderBy.Species]: 'Espécie (A–Z)',
+  [AnimalOrderBy.SpeciesDesc]: 'Espécie (Z–A)',
+  [AnimalOrderBy.Size]: 'Porte (crescente)',
+  [AnimalOrderBy.SizeDesc]: 'Porte (decrescente)',
+  [AnimalOrderBy.CreatedAt]: 'Mais antigos',
+  [AnimalOrderBy.CreatedAtDesc]: 'Mais recentes',
 }
 
 export function animalAgeLabel(age: unknown): string {

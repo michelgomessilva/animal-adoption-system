@@ -1,14 +1,14 @@
 import { computed, ref } from 'vue'
 
 import {
+  AnimalSex,
+  AnimalSize,
+  AnimalSpecies,
+  AnimalStatus,
   canonicalAnimalSex,
   canonicalAnimalSize,
   canonicalAnimalSpecies,
   canonicalAnimalStatus,
-  type AnimalSex,
-  type AnimalSize,
-  type AnimalSpecies,
-  type AnimalStatus,
   type AnimalWriteInput,
 } from '@/shared/types/animal'
 
@@ -31,13 +31,13 @@ export const ANIMAL_PARISH_MAX = 50
 export function createEmptyDraft(): AnimalWriteInput {
   return {
     name: '',
-    species: 'Dog',
-    sex: 'Male',
-    size: 'Medium',
+    species: AnimalSpecies.Dog,
+    sex: AnimalSex.Male,
+    size: AnimalSize.Medium,
     description: '',
     approximateAge: 0,
     image: '',
-    status: 'Available',
+    status: AnimalStatus.Available,
     district: '',
     parish: '',
     city: '',
@@ -51,7 +51,6 @@ interface ResolvedDraftEnums {
   status: AnimalStatus | null
 }
 
-/** Edit drafts may carry non-canonical API enums; resolve once for validation and submit. */
 function resolveDraftEnums(draft: AnimalWriteInput): ResolvedDraftEnums {
   return {
     species: canonicalAnimalSpecies(draft.species),

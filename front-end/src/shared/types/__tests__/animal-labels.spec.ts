@@ -10,18 +10,23 @@ import {
   animalStatusLabel,
   formatAnimalPublishedAt,
 } from '@/shared/types/animal-labels'
+import { AnimalSex, AnimalSize, AnimalSpecies, AnimalStatus } from '@/shared/types/animal'
 
 describe('animal enum labels', () => {
-  it('maps canonical product values', () => {
-    expect(animalSpeciesLabel('Dog')).toBe('Cachorro')
-    expect(animalSpeciesLabel('cat')).toBe('Gato')
-    expect(animalSexLabel('Female')).toBe('Fêmea')
-    expect(animalSizeLabel('Medium')).toBe('Médio')
-    expect(animalStatusLabel('Available')).toBe('Disponível')
+  it('maps canonical product wire values', () => {
+    expect(animalSpeciesLabel(AnimalSpecies.Dog)).toBe('Cachorro')
+    expect(animalSpeciesLabel(AnimalSpecies.Cat)).toBe('Gato')
+    expect(animalSexLabel(AnimalSex.Female)).toBe('Fêmea')
+    expect(animalSizeLabel(AnimalSize.Medium)).toBe('Médio')
+    expect(animalStatusLabel(AnimalStatus.Available)).toBe('Disponível')
+    expect(animalStatusLabel(AnimalStatus.InAdoptionProcess)).toBe('Em processo de adoção')
+    expect(animalStatusLabel(AnimalStatus.Adopted)).toBe('Adotado')
   })
 
-  it('returns Não informado for None, numbers, and unknown values', () => {
+  it('returns Não informado for None, wrong case, numbers, and unknown values', () => {
     expect(animalSpeciesLabel('None')).toBe('Não informado')
+    expect(animalSpeciesLabel('Dog')).toBe('Não informado')
+    expect(animalSpeciesLabel('cat')).toBe('Não informado')
     expect(animalSpeciesLabel(3)).toBe('Não informado')
     expect(animalSexLabel(3)).toBe('Não informado')
     expect(animalSizeLabel(4)).toBe('Não informado')

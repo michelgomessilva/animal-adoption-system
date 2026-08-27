@@ -1,5 +1,6 @@
 import { createAnimalViaApi, loginViaApi } from './support/api'
 import { expect, test } from './support/test'
+import { AnimalSpecies } from '../src/shared/types/animal'
 import { animalSpeciesLabel } from '../src/shared/types/animal-labels'
 
 test('the public catalog opens the animal details page', async ({ page, request }) => {
@@ -7,7 +8,7 @@ test('the public catalog opens the animal details page', async ({ page, request 
   const animal = await createAnimalViaApi(request, session.token, {
     description: 'Perfil aberto pelo E2E do catálogo público.',
     city: 'Porto Alegre',
-    species: 'Dog',
+    species: AnimalSpecies.Dog,
   })
 
   await page.goto('/')

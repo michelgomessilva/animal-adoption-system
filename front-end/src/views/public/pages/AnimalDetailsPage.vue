@@ -5,7 +5,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import AppIcon from '@/shared/components/AppIcon.vue'
 import AnimalImage from '@/shared/components/AnimalImage.vue'
 import { useAnimalById } from '@/shared/composables/useAnimalById'
-import { canonicalAnimalStatus } from '@/shared/types/animal'
+import { AnimalStatus } from '@/shared/types/animal'
 import {
   animalAgeLabel,
   animalLocationLabel,
@@ -44,7 +44,7 @@ const metaText = computed(() => {
   return parts.join(' · ')
 })
 const isAdopted = computed(
-  () => animal.value !== null && canonicalAnimalStatus(animal.value.status) === 'Adopted',
+  () => animal.value !== null && animal.value.status === AnimalStatus.Adopted,
 )
 const statusText = computed(() =>
   animal.value === null ? '' : animalStatusLabel(animal.value.status),

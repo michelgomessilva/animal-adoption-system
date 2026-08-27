@@ -39,7 +39,7 @@ Detalhamento completo — convenções, padrões, decisões de design — em
 - CRUD parcial de animais: criação, leitura (lista com filtros/ordenação e por id) e
   atualização. Exclusão ainda não implementada.
 - Listagem pública com visibilidade escopada pela identidade do chamador: anônimo (ou token
-  inválido) vê somente animais `Available`; admin autenticado vê o catálogo completo.
+  inválido) vê somente animais `AVAILABLE`; admin autenticado vê o catálogo completo.
 - Login administrativo (usuário único, provisionado automaticamente na inicialização) que
   emite um JWT.
 - Autenticação JWT bearer protegendo criação e atualização de animais.
@@ -197,7 +197,7 @@ um `X-Client-Token` presente e inválido é sempre rejeitado, independente da fl
 Comportamentos não óbvios a partir do schema:
 
 - `GET /api/animals` com `status` na query só tem efeito para chamada **autenticada**; para
-  chamada anônima o filtro é sempre sobrescrito para `Available`.
+  chamada anônima o filtro é sempre sobrescrito para `AVAILABLE`.
 - `POST /oauth/token` responde `401` genérico tanto para `client_id` quanto para
   `client_secret` incorretos (comparação em tempo constante, mensagem não distingue qual
   campo errou) — mesmo padrão de `POST /auth/login` para usuário/senha.
@@ -224,13 +224,13 @@ curl -X POST http://localhost:5127/api/animals \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token retornado acima>" \
   -d '{
-    "name": "Rex", "species": "Dog", "sex": "Male", "size": "Medium",
+    "name": "Rex", "species": "DOG", "sex": "MALE", "size": "MEDIUM",
     "description": "Cachorro amigável", "approximateAge": 3,
-    "image": "https://exemplo.com/rex.jpg", "status": "Available",
+    "image": "https://exemplo.com/rex.jpg", "status": "AVAILABLE",
     "district": "Centro", "city": "Sao Paulo", "parish": "Se"
   }'
 
-curl "http://localhost:5127/api/animals?species=Dog&orderBy=name_desc"
+curl "http://localhost:5127/api/animals?species=DOG&orderBy=name_desc"
 ```
 
 Emitir e usar um token de cliente (só rejeita sem ele se `ClientAuth:EnforcementEnabled=true`):

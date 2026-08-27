@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { AnimalStatus } from '@/shared/types/animal'
 import AnimalFormLocationStep from '@/views/panel/components/AnimalFormLocationStep.vue'
 import { ANIMAL_PARISH_MAX, createEmptyDraft } from '@/views/panel/composables/useAnimalFormWizard'
 
@@ -23,7 +24,24 @@ describe('AnimalFormLocationStep', () => {
     expect(model.district).toBe('Centro')
     expect(model.parish).toBe('Sé')
     expect(model.city).toBe('Porto Alegre')
-    expect(model.status).toBe('Adopted')
+    expect(model.status).toBe(AnimalStatus.Adopted)
+  })
+
+  it('sets status to in-adoption process when that option is selected', async () => {
+    const model = createEmptyDraft()
+    const wrapper = mount(AnimalFormLocationStep, {
+      props: { modelValue: model },
+    })
+
+    const inProcess = wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Em processo de adoção')
+    if (inProcess === undefined) {
+      throw new Error('Expected the InAdoptionProcess button')
+    }
+    await inProcess.trigger('click')
+
+    expect(model.status).toBe(AnimalStatus.InAdoptionProcess)
   })
 
   it('exposes a parish input with the API max length', () => {

@@ -1,6 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import {
+  AnimalOrderBy,
+  AnimalSex,
+  AnimalSize,
+  AnimalSpecies,
+  AnimalStatus,
+} from '@/shared/types/animal'
 import AnimalCatalogChips from '@/views/public/components/AnimalCatalogChips.vue'
 
 describe('AnimalCatalogChips', () => {
@@ -11,12 +18,12 @@ describe('AnimalCatalogChips', () => {
     expect(empty.find('ul').exists()).toBe(false)
 
     const onlyOrder = mount(AnimalCatalogChips, {
-      props: { filters: { orderBy: 'name' } },
+      props: { filters: { orderBy: AnimalOrderBy.Name } },
     })
     expect(onlyOrder.find('ul').exists()).toBe(false)
 
     const onlyStatus = mount(AnimalCatalogChips, {
-      props: { filters: { status: 'Available' } },
+      props: { filters: { status: AnimalStatus.Available } },
     })
     expect(onlyStatus.find('ul').exists()).toBe(false)
   })
@@ -25,11 +32,11 @@ describe('AnimalCatalogChips', () => {
     const wrapper = mount(AnimalCatalogChips, {
       props: {
         filters: {
-          species: 'Dog',
-          sex: 'Female',
-          size: 'Medium',
-          orderBy: 'name',
-          status: 'Available',
+          species: AnimalSpecies.Dog,
+          sex: AnimalSex.Female,
+          size: AnimalSize.Medium,
+          orderBy: AnimalOrderBy.Name,
+          status: AnimalStatus.Available,
         },
       },
     })
@@ -44,7 +51,7 @@ describe('AnimalCatalogChips', () => {
 
   it('emits removeFilter when a chip is removed', async () => {
     const wrapper = mount(AnimalCatalogChips, {
-      props: { filters: { species: 'Dog', orderBy: 'name' } },
+      props: { filters: { species: AnimalSpecies.Dog, orderBy: AnimalOrderBy.Name } },
     })
 
     await wrapper.get('[aria-label="Remover filtro Cachorro"]').trigger('click')

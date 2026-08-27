@@ -1,6 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import {
+  AnimalOrderBy,
+  AnimalSex,
+  AnimalSize,
+  AnimalSpecies,
+  AnimalStatus,
+} from '@/shared/types/animal'
 import AnimalListFilters from '@/views/panel/components/AnimalListFilters.vue'
 
 describe('AnimalListFilters', () => {
@@ -18,6 +25,7 @@ describe('AnimalListFilters', () => {
     expect(wrapper.text()).toContain('Cachorro')
     expect(wrapper.text()).toContain('Gato')
     expect(wrapper.text()).toContain('Disponível')
+    expect(wrapper.text()).toContain('Em processo de adoção')
     expect(wrapper.text()).toContain('Adotado')
     expect(wrapper.text()).toContain('Nome (A–Z)')
     expect(wrapper.text()).toContain('Mais recentes')
@@ -32,9 +40,9 @@ describe('AnimalListFilters', () => {
       props: { filters: {} },
     })
 
-    await wrapper.get('select[name="species"]').setValue('Cat')
+    await wrapper.get('select[name="species"]').setValue(AnimalSpecies.Cat)
 
-    expect(wrapper.emitted('setFilter')).toEqual([['species', 'Cat']])
+    expect(wrapper.emitted('setFilter')).toEqual([['species', AnimalSpecies.Cat]])
   })
 
   it('emits setFilter with orderBy when Ordenar por changes', async () => {
@@ -42,14 +50,14 @@ describe('AnimalListFilters', () => {
       props: { filters: {} },
     })
 
-    await wrapper.get('select[name="orderBy"]').setValue('name')
+    await wrapper.get('select[name="orderBy"]').setValue(AnimalOrderBy.Name)
 
-    expect(wrapper.emitted('setFilter')).toEqual([['orderBy', 'name']])
+    expect(wrapper.emitted('setFilter')).toEqual([['orderBy', AnimalOrderBy.Name]])
   })
 
   it('emits setFilter with undefined when Espécie is cleared', async () => {
     const wrapper = mount(AnimalListFilters, {
-      props: { filters: { species: 'Dog' } },
+      props: { filters: { species: AnimalSpecies.Dog } },
     })
 
     await wrapper.get('select[name="species"]').setValue('')
@@ -64,7 +72,7 @@ describe('AnimalListFilters', () => {
     expect(inactive.find('button').exists()).toBe(false)
 
     const active = mount(AnimalListFilters, {
-      props: { filters: { orderBy: 'createdAt_desc' } },
+      props: { filters: { orderBy: AnimalOrderBy.CreatedAtDesc } },
     })
     const clear = active.get('button')
     expect(clear.text()).toBe('Limpar filtros')
@@ -77,19 +85,25 @@ describe('AnimalListFilters', () => {
     const wrapper = mount(AnimalListFilters, {
       props: {
         filters: {
-          species: 'Cat',
-          sex: 'Female',
-          size: 'Small',
-          status: 'Adopted',
-          orderBy: 'name_desc',
+          species: AnimalSpecies.Cat,
+          sex: AnimalSex.Female,
+          size: AnimalSize.Small,
+          status: AnimalStatus.Adopted,
+          orderBy: AnimalOrderBy.NameDesc,
         },
       },
     })
 
-    expect(wrapper.get('select[name="species"]').element).toMatchObject({ value: 'Cat' })
-    expect(wrapper.get('select[name="sex"]').element).toMatchObject({ value: 'Female' })
-    expect(wrapper.get('select[name="size"]').element).toMatchObject({ value: 'Small' })
-    expect(wrapper.get('select[name="status"]').element).toMatchObject({ value: 'Adopted' })
-    expect(wrapper.get('select[name="orderBy"]').element).toMatchObject({ value: 'name_desc' })
+    expect(wrapper.get('select[name="species"]').element).toMatchObject({
+      value: AnimalSpecies.Cat,
+    })
+    expect(wrapper.get('select[name="sex"]').element).toMatchObject({ value: AnimalSex.Female })
+    expect(wrapper.get('select[name="size"]').element).toMatchObject({ value: AnimalSize.Small })
+    expect(wrapper.get('select[name="status"]').element).toMatchObject({
+      value: AnimalStatus.Adopted,
+    })
+    expect(wrapper.get('select[name="orderBy"]').element).toMatchObject({
+      value: AnimalOrderBy.NameDesc,
+    })
   })
 })
