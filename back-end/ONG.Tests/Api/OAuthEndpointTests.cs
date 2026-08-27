@@ -64,5 +64,42 @@ namespace ONG.Tests.Api
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        [Fact]
+        public async Task Token_MissingClientSecret_Returns400()
+        {
+            var response = await _client.PostAsJsonAsync("/oauth/token", new
+            {
+                grant_type = "client_credentials",
+                client_id = OAuthApiFactory.ConfiguredClientId
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Token_MissingGrantType_Returns400()
+        {
+            var response = await _client.PostAsJsonAsync("/oauth/token", new
+            {
+                client_id = OAuthApiFactory.ConfiguredClientId,
+                client_secret = OAuthApiFactory.ConfiguredClientSecret
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Token_InvalidGrantType_Returns400()
+        {
+            var response = await _client.PostAsJsonAsync("/oauth/token", new
+            {
+                grant_type = "password",
+                client_id = OAuthApiFactory.ConfiguredClientId,
+                client_secret = OAuthApiFactory.ConfiguredClientSecret
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
     }
 }

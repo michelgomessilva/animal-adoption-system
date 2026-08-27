@@ -1,16 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using ONG.Application.UseCases.Animals.CreateAnimal;
+using ONG.Application.UseCases.Animals.UpdateAnimal;
 using ONG.Domain.Entitites;
 using Xunit;
 
 namespace ONG.Tests.Application
 {
-    public class CreateAnimalCommandTests
+    public class UpdateAnimalCommandTests
     {
-        private static CreateAnimalCommand ValidCommand(string name) => new()
+        private static UpdateAnimalCommand ValidCommand(string name) => new()
         {
+            Id = Guid.NewGuid(),
             Name = name,
             Species = Species.Dog,
             Sex = Sex.Male,
@@ -36,7 +37,7 @@ namespace ONG.Tests.Application
             var isValid = Validator.TryValidateObject(command, context, results, validateAllProperties: true);
 
             Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateAnimalCommand.Name)));
+            Assert.Contains(results, r => r.MemberNames.Contains(nameof(UpdateAnimalCommand.Name)));
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace ONG.Tests.Application
             var isValid = Validator.TryValidateObject(command, context, results, validateAllProperties: true);
 
             Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateAnimalCommand.Description)));
+            Assert.Contains(results, r => r.MemberNames.Contains(nameof(UpdateAnimalCommand.Description)));
         }
 
         [Fact]
@@ -77,7 +78,7 @@ namespace ONG.Tests.Application
             var isValid = Validator.TryValidateObject(command, context, results, validateAllProperties: true);
 
             Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateAnimalCommand.District)));
+            Assert.Contains(results, r => r.MemberNames.Contains(nameof(UpdateAnimalCommand.District)));
         }
 
         [Fact]
@@ -91,7 +92,7 @@ namespace ONG.Tests.Application
             var isValid = Validator.TryValidateObject(command, context, results, validateAllProperties: true);
 
             Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateAnimalCommand.City)));
+            Assert.Contains(results, r => r.MemberNames.Contains(nameof(UpdateAnimalCommand.City)));
         }
 
         [Fact]
@@ -105,7 +106,7 @@ namespace ONG.Tests.Application
             var isValid = Validator.TryValidateObject(command, context, results, validateAllProperties: true);
 
             Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateAnimalCommand.Parish)));
+            Assert.Contains(results, r => r.MemberNames.Contains(nameof(UpdateAnimalCommand.Parish)));
         }
 
         [Theory]
@@ -121,7 +122,7 @@ namespace ONG.Tests.Application
             var isValid = Validator.TryValidateObject(command, context, results, validateAllProperties: true);
 
             Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateAnimalCommand.approximateAge)));
+            Assert.Contains(results, r => r.MemberNames.Contains(nameof(UpdateAnimalCommand.approximateAge)));
         }
 
         [Fact]
@@ -134,7 +135,7 @@ namespace ONG.Tests.Application
             var isValid = Validator.TryValidateObject(command, context, results, validateAllProperties: true);
 
             Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateAnimalCommand.Name)));
+            Assert.Contains(results, r => r.MemberNames.Contains(nameof(UpdateAnimalCommand.Name)));
         }
     }
 }
