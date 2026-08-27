@@ -208,7 +208,7 @@ namespace ONG.Tests.Api
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var animals = body.EnumerateArray().ToList();
-            Assert.All(animals, a => Assert.Equal("Disponível", a.GetProperty("status").GetString()));
+            Assert.All(animals, a => Assert.Equal("AVAILABLE", a.GetProperty("status").GetString()));
             Assert.Contains(animals, a => a.GetProperty("name").GetString() == "Rex");
         }
 
@@ -240,7 +240,7 @@ namespace ONG.Tests.Api
             var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.All(body.EnumerateArray(), a => Assert.Equal("Disponível", a.GetProperty("status").GetString()));
+            Assert.All(body.EnumerateArray(), a => Assert.Equal("AVAILABLE", a.GetProperty("status").GetString()));
         }
 
         [Fact]
@@ -256,7 +256,7 @@ namespace ONG.Tests.Api
             var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.All(body.EnumerateArray(), a => Assert.Equal("Disponível", a.GetProperty("status").GetString()));
+            Assert.All(body.EnumerateArray(), a => Assert.Equal("AVAILABLE", a.GetProperty("status").GetString()));
         }
 
         [Fact]
@@ -285,9 +285,9 @@ namespace ONG.Tests.Api
             Assert.NotEmpty(animals);
             Assert.All(animals, a =>
             {
-                Assert.Equal("Pequeno", a.GetProperty("size").GetString());
+                Assert.Equal("SMALL", a.GetProperty("size").GetString());
                 Assert.Equal("Centro", a.GetProperty("district").GetString());
-                Assert.Equal("Disponível", a.GetProperty("status").GetString());
+                Assert.Equal("AVAILABLE", a.GetProperty("status").GetString());
             });
         }
 
@@ -305,7 +305,7 @@ namespace ONG.Tests.Api
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var animals = body.EnumerateArray().ToList();
-            Assert.All(animals, a => Assert.Equal("Adotado", a.GetProperty("status").GetString()));
+            Assert.All(animals, a => Assert.Equal("ADOPTED", a.GetProperty("status").GetString()));
             var names = animals.Select(a => a.GetProperty("name").GetString()).ToList();
             Assert.Equal(names.OrderBy(n => n, StringComparer.Ordinal), names);
         }
@@ -351,7 +351,7 @@ namespace ONG.Tests.Api
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var animals = body.EnumerateArray().ToList();
             Assert.NotEmpty(animals);
-            Assert.All(animals, a => Assert.Equal("Disponível", a.GetProperty("status").GetString()));
+            Assert.All(animals, a => Assert.Equal("AVAILABLE", a.GetProperty("status").GetString()));
         }
 
         [Fact]

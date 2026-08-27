@@ -41,19 +41,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
      {
          options.JsonSerializerOptions.Converters.Add(
-             new StatusJsonConverter());
-
-         options.JsonSerializerOptions.Converters.Add(
-             new SpeciesJsonConverter());
-
-         options.JsonSerializerOptions.Converters.Add(
-             new SexJsonConverter());
-
-         options.JsonSerializerOptions.Converters.Add(
-             new SizeJsonConverter());
-
-         options.JsonSerializerOptions.Converters.Add(
-             new JsonStringEnumConverter());
+             new JsonStringEnumConverter(System.Text.Json.JsonNamingPolicy.SnakeCaseUpper));
      });
 
 builder.Services.AddProblemDetails(options =>
@@ -72,6 +60,8 @@ options.UseNpgsql(
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(options =>
 {
+    options.OperationFilter<SwaggerEnumParametersFilter>();
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",

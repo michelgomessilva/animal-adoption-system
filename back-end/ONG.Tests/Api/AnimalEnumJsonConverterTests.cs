@@ -1,6 +1,6 @@
-﻿using System.Text.Encodings.Web;
+using System.Text.Encodings.Web;
 using System.Text.Json;
-using ONG.API.Serialization;
+using System.Text.Json.Serialization;
 using ONG.Domain.Entitites;
 using Xunit;
 
@@ -8,83 +8,57 @@ namespace ONG.Tests.Api
 {
     public class AnimalEnumJsonConverterTests
     {
-        [Fact]
-        public void StatusConverter_SerializesAndDeserializesPortuguese()
+        private static JsonSerializerOptions CreateOptions() => new()
         {
-            var options = new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseUpper) }
+        };
 
-            options.Converters.Add(new StatusJsonConverter());
+        [Fact]
+        public void StatusConverter_SerializesAndDeserializesEnglishUppercase()
+        {
+            var options = CreateOptions();
 
             var json = JsonSerializer.Serialize(Status.InAdoptionProcess, options);
+            Assert.Equal("\"IN_ADOPTION_PROCESS\"", json);
 
-            Assert.Equal("\"Em processo de adoção\"", json);
-
-            var value = JsonSerializer.Deserialize<Status>(
-                "\"Em processo de adoção\"", options);
-
+            var value = JsonSerializer.Deserialize<Status>("\"IN_ADOPTION_PROCESS\"", options);
             Assert.Equal(Status.InAdoptionProcess, value);
         }
 
         [Fact]
-        public void SpeciesConverter_SerializesAndDeserializesPortuguese()
+        public void SpeciesConverter_SerializesAndDeserializesEnglishUppercase()
         {
-            var options = new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-
-            options.Converters.Add(new SpeciesJsonConverter());
+            var options = CreateOptions();
 
             var json = JsonSerializer.Serialize(Species.Dog, options);
+            Assert.Equal("\"DOG\"", json);
 
-            Assert.Equal("\"Cão\"", json);
-
-            var value = JsonSerializer.Deserialize<Species>(
-                "\"Cão\"", options);
-
+            var value = JsonSerializer.Deserialize<Species>("\"DOG\"", options);
             Assert.Equal(Species.Dog, value);
         }
 
         [Fact]
-        public void SexConverter_SerializesAndDeserializesPortuguese()
+        public void SexConverter_SerializesAndDeserializesEnglishUppercase()
         {
-            var options = new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-
-            options.Converters.Add(new SexJsonConverter());
+            var options = CreateOptions();
 
             var json = JsonSerializer.Serialize(Sex.Male, options);
+            Assert.Equal("\"MALE\"", json);
 
-            Assert.Equal("\"Macho\"", json);
-
-            var value = JsonSerializer.Deserialize<Sex>(
-                "\"Macho\"", options);
-
+            var value = JsonSerializer.Deserialize<Sex>("\"MALE\"", options);
             Assert.Equal(Sex.Male, value);
         }
 
         [Fact]
-        public void SizeConverter_SerializesAndDeserializesPortuguese()
+        public void SizeConverter_SerializesAndDeserializesEnglishUppercase()
         {
-            var options = new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-
-            options.Converters.Add(new SizeJsonConverter());
+            var options = CreateOptions();
 
             var json = JsonSerializer.Serialize(Size.Medium, options);
+            Assert.Equal("\"MEDIUM\"", json);
 
-            Assert.Equal("\"Médio\"", json);
-
-            var value = JsonSerializer.Deserialize<Size>(
-                "\"Médio\"", options);
-
+            var value = JsonSerializer.Deserialize<Size>("\"MEDIUM\"", options);
             Assert.Equal(Size.Medium, value);
         }
     }

@@ -43,7 +43,9 @@ namespace ONG.Application.UseCases.Animals.ListAnimals
             if (string.IsNullOrWhiteSpace(rawValue))
                 return null;
 
-            if (!Enum.TryParse<TEnum>(rawValue, ignoreCase: true, out var parsed) || !Enum.IsDefined(typeof(TEnum), parsed))
+            var normalized = rawValue.Replace("_", string.Empty);
+
+            if (!Enum.TryParse<TEnum>(normalized, ignoreCase: true, out var parsed) || !Enum.IsDefined(typeof(TEnum), parsed))
                 throw new ArgumentException($"{fieldName} filter value '{rawValue}' is not recognized");
 
             return parsed;
