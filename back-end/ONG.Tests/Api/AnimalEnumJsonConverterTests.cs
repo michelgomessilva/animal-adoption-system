@@ -61,5 +61,23 @@ namespace ONG.Tests.Api
             var value = JsonSerializer.Deserialize<Size>("\"MEDIUM\"", options);
             Assert.Equal(Size.Medium, value);
         }
+
+        [Fact]
+        public void StatusConverter_DeserializingUnrecognizedValue_ThrowsJsonException()
+        {
+            var options = CreateOptions();
+
+            Assert.Throws<JsonException>(() =>
+                JsonSerializer.Deserialize<Status>("\"BOGUS\"", options));
+        }
+
+        [Fact]
+        public void SpeciesConverter_DeserializingUnrecognizedValue_ThrowsJsonException()
+        {
+            var options = CreateOptions();
+
+            Assert.Throws<JsonException>(() =>
+                JsonSerializer.Deserialize<Species>("\"ELEPHANT\"", options));
+        }
     }
 }

@@ -386,6 +386,94 @@ namespace ONG.Tests.Api
         }
 
         [Fact]
+        public async Task GetById_ExistingId_Returns200WithAnimalData()
+        {
+            var token = await GetValidTokenAsync();
+            var id = await SeedAnimalAsync(token, "Available", name: "Rex");
+
+            var response = await _client.GetAsync($"/api/animals/{id}");
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(id, body.GetProperty("id").GetGuid());
+            Assert.Equal("Rex", body.GetProperty("name").GetString());
+            Assert.Equal("AVAILABLE", body.GetProperty("status").GetString());
+        }
+
+        [Fact]
+        public async Task Update_ValidTokenExistingId_Returns200WithPersistedChanges()
+        {
+            var token = await GetValidTokenAsync();
+            var id = await SeedAnimalAsync(token, "Available", name: "Rex");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PutAsJsonAsync($"/api/animals/{id}", new
+            {
+                Name = "Rex Updated",
+                Species = "Cat",
+                Sex = "Female",
+                Size = "Large",
+                Description = "Now a calm cat",
+                approximateAge = 5,
+                Image = "https://example.com/cat.jpg",
+                Status = "Adopted",
+                District = "Norte",
+                City = "Rio de Janeiro",
+                Parish = "Centro"
+            });
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Rex Updated", body.GetProperty("name").GetString());
+            Assert.Equal("CAT", body.GetProperty("species").GetString());
+            Assert.Equal("ADOPTED", body.GetProperty("status").GetString());
+
+            var getResponse = await _client.GetAsync($"/api/animals/{id}");
+            var getBody = await getResponse.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("Rex Updated", getBody.GetProperty("name").GetString());
+        }
+
+        [Fact]
+        public async Task Update_NoAuthorizationHeader_Returns401()
+        {
+            var token = await GetValidTokenAsync();
+            var id = await SeedAnimalAsync(token, "Available");
+
+            var response = await _client.PutAsJsonAsync($"/api/animals/{id}", ValidAnimalBody());
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Update_ValidTokenMissingSpecies_Returns400ProblemDetailsWithHandlerValidationMessage()
+        {
+            var token = await GetValidTokenAsync();
+            var id = await SeedAnimalAsync(token, "Available");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.PutAsJsonAsync($"/api/animals/{id}", new
+            {
+                Name = "Rex",
+                Sex = "Male",
+                Size = "Medium",
+                Description = "Friendly dog",
+                approximateAge = 2,
+                Image = "https://example.com/dog.jpg",
+                Status = "Available",
+                District = "Centro",
+                City = "Sao Paulo",
+                Parish = "Se"
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.NotNull(response.Content.Headers.ContentType);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("Species is required", body.GetProperty("detail").GetString());
+        }
+
+        [Fact]
         public async Task Create_ValidTokenMissingSpecies_Returns400ProblemDetailsWithHandlerValidationMessage()
         {
             var token = await GetValidTokenAsync();

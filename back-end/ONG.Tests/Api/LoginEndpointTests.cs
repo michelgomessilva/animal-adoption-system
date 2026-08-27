@@ -60,5 +60,16 @@ namespace ONG.Tests.Api
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        [Fact]
+        public async Task Login_MissingUsername_Returns400()
+        {
+            var response = await _client.PostAsJsonAsync("/auth/login", new
+            {
+                Password = "S3nhaForte!"
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
     }
 }

@@ -145,5 +145,65 @@ namespace ONG.Tests.Infrastructure
             Assert.Single(result);
             Assert.Equal("Rex", result[0].Name);
         }
+
+        [Fact]
+        public void GetById_ExistingId_ReturnsMatchingAnimal()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+            var animal = new Animal(
+                "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
+                "Friendly dog", "https://example.com/dog.jpg",
+                Status.Available, "Centro", "Sao Paulo", "Sé");
+            context.Set<Animal>().Add(animal);
+            context.SaveChanges();
+
+            var repository = new AnimalRepository(context);
+            var result = repository.GetById(animal.Id);
+
+            Assert.NotNull(result);
+            Assert.Equal("Rex", result!.Name);
+        }
+
+        [Fact]
+        public void GetById_NonExistentId_ReturnsNull()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+
+            var repository = new AnimalRepository(context);
+            var result = repository.GetById(Guid.NewGuid());
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void GetAll_NoAnimalsPersisted_ReturnsEmptyList()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+
+            var repository = new AnimalRepository(context);
+            var result = repository.GetAll(new AnimalFilter());
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GetAll_FilterMatchesNoAnimals_ReturnsEmptyList()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = CreateContext(dbName);
+            context.Set<Animal>().Add(new Animal(
+                "Rex", Species.Dog, Sex.Male, Size.Medium, 2,
+                "Friendly dog", "https://example.com/dog.jpg",
+                Status.Available, "Centro", "Sao Paulo", "Sé"));
+            context.SaveChanges();
+
+            var repository = new AnimalRepository(context);
+            var result = repository.GetAll(new AnimalFilter { Species = Species.Cat });
+
+            Assert.Empty(result);
+        }
     }
 }
