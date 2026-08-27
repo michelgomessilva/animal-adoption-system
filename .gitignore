@@ -4,3 +4,4 @@ Thumbs.db
 
 # Claude Code (machine-local overrides)
 .claude/settings.local.json
+CLAUDE.local.md
