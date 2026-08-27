@@ -19,7 +19,6 @@ using ONG.API.Middleware;
 using ONG.Application.UseCases.Animals.GetAnimalById;
 using ONG.Application.UseCases.Animals.UpdateAnimal;
 using ONG.Application.UseCases.OAuth.IssueClientToken;
-using ONG.API.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,8 +59,6 @@ options.UseNpgsql(
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.OperationFilter<SwaggerEnumParametersFilter>();
-
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
