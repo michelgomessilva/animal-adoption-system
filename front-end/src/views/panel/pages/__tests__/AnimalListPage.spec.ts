@@ -2,7 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '@/shared/api/api-error'
-import type { Animal } from '@/shared/types/animal'
+import { AnimalOrderBy, AnimalSpecies, AnimalStatus, type Animal } from '@/shared/types/animal'
 import AnimalListPage from '@/views/panel/pages/AnimalListPage.vue'
 import { createAnimal, createTestRouter, mountWithPlugins } from '@/__tests__/helpers'
 
@@ -67,9 +67,14 @@ describe('AnimalListPage', () => {
 
   it('loads with query filters from the URL', async () => {
     listAnimalsMock.mockResolvedValue([])
-    await mountListPage('/panel/animals?status=Adopted&orderBy=name')
+    await mountListPage(
+      `/panel/animals?status=${AnimalStatus.Adopted}&orderBy=${AnimalOrderBy.Name}`,
+    )
 
-    expect(listAnimalsMock).toHaveBeenCalledWith({ status: 'Adopted', orderBy: 'name' })
+    expect(listAnimalsMock).toHaveBeenCalledWith({
+      status: AnimalStatus.Adopted,
+      orderBy: AnimalOrderBy.Name,
+    })
   })
 
   it('updates the URL and refetches when a filter changes', async () => {
@@ -77,11 +82,11 @@ describe('AnimalListPage', () => {
     const { wrapper, router } = await mountListPage()
 
     listAnimalsMock.mockResolvedValue([])
-    await wrapper.get('select[name="species"]').setValue('Cat')
+    await wrapper.get('select[name="species"]').setValue(AnimalSpecies.Cat)
     await flushPromises()
 
-    expect(router.currentRoute.value.query).toEqual({ species: 'Cat' })
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: 'Cat' })
+    expect(router.currentRoute.value.query).toEqual({ species: AnimalSpecies.Cat })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: AnimalSpecies.Cat })
   })
 
   it('updates the URL and refetches when orderBy changes', async () => {
@@ -89,11 +94,11 @@ describe('AnimalListPage', () => {
     const { wrapper, router } = await mountListPage()
 
     listAnimalsMock.mockResolvedValue([luna])
-    await wrapper.get('select[name="orderBy"]').setValue('createdAt_desc')
+    await wrapper.get('select[name="orderBy"]').setValue(AnimalOrderBy.CreatedAtDesc)
     await flushPromises()
 
-    expect(router.currentRoute.value.query).toEqual({ orderBy: 'createdAt_desc' })
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ orderBy: 'createdAt_desc' })
+    expect(router.currentRoute.value.query).toEqual({ orderBy: AnimalOrderBy.CreatedAtDesc })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ orderBy: AnimalOrderBy.CreatedAtDesc })
   })
 
   it('shows an empty state when there are no animals', async () => {
@@ -105,7 +110,7 @@ describe('AnimalListPage', () => {
 
   it('shows a catalog empty state when only orderBy is set', async () => {
     listAnimalsMock.mockResolvedValue([])
-    const { wrapper } = await mountListPage('/panel/animals?orderBy=name')
+    const { wrapper } = await mountListPage(`/panel/animals?orderBy=${AnimalOrderBy.Name}`)
 
     expect(wrapper.text()).toContain('Nenhum animal cadastrado.')
     expect(wrapper.text()).not.toContain('Nenhum animal encontrado com esses filtros.')
@@ -113,7 +118,7 @@ describe('AnimalListPage', () => {
 
   it('shows a filtered empty state when filters match nothing', async () => {
     listAnimalsMock.mockResolvedValue([])
-    const { wrapper } = await mountListPage('/panel/animals?status=Adopted')
+    const { wrapper } = await mountListPage(`/panel/animals?status=${AnimalStatus.Adopted}`)
 
     expect(wrapper.text()).toContain('Nenhum animal encontrado com esses filtros.')
     expect(wrapper.text()).not.toContain('Nenhum animal cadastrado.')
@@ -148,12 +153,12 @@ describe('AnimalListPage', () => {
     listAnimalsMock
       .mockRejectedValueOnce(new ApiError('unknown', 500, 'Request failed'))
       .mockResolvedValueOnce([luna])
-    const { wrapper } = await mountListPage('/panel/animals?species=Dog')
+    const { wrapper } = await mountListPage(`/panel/animals?species=${AnimalSpecies.Dog}`)
 
     await wrapper.get('[role="alert"] button').trigger('click')
     await flushPromises()
 
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: 'Dog' })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: AnimalSpecies.Dog })
     expect(wrapper.get('table').text()).toContain('Luna')
   })
 })

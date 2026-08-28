@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { AnimalSex, AnimalSize, AnimalSpecies, AnimalStatus } from '@/shared/types/animal'
 import AnimalFormWizard from '@/views/panel/components/AnimalFormWizard.vue'
 
 describe('AnimalFormWizard', () => {
@@ -27,13 +28,13 @@ describe('AnimalFormWizard', () => {
         submitLabel: 'Salvar',
         initialDraft: {
           name: 'Luna',
-          species: 'Dog',
-          sex: 'Female',
-          size: 'Medium',
+          species: AnimalSpecies.Dog,
+          sex: AnimalSex.Female,
+          size: AnimalSize.Medium,
           description: 'Calma',
           approximateAge: 3,
           image: '',
-          status: 'Available',
+          status: AnimalStatus.Available,
           district: 'Centro',
           parish: 'Sé',
           city: 'Porto Alegre',

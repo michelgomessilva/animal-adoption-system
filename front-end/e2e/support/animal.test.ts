@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { AnimalSpecies, AnimalStatus } from '../../src/shared/types/animal'
 import { randomAnimalInput, randomFilterContrast, uniqueAnimalName } from './animal'
 import { faker } from './faker'
 
@@ -38,14 +39,14 @@ describe('randomAnimalInput', () => {
       expect(input.city.length).toBeLessThanOrEqual(30)
       expect(input.approximateAge).toBeGreaterThanOrEqual(0)
       expect(input.approximateAge).toBeLessThanOrEqual(30)
-      expect(input.status).toBe('Available')
+      expect(input.status).toBe(AnimalStatus.Available)
     }
   })
 
   it('applies overrides on top of the generated pet', () => {
-    const input = randomAnimalInput({ species: 'Cat', name: 'Mel 0001' })
+    const input = randomAnimalInput({ species: AnimalSpecies.Cat, name: 'Mel 0001' })
 
-    expect(input.species).toBe('Cat')
+    expect(input.species).toBe(AnimalSpecies.Cat)
     expect(input.name).toBe('Mel 0001')
   })
 })

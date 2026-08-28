@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { AnimalOrderBy, AnimalSize, AnimalSpecies } from '@/shared/types/animal'
 import AnimalCatalogFilters from '@/views/public/components/AnimalCatalogFilters.vue'
 
 describe('AnimalCatalogFilters', () => {
@@ -34,12 +35,12 @@ describe('AnimalCatalogFilters', () => {
     expect(gato).toBeDefined()
     await gato!.trigger('click')
 
-    expect(wrapper.emitted('setFilter')).toEqual([['species', 'Cat']])
+    expect(wrapper.emitted('setFilter')).toEqual([['species', AnimalSpecies.Cat]])
   })
 
   it('emits setFilter with undefined when the active species is clicked again', async () => {
     const wrapper = mount(AnimalCatalogFilters, {
-      props: { filters: { species: 'Cat' } },
+      props: { filters: { species: AnimalSpecies.Cat } },
     })
 
     const gato = wrapper.findAll('button').find((button) => button.text() === 'Gato')
@@ -57,7 +58,7 @@ describe('AnimalCatalogFilters', () => {
     expect(inactive.text()).not.toContain('Limpar')
 
     const active = mount(AnimalCatalogFilters, {
-      props: { filters: { orderBy: 'createdAt_desc' } },
+      props: { filters: { orderBy: AnimalOrderBy.CreatedAtDesc } },
     })
     const clear = active.get('button.btn-ghost')
     expect(clear.text()).toBe('Limpar')
@@ -68,7 +69,7 @@ describe('AnimalCatalogFilters', () => {
 
   it('marks the active size with btn-secondary and aria-pressed', () => {
     const wrapper = mount(AnimalCatalogFilters, {
-      props: { filters: { size: 'Medium' } },
+      props: { filters: { size: AnimalSize.Medium } },
     })
 
     const medio = wrapper.findAll('button').find((button) => button.text() === 'Médio')

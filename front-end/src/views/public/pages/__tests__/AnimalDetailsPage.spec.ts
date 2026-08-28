@@ -3,7 +3,7 @@ import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-rout
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '@/shared/api/api-error'
-import type { Animal } from '@/shared/types/animal'
+import { AnimalStatus, type Animal } from '@/shared/types/animal'
 import AnimalDetailsPage from '@/views/public/pages/AnimalDetailsPage.vue'
 import {
   createAnimal as createAnimalFixture,
@@ -82,7 +82,7 @@ describe('AnimalDetailsPage', () => {
   })
 
   it('shows an adopted status when the animal is adopted', async () => {
-    getAnimalByIdMock.mockResolvedValue(createAnimalFixture({ status: 'Adopted' }))
+    getAnimalByIdMock.mockResolvedValue(createAnimalFixture({ status: AnimalStatus.Adopted }))
     const router = await createDetailsRouter(luna.id)
     const wrapper = await mountWithPlugins(AnimalDetailsPage, { router })
     await flushPromises()
@@ -91,7 +91,19 @@ describe('AnimalDetailsPage', () => {
     expect(wrapper.find('.animal-details--adopted').exists()).toBe(true)
   })
 
-  it('treats case-insensitive Adopted status as adopted chrome', async () => {
+  it('shows in-adoption-process status without adopted chrome', async () => {
+    getAnimalByIdMock.mockResolvedValue(
+      createAnimalFixture({ status: AnimalStatus.InAdoptionProcess }),
+    )
+    const router = await createDetailsRouter(luna.id)
+    const wrapper = await mountWithPlugins(AnimalDetailsPage, { router })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Em processo de adoção')
+    expect(wrapper.find('.animal-details--adopted').exists()).toBe(false)
+  })
+
+  it('does not treat wrong-case adopted as adopted chrome', async () => {
     getAnimalByIdMock.mockResolvedValue({
       ...createAnimalFixture(),
       status: 'adopted',
@@ -100,8 +112,8 @@ describe('AnimalDetailsPage', () => {
     const wrapper = await mountWithPlugins(AnimalDetailsPage, { router })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Adotado')
-    expect(wrapper.find('.animal-details--adopted').exists()).toBe(true)
+    expect(wrapper.find('.animal-details--adopted').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Não informado')
   })
 
   it('shows Sem nome and Não informado without marking unknown status as adopted', async () => {

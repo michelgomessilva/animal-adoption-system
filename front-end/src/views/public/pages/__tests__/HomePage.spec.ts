@@ -2,7 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '@/shared/api/api-error'
-import type { Animal } from '@/shared/types/animal'
+import { AnimalOrderBy, AnimalSpecies, type Animal } from '@/shared/types/animal'
 import HomePage from '@/views/public/pages/HomePage.vue'
 import { createAnimal, createTestRouter, mountWithPlugins } from '@/__tests__/helpers'
 
@@ -81,11 +81,11 @@ describe('HomePage', () => {
 
   it('loads with query filters from the URL', async () => {
     listAnimalsMock.mockResolvedValue([])
-    await mountHomePage('/?species=Cat&orderBy=createdAt_desc')
+    await mountHomePage(`/?species=${AnimalSpecies.Cat}&orderBy=${AnimalOrderBy.CreatedAtDesc}`)
 
     expect(listAnimalsMock).toHaveBeenCalledWith({
-      species: 'Cat',
-      orderBy: 'createdAt_desc',
+      species: AnimalSpecies.Cat,
+      orderBy: AnimalOrderBy.CreatedAtDesc,
     })
   })
 
@@ -99,8 +99,8 @@ describe('HomePage', () => {
     await gato!.trigger('click')
     await flushPromises()
 
-    expect(router.currentRoute.value.query).toEqual({ species: 'Cat' })
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: 'Cat' })
+    expect(router.currentRoute.value.query).toEqual({ species: AnimalSpecies.Cat })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: AnimalSpecies.Cat })
   })
 
   it('updates the URL and refetches when orderBy changes', async () => {
@@ -108,16 +108,16 @@ describe('HomePage', () => {
     const { wrapper, router } = await mountHomePage()
 
     listAnimalsMock.mockResolvedValue([luna])
-    await wrapper.get('select[name="orderBy"]').setValue('createdAt_desc')
+    await wrapper.get('select[name="orderBy"]').setValue(AnimalOrderBy.CreatedAtDesc)
     await flushPromises()
 
-    expect(router.currentRoute.value.query).toEqual({ orderBy: 'createdAt_desc' })
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ orderBy: 'createdAt_desc' })
+    expect(router.currentRoute.value.query).toEqual({ orderBy: AnimalOrderBy.CreatedAtDesc })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ orderBy: AnimalOrderBy.CreatedAtDesc })
   })
 
   it('shows a filtered empty state when filters match nothing', async () => {
     listAnimalsMock.mockResolvedValue([])
-    const { wrapper } = await mountHomePage('/?species=Cat')
+    const { wrapper } = await mountHomePage(`/?species=${AnimalSpecies.Cat}`)
 
     expect(wrapper.text()).toContain('ajuste a busca e continue')
     expect(wrapper.text()).not.toContain('Em breve novos pets')
@@ -125,7 +125,7 @@ describe('HomePage', () => {
 
   it('shows a catalog empty state when only orderBy is set', async () => {
     listAnimalsMock.mockResolvedValue([])
-    const { wrapper } = await mountHomePage('/?orderBy=name')
+    const { wrapper } = await mountHomePage(`/?orderBy=${AnimalOrderBy.Name}`)
 
     expect(wrapper.text()).toContain('Em breve novos pets')
     expect(wrapper.text()).not.toContain('ajuste a busca e continue')
@@ -151,12 +151,14 @@ describe('HomePage', () => {
 
   it('removes a species chip and updates the URL', async () => {
     listAnimalsMock.mockResolvedValue([luna])
-    const { wrapper, router } = await mountHomePage('/?species=Dog&orderBy=name')
+    const { wrapper, router } = await mountHomePage(
+      `/?species=${AnimalSpecies.Dog}&orderBy=${AnimalOrderBy.Name}`,
+    )
 
     await wrapper.get('[aria-label="Remover filtro Cachorro"]').trigger('click')
     await flushPromises()
 
-    expect(router.currentRoute.value.query).toEqual({ orderBy: 'name' })
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ orderBy: 'name' })
+    expect(router.currentRoute.value.query).toEqual({ orderBy: AnimalOrderBy.Name })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ orderBy: AnimalOrderBy.Name })
   })
 })

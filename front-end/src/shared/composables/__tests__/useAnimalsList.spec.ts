@@ -5,7 +5,12 @@ import { mount } from '@vue/test-utils'
 
 import { ApiError } from '@/shared/api/api-error'
 import { useAnimalsList } from '@/shared/composables/useAnimalsList'
-import type { Animal, AnimalListQuery } from '@/shared/types/animal'
+import {
+  AnimalSpecies,
+  AnimalStatus,
+  type Animal,
+  type AnimalListQuery,
+} from '@/shared/types/animal'
 import { createAnimal } from '@/__tests__/helpers'
 
 vi.mock('@/shared/api/animals', () => ({
@@ -44,20 +49,20 @@ describe('useAnimalsList', () => {
   })
 
   it('refetches when the query changes', async () => {
-    const query = ref<AnimalListQuery>({ status: 'Adopted' })
-    listAnimalsMock.mockResolvedValue([createAnimal({ status: 'Adopted' })])
+    const query = ref<AnimalListQuery>({ status: AnimalStatus.Adopted })
+    listAnimalsMock.mockResolvedValue([createAnimal({ status: AnimalStatus.Adopted })])
     const wrapper = mountList(query)
     await flushPromises()
 
-    expect(listAnimalsMock).toHaveBeenCalledWith({ status: 'Adopted' })
+    expect(listAnimalsMock).toHaveBeenCalledWith({ status: AnimalStatus.Adopted })
 
-    listAnimalsMock.mockResolvedValue([createAnimal({ species: 'Cat' })])
-    query.value = { species: 'Cat' }
+    listAnimalsMock.mockResolvedValue([createAnimal({ species: AnimalSpecies.Cat })])
+    query.value = { species: AnimalSpecies.Cat }
     await nextTick()
     await flushPromises()
 
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: 'Cat' })
-    expect(wrapper.vm.animals[0]?.species).toBe('Cat')
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: AnimalSpecies.Cat })
+    expect(wrapper.vm.animals[0]?.species).toBe(AnimalSpecies.Cat)
   })
 
   it('ignores a stale response after a newer query', async () => {
@@ -67,17 +72,17 @@ describe('useAnimalsList', () => {
     })
     listAnimalsMock.mockReturnValueOnce(first)
 
-    const query = ref<AnimalListQuery>({ status: 'Adopted' })
+    const query = ref<AnimalListQuery>({ status: AnimalStatus.Adopted })
     const wrapper = mountList(query)
     await nextTick()
 
-    const secondResult = [createAnimal({ species: 'Cat', name: 'Mimi' })]
+    const secondResult = [createAnimal({ species: AnimalSpecies.Cat, name: 'Mimi' })]
     listAnimalsMock.mockResolvedValueOnce(secondResult)
-    query.value = { species: 'Cat' }
+    query.value = { species: AnimalSpecies.Cat }
     await nextTick()
     await flushPromises()
 
-    resolveFirst([createAnimal({ status: 'Adopted', name: 'Old' })])
+    resolveFirst([createAnimal({ status: AnimalStatus.Adopted, name: 'Old' })])
     await flushPromises()
 
     expect(wrapper.vm.animals).toEqual(secondResult)
@@ -102,7 +107,7 @@ describe('useAnimalsList', () => {
   })
 
   it('reloads with the current query after a failure', async () => {
-    const query = ref<AnimalListQuery>({ species: 'Dog' })
+    const query = ref<AnimalListQuery>({ species: AnimalSpecies.Dog })
     listAnimalsMock
       .mockRejectedValueOnce(new ApiError('unknown', 500, 'Request failed'))
       .mockResolvedValueOnce([createAnimal()])
@@ -112,7 +117,7 @@ describe('useAnimalsList', () => {
     await wrapper.vm.reload()
     await flushPromises()
 
-    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: 'Dog' })
+    expect(listAnimalsMock).toHaveBeenLastCalledWith({ species: AnimalSpecies.Dog })
     expect(wrapper.vm.hasError).toBe(false)
     expect(wrapper.vm.animals).toHaveLength(1)
   })

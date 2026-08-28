@@ -4,7 +4,13 @@ import { vi } from 'vitest'
 import { createMemoryHistory, createRouter, type RouteRecordRaw, type Router } from 'vue-router'
 import type { Component } from 'vue'
 
-import type { Animal } from '@/shared/types/animal'
+import {
+  AnimalSex,
+  AnimalSize,
+  AnimalSpecies,
+  AnimalStatus,
+  type Animal,
+} from '@/shared/types/animal'
 
 export function firstFetchRequest(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>): Request {
   const call = fetchMock.mock.calls[0]
@@ -20,13 +26,13 @@ export function createAnimal(overrides: Partial<Animal> = {}): Animal {
   return {
     id: '11111111-1111-1111-1111-111111111111',
     name: 'Luna',
-    sex: 'Female',
-    size: 'Medium',
-    species: 'Dog',
+    sex: AnimalSex.Female,
+    size: AnimalSize.Medium,
+    species: AnimalSpecies.Dog,
     approximateAge: 3,
     description: 'Calma',
     image: 'https://picsum.photos/400/300',
-    status: 'Available',
+    status: AnimalStatus.Available,
     district: 'Centro',
     parish: 'Sé',
     city: 'Porto Alegre',

@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '@/shared/api/api-error'
-import type { Animal } from '@/shared/types/animal'
+import { AnimalStatus, type Animal } from '@/shared/types/animal'
 import AnimalCreatePage from '@/views/panel/pages/AnimalCreatePage.vue'
 import {
   createAnimal as createAnimalFixture,
@@ -74,7 +74,7 @@ describe('AnimalCreatePage', () => {
         parish: 'Sé',
         city: 'Porto Alegre',
         image: '',
-        status: 'Available',
+        status: AnimalStatus.Available,
       }),
     )
     expect(replace).toHaveBeenCalledWith({ name: 'panel-animals' })

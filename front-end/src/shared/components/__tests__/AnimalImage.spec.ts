@@ -2,11 +2,16 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import AnimalImage from '@/shared/components/AnimalImage.vue'
+import { AnimalSpecies } from '@/shared/types/animal'
 
 describe('AnimalImage', () => {
   it('renders the photo when a URL is provided', () => {
     const wrapper = mount(AnimalImage, {
-      props: { src: 'https://example.com/luna.jpg', name: 'Luna', species: 'Dog' },
+      props: {
+        src: 'https://example.com/luna.jpg',
+        name: 'Luna',
+        species: AnimalSpecies.Dog,
+      },
     })
 
     expect(wrapper.get('img').attributes('src')).toBe('https://example.com/luna.jpg')
@@ -20,7 +25,7 @@ describe('AnimalImage', () => {
       props: {
         src: 'https://example.com/luna.jpg',
         name: 'Luna',
-        species: 'Dog',
+        species: AnimalSpecies.Dog,
         priority: true,
       },
     })
@@ -31,7 +36,7 @@ describe('AnimalImage', () => {
 
   it('shows a species fallback when the URL is empty', () => {
     const wrapper = mount(AnimalImage, {
-      props: { src: '', name: 'Mimi', species: 'Cat' },
+      props: { src: '', name: 'Mimi', species: AnimalSpecies.Cat },
     })
 
     expect(wrapper.find('img').exists()).toBe(false)
@@ -41,7 +46,7 @@ describe('AnimalImage', () => {
 
   it('applies the dog tone class for Dog fallbacks', () => {
     const wrapper = mount(AnimalImage, {
-      props: { src: '', name: 'Rex', species: 'Dog' },
+      props: { src: '', name: 'Rex', species: AnimalSpecies.Dog },
     })
 
     expect(wrapper.classes()).toContain('animal-image--dog')
@@ -69,7 +74,11 @@ describe('AnimalImage', () => {
 
   it('shows a species fallback when the photo fails to load', async () => {
     const wrapper = mount(AnimalImage, {
-      props: { src: 'https://example.com/missing.jpg', name: 'Luna', species: 'Dog' },
+      props: {
+        src: 'https://example.com/missing.jpg',
+        name: 'Luna',
+        species: AnimalSpecies.Dog,
+      },
     })
 
     await wrapper.get('img').trigger('error')

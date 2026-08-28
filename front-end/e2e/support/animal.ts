@@ -3,6 +3,7 @@ import {
   ANIMAL_SIZE_OPTIONS,
   ANIMAL_SPECIES_OPTIONS,
   ANIMAL_STATUS_OPTIONS,
+  AnimalStatus,
   type AnimalWriteInput,
 } from '../../src/shared/types/animal'
 import {
@@ -101,7 +102,7 @@ export function randomAnimalInput(overrides: Partial<AnimalWriteInput> = {}): An
     description: randomDescription(),
     approximateAge: faker.number.int({ min: 0, max: AGE_MAX }),
     image: '',
-    status: 'Available',
+    status: AnimalStatus.Available,
     district: fit(faker.location.street(), LOCATION_MAX, 'Centro'),
     parish: fit(faker.location.county(), PARISH_MAX, 'Sé'),
     city: fit(faker.location.city(), LOCATION_MAX, 'Porto Alegre'),

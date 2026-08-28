@@ -83,12 +83,14 @@ describe('apiRequest', () => {
     )
     vi.stubGlobal('fetch', fetchMock)
 
-    await apiRequest('api/animals', { searchParams: { species: 'Dog', status: 'Adopted' } })
+    await apiRequest('api/animals', {
+      searchParams: { species: 'DOG', status: 'ADOPTED' },
+    })
 
     const url = new URL(firstFetchRequest(fetchMock).url)
     expect(url.pathname).toBe('/api/animals')
-    expect(url.searchParams.get('species')).toBe('Dog')
-    expect(url.searchParams.get('status')).toBe('Adopted')
+    expect(url.searchParams.get('species')).toBe('DOG')
+    expect(url.searchParams.get('status')).toBe('ADOPTED')
   })
 
   it('throws unauthorized without calling the handler when skipAuth is true', async () => {

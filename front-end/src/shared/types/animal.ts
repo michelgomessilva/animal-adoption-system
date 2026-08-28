@@ -1,52 +1,56 @@
-export type AnimalSpecies = 'Dog' | 'Cat'
-export type AnimalSex = 'Male' | 'Female'
-export type AnimalSize = 'Small' | 'Medium' | 'Large'
-export type AnimalStatus = 'Available' | 'Adopted'
-export type AnimalOrderBy =
-  | 'name'
-  | 'name_desc'
-  | 'species'
-  | 'species_desc'
-  | 'size'
-  | 'size_desc'
-  | 'createdAt'
-  | 'createdAt_desc'
+export const AnimalSpecies = {
+  Dog: 'DOG',
+  Cat: 'CAT',
+} as const
+export type AnimalSpecies = (typeof AnimalSpecies)[keyof typeof AnimalSpecies]
 
-export const ANIMAL_SPECIES_OPTIONS = ['Dog', 'Cat'] as const satisfies readonly AnimalSpecies[]
-export const ANIMAL_SEX_OPTIONS = ['Male', 'Female'] as const satisfies readonly AnimalSex[]
-export const ANIMAL_SIZE_OPTIONS = [
-  'Small',
-  'Medium',
-  'Large',
-] as const satisfies readonly AnimalSize[]
-export const ANIMAL_STATUS_OPTIONS = [
-  'Available',
-  'Adopted',
-] as const satisfies readonly AnimalStatus[]
-export const ANIMAL_ORDER_BY_OPTIONS = [
-  'name',
-  'name_desc',
-  'species',
-  'species_desc',
-  'size',
-  'size_desc',
-  'createdAt',
-  'createdAt_desc',
-] as const satisfies readonly AnimalOrderBy[]
+export const AnimalSex = {
+  Male: 'MALE',
+  Female: 'FEMALE',
+} as const
+export type AnimalSex = (typeof AnimalSex)[keyof typeof AnimalSex]
+
+export const AnimalSize = {
+  Small: 'SMALL',
+  Medium: 'MEDIUM',
+  Large: 'LARGE',
+} as const
+export type AnimalSize = (typeof AnimalSize)[keyof typeof AnimalSize]
+
+export const AnimalStatus = {
+  Available: 'AVAILABLE',
+  InAdoptionProcess: 'IN_ADOPTION_PROCESS',
+  Adopted: 'ADOPTED',
+} as const
+export type AnimalStatus = (typeof AnimalStatus)[keyof typeof AnimalStatus]
+
+export const AnimalOrderBy = {
+  Name: 'name',
+  NameDesc: 'name_desc',
+  Species: 'species',
+  SpeciesDesc: 'species_desc',
+  Size: 'size',
+  SizeDesc: 'size_desc',
+  CreatedAt: 'createdAt',
+  CreatedAtDesc: 'createdAt_desc',
+} as const
+export type AnimalOrderBy = (typeof AnimalOrderBy)[keyof typeof AnimalOrderBy]
+
+function valuesOf<T extends Record<string, string>>(enumObject: T): readonly T[keyof T][] {
+  return Object.values(enumObject) as T[keyof T][]
+}
+
+export const ANIMAL_SPECIES_OPTIONS = valuesOf(AnimalSpecies)
+export const ANIMAL_SEX_OPTIONS = valuesOf(AnimalSex)
+export const ANIMAL_SIZE_OPTIONS = valuesOf(AnimalSize)
+export const ANIMAL_STATUS_OPTIONS = valuesOf(AnimalStatus)
+export const ANIMAL_ORDER_BY_OPTIONS = valuesOf(AnimalOrderBy)
 
 const ANIMAL_ID_PATTERN =
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
 export function isAnimalId(value: string): boolean {
   return ANIMAL_ID_PATTERN.test(value)
-}
-
-function matchesOptionIgnoreCase<T extends string>(
-  value: string,
-  options: readonly T[],
-): T | undefined {
-  const normalized = value.toLowerCase()
-  return options.find((option) => option.toLowerCase() === normalized)
 }
 
 export function isAnimalSpecies(value: string): value is AnimalSpecies {
@@ -69,30 +73,31 @@ export function isAnimalOrderBy(value: string): value is AnimalOrderBy {
   return (ANIMAL_ORDER_BY_OPTIONS as readonly string[]).includes(value)
 }
 
-// isAnimal*: exact, case-sensitive guards for filter/query strings.
-// canonicalAnimal*: case-insensitive normalize for API/display/write; None/numbers → null.
-function canonicalEnumValue<T extends string>(value: unknown, options: readonly T[]): T | null {
+function canonicalEnumValue<T extends string>(
+  value: unknown,
+  isMember: (value: string) => value is T,
+): T | null {
   if (typeof value !== 'string' || value.length === 0) {
     return null
   }
 
-  return matchesOptionIgnoreCase(value, options) ?? null
+  return isMember(value) ? value : null
 }
 
 export function canonicalAnimalSpecies(value: unknown): AnimalSpecies | null {
-  return canonicalEnumValue(value, ANIMAL_SPECIES_OPTIONS)
+  return canonicalEnumValue(value, isAnimalSpecies)
 }
 
 export function canonicalAnimalSex(value: unknown): AnimalSex | null {
-  return canonicalEnumValue(value, ANIMAL_SEX_OPTIONS)
+  return canonicalEnumValue(value, isAnimalSex)
 }
 
 export function canonicalAnimalSize(value: unknown): AnimalSize | null {
-  return canonicalEnumValue(value, ANIMAL_SIZE_OPTIONS)
+  return canonicalEnumValue(value, isAnimalSize)
 }
 
 export function canonicalAnimalStatus(value: unknown): AnimalStatus | null {
-  return canonicalEnumValue(value, ANIMAL_STATUS_OPTIONS)
+  return canonicalEnumValue(value, isAnimalStatus)
 }
 
 export interface AnimalListQuery {
@@ -115,39 +120,42 @@ function firstQueryString(value: unknown): string | undefined {
   return undefined
 }
 
-function parseEnumQueryValue<T extends string>(raw: unknown, options: readonly T[]): T | undefined {
+function parseEnumQueryValue<T extends string>(
+  raw: unknown,
+  isMember: (value: string) => value is T,
+): T | undefined {
   const text = firstQueryString(raw)
-  if (text === undefined || text.length === 0) {
+  if (text === undefined) {
     return undefined
   }
 
-  return matchesOptionIgnoreCase(text, options)
+  return canonicalEnumValue(text, isMember) ?? undefined
 }
 
 export function parseAnimalListQuery(query: Record<string, unknown>): AnimalListQuery {
   const result: AnimalListQuery = {}
 
-  const species = parseEnumQueryValue(query.species, ANIMAL_SPECIES_OPTIONS)
+  const species = parseEnumQueryValue(query.species, isAnimalSpecies)
   if (species !== undefined) {
     result.species = species
   }
 
-  const sex = parseEnumQueryValue(query.sex, ANIMAL_SEX_OPTIONS)
+  const sex = parseEnumQueryValue(query.sex, isAnimalSex)
   if (sex !== undefined) {
     result.sex = sex
   }
 
-  const size = parseEnumQueryValue(query.size, ANIMAL_SIZE_OPTIONS)
+  const size = parseEnumQueryValue(query.size, isAnimalSize)
   if (size !== undefined) {
     result.size = size
   }
 
-  const status = parseEnumQueryValue(query.status, ANIMAL_STATUS_OPTIONS)
+  const status = parseEnumQueryValue(query.status, isAnimalStatus)
   if (status !== undefined) {
     result.status = status
   }
 
-  const orderBy = parseEnumQueryValue(query.orderBy, ANIMAL_ORDER_BY_OPTIONS)
+  const orderBy = parseEnumQueryValue(query.orderBy, isAnimalOrderBy)
   if (orderBy !== undefined) {
     result.orderBy = orderBy
   }
